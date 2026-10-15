@@ -1,0 +1,146 @@
+/* Chart marks. Colors come only from tokens, and each series color means one thing on every chart: --ffs (teal) is
+   traditional Medicare, --ma (amber) is Medicare Advantage. The calculator's two scenarios are both MA patients, so both
+   are amber: "Today" solid, "With faster decisions" dashed. Thin marks, solid hairline grid, text in ink tokens. */
+
+/* Bed board: filled = a patient in the bed, outlined = an open bed; amber = held by longer MA stays, and the held beds
+   faster decisions would free are smaller amber squares, inset in their cells (bedBoard.js draws the inset). */
+.bb { min-width: 0; }
+.bb__svg { display: block; max-width: 100%; height: auto; overflow: visible; shape-rendering: crispEdges; }
+.bb-occ { fill: var(--bed-occ); }
+.bb-held { fill: var(--ma); }
+.bb-freed { fill: var(--ma); }
+.bb-empty { fill: none; stroke: var(--field-line); stroke-width: 1px; }
+/* On a fine board (cells under 7 px) full-strength outlines merge into a bright mesh: the open beds read as a block. */
+.bb__svg--fine .bb-empty { stroke-opacity: .55; }
+
+/* MA-share curve */
+.curve { min-width: 0; }
+.curve__svg { display: block; max-width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+.curve__grid { stroke: var(--rule); stroke-width: 1; shape-rendering: crispEdges; }
+.curve__base { stroke: var(--ink-3); stroke-width: 1; shape-rendering: crispEdges; }
+.curve__ytick text, .curve__xtick text { font: 500 var(--fs-chart-tick)/1 var(--font-mono); fill: var(--ink-3); }
+.curve__axis-title { font: 400 var(--fs-chart-tick)/1 var(--font-body); fill: var(--ink-2); }
+.curve__line { fill: none; stroke: var(--ma); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.curve__line--faster { stroke-dasharray: 6 5; stroke-linecap: butt; }
+.curve__marker { stroke: var(--ink-2); stroke-width: 1; }
+.curve__marker-label { font: 500 var(--fs-chart-tick)/1 var(--font-mono); fill: var(--ink); }
+.curve__dot { stroke: var(--surface); stroke-width: 2; pointer-events: none; }
+.curve__dot--beds { fill: var(--ma); }
+.curve__dot--bedsFaster { fill: var(--surface); stroke: var(--ma); }
+.curve__cross { stroke: var(--ink-3); stroke-width: 1; pointer-events: none; }
+.curve__hit { fill: transparent; cursor: crosshair; }
+.curve__end { font: 600 var(--fs-chart-end)/1 var(--font-body); fill: var(--ink); }
+
+/* Legend and tooltip keys mirror the marks: a short stroke per line series. */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0 0 var(--sp-3); padding: 0; list-style: none; font-size: var(--fs-sm); color: var(--ink-2); }
+.legend li { display: inline-flex; align-items: center; gap: 8px; }
+/* Overpass's line box runs deep below the baseline, so a centered key sits low: lift it to the middle of the x-height. */
+.legend li .key { transform: translateY(-2px); }
+.linekey { flex: none; width: 24px; height: 8px; overflow: visible; }
+.tip__row { display: flex; align-items: center; gap: 7px; }
+.tip__row strong { font-weight: 700; }
+
+/* ---------- Story charts: dumbbell, mix bars, line series ---------- */
+.chartbox, .chart { min-width: 0; }
+.chart svg { display: block; max-width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+.key { flex: none; width: 24px; height: 10px; overflow: visible; }
+.key--swatch { width: 12px; }
+.key__mark--ffs { fill: var(--ffs); }
+.key__mark--ma { fill: var(--ma); }
+.key__mark--none { fill: var(--mix-none); stroke: var(--field-line); stroke-width: 1px; }
+.key__mark--hha { fill: var(--mix-hha); }
+.key__mark--snf { fill: var(--mix-snf); }
+.key__mark--irf { fill: var(--mix-irf); }
+.key__mark--covid { fill: var(--covid-wash); stroke: var(--rule-wall); stroke-width: 1; }
+.key__line { stroke-width: 2; stroke-linecap: round; }
+.key__line--dash { stroke-dasharray: 6 5; stroke-linecap: butt; }
+.key__line--marker { stroke: var(--ink-2); stroke-width: 1; stroke-linecap: butt; }
+.key__line--ma, .ls__line--ma { stroke: var(--ma); }
+.key__line--ffs, .ls__line--ffs { stroke: var(--ffs); }
+.linekey .ls__line { fill: none; }
+:root { --covid-wash: color-mix(in srgb, var(--ink) 7%, var(--surface));
+  --mix-none: color-mix(in srgb, var(--ink) 13%, var(--surface)); --mix-hha: color-mix(in srgb, var(--ink) 34%, var(--surface));
+  --mix-snf: color-mix(in srgb, var(--ink) 64%, var(--surface)); --mix-irf: color-mix(in srgb, var(--ink) 84%, var(--surface)); }
+.tip__dot { flex: none; width: 9px; height: 9px; border-radius: 50%; }
+.tip__dot--ffs { background: var(--ffs); }
+.tip__dot--ma { background: var(--ma); }
+.tip__note { display: block; margin-top: 3px; opacity: .85; }
+
+/* Dumbbell */
+.db__svg text { font-family: var(--font-body); }
+.db__ticks text { font: 500 var(--fs-chart-tick)/1 var(--font-mono); fill: var(--ink-3); }
+.db__grid { stroke: var(--rule); stroke-width: 1; shape-rendering: crispEdges; }
+.db__base { stroke: var(--ink-3); stroke-width: 1; shape-rendering: crispEdges; }
+.db__axis-title { font: 400 var(--fs-chart-tick)/1 var(--font-body); fill: var(--ink-2); }
+.db__picto path { fill: var(--ink); }
+.db__name { font: 700 var(--fs-chart-label)/1 var(--font-body); fill: var(--ink); }
+.db__adj { font: 500 var(--fs-chart-value)/1 var(--font-mono); fill: var(--ink-2); }
+.db__link { stroke: var(--field-line); stroke-width: 2; stroke-linecap: round; }
+.db__dot { stroke: var(--surface); stroke-width: 2; }
+.db__dot--ffs { fill: var(--ffs); }
+.db__dot--ma { fill: var(--ma); }
+.db__val { font: 500 var(--fs-chart-value)/1 var(--font-mono); fill: var(--ink); }
+.db__hit { fill: transparent; }
+.db__row:hover .db__hit { fill: color-mix(in srgb, var(--ink) 4%, transparent); }
+
+/* Mix bars */
+.mix__svg text { font-family: var(--font-body); }
+.mix__name { font: 700 var(--fs-chart-label)/1 var(--font-body); fill: var(--ink); }
+.mix__id--ffs { fill: var(--ffs); }
+.mix__id--ma { fill: var(--ma); }
+.mix__track { fill: none; }
+.mix__seg { stroke: var(--surface); stroke-width: 2; paint-order: stroke; }
+.mix__seg:hover { opacity: .82; }
+.mix__seg--none { fill: var(--mix-none); stroke: var(--field-line); }
+.mix__seg--hha { fill: var(--mix-hha); }
+.mix__seg--snf { fill: var(--mix-snf); }
+.mix__seg--irf { fill: var(--mix-irf); }
+.mix__val { font: 500 var(--fs-chart-value)/1 var(--font-mono); }
+.mix__val--none, .mix__val--hha { fill: var(--ink); }
+.mix__val--snf, .mix__val--irf { fill: var(--surface); }
+
+/* Line series */
+.ls__svg text { font-family: var(--font-body); }
+.ls__yticks text, .ls__xticks text { font: 500 var(--fs-chart-tick)/1 var(--font-mono); fill: var(--ink-3); }
+.ls__axis-title { font: 400 var(--fs-chart-tick)/1 var(--font-body); fill: var(--ink-2); }
+.ls__grid { stroke: var(--rule); stroke-width: 1; shape-rendering: crispEdges; }
+.ls__base { stroke: var(--ink-3); stroke-width: 1; shape-rendering: crispEdges; }
+.ls__line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ls__dot { stroke: var(--surface); stroke-width: 2; pointer-events: none; }
+.ls__dot--ma { fill: var(--ma); }
+.ls__dot--ffs { fill: var(--ffs); }
+.ls__shade { fill: var(--covid-wash); }
+.ls__shade-label { font: 400 var(--fs-chart-tick)/1 var(--font-body); fill: var(--ink-3); }
+.ls__break rect { fill: var(--surface); }
+.ls__break path { fill: none; stroke: var(--ink-2); stroke-width: 1.5; }
+.ls__end { font: 600 var(--fs-chart-end)/1 var(--font-body); fill: var(--ink); }
+.ls__cross { stroke: var(--ink-3); stroke-width: 1; pointer-events: none; }
+.ls__hit { fill: transparent; cursor: crosshair; }
+
+/* Notes and the hospital lookup under the figures */
+.fig-note, .note-src { color: var(--ink-2); }
+.fig-note, .sec__body > .fig-note { max-width: var(--measure-sm); margin: calc(var(--sp-5) * -1) 0 var(--sp-6); font-size: var(--fs-sm); }
+.callout__src { display: block; max-width: var(--measure-xs); margin-top: 2px; font-size: var(--fs-xs); color: var(--ink-3); }
+.lookup { max-width: var(--measure); margin: var(--sp-7) 0 0; padding-top: var(--sp-5); border-top: 1px solid var(--rule); }
+.lookup__title { margin-bottom: var(--sp-2); font-size: var(--fs-md); }
+.lookup__text { margin: 0 0 var(--sp-4); color: var(--ink-2); }
+
+/* Hospital profile: gap strip */
+.gs__svg text { font-family: var(--font-body); }
+.gs__yticks text, .gs__xticks text { font: 500 var(--fs-chart-tick)/1 var(--font-mono); fill: var(--ink-3); }
+.gs__axis-title { font: 400 var(--fs-chart-tick)/1 var(--font-body); fill: var(--ink-2); }
+.gs__grid { stroke: var(--rule); stroke-width: 1; shape-rendering: crispEdges; }
+.gs__base { stroke: var(--ink-3); stroke-width: 1; shape-rendering: crispEdges; }
+.gs__zero { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; shape-rendering: crispEdges; }
+/* Bars at about 3:1 on the surface (WCAG 1.4.11); the hovered bar darkens. */
+.gs__bar { fill: color-mix(in srgb, var(--ink) 50%, var(--surface)); }
+.gs__bar:hover { fill: var(--mix-snf); }
+.gs__bar--own { fill: var(--ma); }
+.gs__you line { stroke: var(--ink); stroke-width: 1.5; }
+.gs__flag { fill: var(--ink); }
+.gs__you text { font: 700 var(--fs-chart-end)/1 var(--font-body); fill: var(--ink); }
+.gs__band path { fill: none; stroke: var(--ink-2); stroke-width: 1.5; }
+.gs__band .gs__median { stroke-width: 3; }
+.gs__band text { font: 400 var(--fs-chart-tick)/1 var(--font-body); fill: var(--ink-2); }
+.gs__bar--over { fill: color-mix(in srgb, var(--ink) 13%, var(--surface)); stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 2; }
+.gs__bar--over.gs__bar--own { fill: var(--ma); }

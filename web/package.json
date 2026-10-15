@@ -1,0 +1,28 @@
+{
+  "name": "awaiting-placement-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "e2e": "node e2e/smoke.mjs",
+    "e2e:headers": "node e2e/headers.mjs",
+    "e2e:docs": "E2E_DOCS=1 node e2e/smoke.mjs && E2E_DOCS=1 node e2e/headers.mjs",
+    "shot": "node e2e/shot.mjs"
+  },
+  "dependencies": {
+    "d3-array": "3.2.4",
+    "d3-axis": "3.0.0",
+    "d3-ease": "3.0.1",
+    "d3-format": "3.1.2",
+    "d3-scale": "4.0.2",
+    "d3-selection": "3.0.0",
+    "d3-shape": "3.2.0",
+    "d3-transition": "3.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "linkedom": "0.18.12",
+    "playwright": "1.64.0"
+  }
+}

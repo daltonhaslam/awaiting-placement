@@ -1,0 +1,154 @@
+[
+ {
+  "label": "CMS, Cost Reports (HCRIS), hospital form CMS-2552-10",
+  "url": "https://www.cms.gov/data-research/statistics-trends-and-reports/cost-reports/hospital-2552-2010-form",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "CMS Provider Data Catalog, Hospital General Information (dataset xubh-q36u)",
+  "url": "https://data.cms.gov/provider-data/dataset/xubh-q36u",
+  "type": "gov",
+  "verified": true,
+  "via": "https://data.cms.gov/provider-data/api/1/metastore/schemas/dataset/items/xubh-q36u"
+ },
+ {
+  "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+  "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+  "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "KFF, Medicare Advantage in 2026: Enrollment Update and Key Trends",
+  "url": "https://www.kff.org/medicare/medicare-advantage-enrollment-update-and-key-trends/",
+  "type": "nonprofit",
+  "verified": true
+ },
+ {
+  "label": "KFF, MA insurers deny prior authorization requests for post-acute care at higher rates (Jul. 6, 2026)",
+  "url": "https://www.kff.org/medicare/medicare-advantage-insurers-deny-prior-authorization-requests-for-post-acute-care-at-substantially-higher-rates-than-the-overall-denial-rate/",
+  "type": "nonprofit",
+  "verified": true
+ },
+ {
+  "label": "KFF State Health Facts, Hospital Expenses per Adjusted Inpatient Day (2023: $3,131.91)",
+  "url": "https://www.kff.org/health-costs/state-indicator/expenses-per-inpatient-day/",
+  "type": "nonprofit",
+  "verified": true
+ },
+ {
+  "label": "eCFR, 42 CFR 422.568, standard organization determination timeframes",
+  "url": "https://www.ecfr.gov/current/title-42/section-422.568",
+  "type": "gov",
+  "verified": true,
+  "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.568"
+ },
+ {
+  "label": "eCFR, 42 CFR 422.572, expedited organization determination timeframes",
+  "url": "https://www.ecfr.gov/current/title-42/section-422.572",
+  "type": "gov",
+  "verified": true,
+  "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.572"
+ },
+ {
+  "label": "eCFR, 42 CFR 422.101, requirements relating to basic benefits",
+  "url": "https://www.ecfr.gov/current/title-42/section-422.101",
+  "type": "gov",
+  "verified": true,
+  "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.101"
+ },
+ {
+  "label": "Federal Register, CMS-4201-F, Contract Year 2024 Policy and Technical Changes (88 FR 22120)",
+  "url": "https://www.federalregister.gov/d/2023-07115",
+  "via": "https://www.federalregister.gov/documents/full_text/text/2023/04/12/2023-07115.txt",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "CMS, Interoperability and Prior Authorization Final Rule (CMS-0057-F) fact sheet",
+  "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "CMS, HHS and CMS secure industry pledge on prior authorization (Jun. 23, 2025)",
+  "url": "https://www.cms.gov/newsroom/press-releases/hhs-secretary-kennedy-cms-administrator-oz-secure-industry-pledge-fix-broken-prior-authorization",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "AHIP, Health Plans Take Action to Simplify Prior Authorization (Jun. 23, 2025)",
+  "url": "https://www.ahip.org/news/press-releases/health-plans-take-action-to-simplify-prior-authorization",
+  "type": "trade-group",
+  "verified": true
+ },
+ {
+  "label": "U.S. Senate PSI, Refusal of Recovery (majority staff), Oct. 17, 2024",
+  "url": "https://www.hsgac.senate.gov/wp-content/uploads/2024.10.17-PSI-Majority-Staff-Report-on-Medicare-Advantage.pdf",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "HHS OIG, OEI-09-18-00260, MA organization denials of prior authorization requests (2022)",
+  "url": "https://oig.hhs.gov/oei/reports/OEI-09-18-00260.asp",
+  "type": "gov",
+  "verified": true
+ },
+ {
+  "label": "AMRPA, 2024 Medicare Advantage prior authorization survey",
+  "url": "https://amrpa.org/medicare-advantage-prior-authorization-survey/",
+  "type": "trade-group",
+  "verified": true
+ },
+ {
+  "label": "Florida Hospital Association, 2025 Days Awaiting Discharge Survey (fact sheet)",
+  "url": "https://www.fha.org/common/Uploaded%20files/FHA/Hospital%20Finance/2026_Days_Awaiting_Discharge.pdf",
+  "type": "trade-group",
+  "verified": true
+ },
+ {
+  "label": "Beckman and Frakt, Potentially avoidable acute care use, MA vs traditional Medicare, JAMA Health Forum 2023",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9958527/",
+  "type": "peer-reviewed",
+  "verified": true
+ },
+ {
+  "label": "McGarry et al., Extended Hospital Stays in MA and Traditional Medicare, JAMA Intern Med 2025",
+  "url": "https://pubmed.ncbi.nlm.nih.gov/40920419/",
+  "type": "peer-reviewed",
+  "verified": true,
+  "via": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=40920419&retmode=text&rettype=abstract"
+ },
+ {
+  "label": "Taheri et al., Length of stay has minimal impact on the cost of hospital admission, J Am Coll Surg 2000",
+  "url": "https://pubmed.ncbi.nlm.nih.gov/10945354/",
+  "type": "peer-reviewed",
+  "verified": true,
+  "via": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=10945354&retmode=text&rettype=abstract"
+ },
+ {
+  "label": "Leuchter et al., Health Care Staffing Shortages and Potential National Hospital Bed Shortage, JAMA Netw Open 2025",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11840646/",
+  "type": "peer-reviewed",
+  "verified": true
+ },
+ {
+  "label": "Janke et al., Hospital Occupancy and Emergency Department Boarding During the COVID-19 Pandemic, JAMA Netw Open 2022",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9526134/",
+  "type": "peer-reviewed",
+  "verified": true,
+  "via": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=9526134&retmode=xml"
+ },
+ {
+  "label": "Becker's Hospital Review, The cost of unnecessary hospital days in 8 numbers (May 14, 2024), citing Kaufman Hall",
+  "url": "https://www.beckershospitalreview.com/finance/the-cost-of-hospital-unnecessary-hospital-days-8-numbers/",
+  "type": "industry",
+  "verified": true
+ }
+]

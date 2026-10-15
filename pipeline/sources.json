@@ -1,0 +1,82 @@
+[
+  {
+    "name": "hcris_fy2016",
+    "file": "HOSP10FY2016.ZIP",
+    "unzip": false,
+    "sha256": "f1215113d3458437ac973c14d2250fe6a19406efd9bb5d63d76258cff4693daf",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2016.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2016. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2017",
+    "file": "HOSP10FY2017.ZIP",
+    "unzip": false,
+    "sha256": "b3f66b7188b2dfb08e4d8ead4a3004cf5db8e144b54eebabb6f2b551ccdb45cb",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2017.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2017. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2018",
+    "file": "HOSP10FY2018.ZIP",
+    "unzip": false,
+    "sha256": "2a3e60f4e4e88410d90df790e6d2c1d0f23d7883eba57be1ce32b22dacbc373a",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2018.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2018. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2019",
+    "file": "HOSP10FY2019.ZIP",
+    "unzip": false,
+    "sha256": "a1b7f2048034d1c00a6b366d87f1ea57a73867f8778091d4bbafaa43c0cf2012",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2019.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2019. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2020",
+    "file": "HOSP10FY2020.ZIP",
+    "unzip": false,
+    "sha256": "90a42362736f9ab479a8907474ce93ced20929fa72ce69a59125eebef1eb522d",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2020.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2020. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2021",
+    "file": "HOSP10FY2021.ZIP",
+    "unzip": false,
+    "sha256": "7f00467c060c24f79833352530255ad751b5138bcdf0eb8304e5875e5bcd4275",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2021.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2021. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2022",
+    "file": "HOSP10FY2022.ZIP",
+    "unzip": false,
+    "sha256": "02b0ba92cb36cf8fc996779e0b8406164d3a74fd15305c515697592f82974415",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2022.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2022. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2023",
+    "file": "HOSP10FY2023.ZIP",
+    "unzip": false,
+    "sha256": "fff18bb36d8b448fc7ea5961415307255fe602e0344b8d44b1f7df75b9a6c321",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2023.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2023. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hcris_fy2024",
+    "file": "HOSP10FY2024.ZIP",
+    "unzip": false,
+    "sha256": "291749abb7dca4d20aa93e7a5f6c560c4052206a626b8755963a7891b0dc8af2",
+    "url": "https://downloads.cms.gov/FILES/HCRIS/HOSP10FY2024.ZIP",
+    "note": "CMS HCRIS hospital cost reports, form 2552-10, reports beginning in 2024. CMS refreshes quarterly; re-pin deliberately."
+  },
+  {
+    "name": "hospital_general_info",
+    "file": "Hospital_General_Information.csv",
+    "unzip": false,
+    "sha256": "f874f09fef895a1ccf5bb7392dcbb2be05c9860339261b093fe00f0c1b013480",
+    "url": "https://data.cms.gov/provider-data/sites/default/files/resources/893c372430d9d71a1c52737d01239d47_1785189955/Hospital_General_Information.csv",
+    "note": "CMS Provider Data Catalog: Hospital General Information (dataset xubh-q36u, modified 2026-07-22). Display names."
+  }
+]

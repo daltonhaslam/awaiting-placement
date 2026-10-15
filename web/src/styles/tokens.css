@@ -1,0 +1,102 @@
+/* Design tokens: the "waiting room" as hospital signage (A2: sign-blue hero band, safety-yellow tickets, sign plates).
+   The build copies the dark block to :root[data-theme="dark"] for the Night toggle, so keep that block free of nested braces.
+   Contrast (WCAG 2.x, computed with color-mix resolved; text >= 4.5:1, UI >= 3:1, both modes):
+   light  --ink 14.89 / 15.85 / 13.92 on --page / --surface / --wall; --ink-2 7.82 / 8.32 / 7.31; --ink-3 5.13 / 5.46 / 4.79.
+          --band-ink 8.65 and --band-ink-2 6.66 on --band; --ticket-ink 10.40 on --ticket; --sign-ink 8.65 on --sign;
+          --wayfind-ink 8.65; LED digits 6.47, LED label 8.56. --field-line 3.50 / 3.73 / 3.27; --ffs 3.74 / 3.98 / 3.50;
+          --ma 3.40 / 3.62 / 3.18; slider track and gap-strip bars 3.22 on --surface; sign plate 7.79 on --page.
+   dark   --ink 16.08 / 14.86 / 13.93; --ink-2 10.48 / 9.69 / 9.08; --ink-3 6.03 / 5.58 / 5.23. --band-ink 10.89 and
+          --band-ink-2 9.42 on --band; --ticket-ink 8.84 on --ticket, and the ticket's edge 6.21 against --band, 9.60 against
+          --page (it stays safety yellow at night); --sign-ink 13.92; --wayfind-ink 7.70. --field-line 5.73 / 5.30 / 4.97;
+          --ffs 5.55 / 5.13 / 4.81; --ma 5.82 / 5.38 / 5.04; slider track 4.61; sign plate 15.92 on --page. */
+/* Metric-matched local fallbacks: until the web fonts arrive, text is set in a local face scaled to the web font's
+   width and vertical metrics (measured in Chrome), so the swap does not re-wrap lines and shift the page.
+   Overrides are fractions of the scaled size, hence each is the web font's metric divided by size-adjust.
+   Big Shoulders Display: a condensed heavy face first (Helvetica Neue Condensed Bold on Apple devices, Impact on
+   Windows; within 1% of each other), then Arial Bold / Roboto Bold where neither exists. */
+@font-face { font-family: 'Big Shoulders Fallback'; font-weight: 800; src: local('HelveticaNeue-CondensedBold'), local('Helvetica Neue Condensed Bold'), local('Impact');
+  size-adjust: 93%; ascent-override: 105.4%; descent-override: 22.6%; }
+@font-face { font-family: 'Big Shoulders Fallback'; font-weight: 700; src: local('HelveticaNeue-CondensedBold'), local('Helvetica Neue Condensed Bold'), local('Impact');
+  size-adjust: 86.7%; ascent-override: 113%; descent-override: 24.2%; }
+@font-face { font-family: 'Big Shoulders Fallback Wide'; font-weight: 800; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold');
+  size-adjust: 78.4%; ascent-override: 125%; descent-override: 26.8%; }
+@font-face { font-family: 'Big Shoulders Fallback Wide'; font-weight: 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold');
+  size-adjust: 73.1%; ascent-override: 134.1%; descent-override: 28.7%; }
+@font-face { font-family: 'Overpass Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto');
+  size-adjust: 100%; ascent-override: 88%; descent-override: 38%; }
+@font-face { font-family: 'Overpass Fallback'; font-style: italic; src: local('Arial Italic'), local('Arial-ItalicMT'), local('Roboto Italic');
+  size-adjust: 96%; ascent-override: 91.7%; descent-override: 39.6%; }
+@font-face { font-family: 'Overpass Fallback'; font-weight: 600; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold');
+  size-adjust: 96.4%; ascent-override: 91.3%; descent-override: 39.4%; }
+@font-face { font-family: 'Overpass Fallback'; font-weight: 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold');
+  size-adjust: 97.9%; ascent-override: 89.9%; descent-override: 38.8%; }
+/* Overpass draws the middle dot (U+00B7) with zero advance width, so "Wait · Gap" sets as "Wait ·Gap". The site's "·"
+   separators come from a local sans instead (this face covers that one character, so it never becomes the primary font). */
+@font-face { font-family: 'Overpass Dot'; src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Roboto'), local('Liberation Sans');
+  unicode-range: U+00B7; ascent-override: 88%; descent-override: 38%; }
+@font-face { font-family: 'Overpass Dot'; font-weight: 600 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'), local('Roboto Bold'), local('Liberation Sans Bold');
+  unicode-range: U+00B7; ascent-override: 88%; descent-override: 38%; }
+@font-face { font-family: 'Overpass Mono Fallback'; font-weight: 400 700; src: local('Menlo'), local('Courier New'), local('DejaVu Sans Mono');
+  size-adjust: 102.3%; ascent-override: 86%; descent-override: 37.1%; }
+:root {
+  --page: #f4f3ee; --surface: #fbfaf7; --wall: #e6ecf4;
+  --ink: #13202b; --ink-2: #3f4d59; --ink-3: #5c6874; --rule: #d6dbe2;
+  --ffs: #008c7e; --ma: #b8741a;
+  --led-bg: #111513; --led: #ff6a3d; --led-dim: #3a1f17;
+  --ticket: #f2c230; --ticket-ink: #1d1a0c;
+  --sign: #1c4c86; --sign-ink: #ffffff;
+  /* Wayfinding plates (No. 01 destinations) stay sign blue in the night theme, where --sign turns light. */
+  --wayfind: #1c4c86; --wayfind-ink: #ffffff;
+  /* The hero is a road sign: a sign-blue band, white type, a white keyline inset from its edge. */
+  --band: #1c4c86; --band-ink: #ffffff; --band-ink-2: #d7e3f2; --keyline: #ffffff;
+  /* LED housing chrome, not data: printed label 8.56:1 on --led-bg; bezel ring. */
+  --led-label: #aab3ad; --led-bezel: #2c3430;
+  /* Hairline that still reads on the pale sign-blue wall. */
+  --rule-wall: #c4cfdc;
+  /* Form-field and control edges: >= 3:1 against --surface, --page and --wall in both modes (WCAG 1.4.11). Derived, so no dark copy. */
+  --field-line: color-mix(in srgb, var(--ink) 55%, var(--surface));
+  /* Bed board. Occupied beds sit about 2:1 in luminance from the amber held beds in both modes (light 2.30:1, dark 2.16:1),
+     so the held beds read without hue. In dark mode that puts occupied beds at 2.49:1 on the surface: 3:1 there and 2:1
+     from the amber cannot both hold, and the separation from held beds is the one the board needs. */
+  --bed-occ: var(--ink-2);
+
+  --font-display: 'Big Shoulders Display', 'Big Shoulders Fallback', 'Big Shoulders Fallback Wide', 'Arial Narrow', sans-serif;
+  --font-body: 'Overpass Dot', 'Overpass', 'Overpass Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Overpass Mono', 'Overpass Mono Fallback', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-led: 'Doto', ui-monospace, monospace;
+  /* Signage caps (LED and ticket labels, "No.", wayfinding plates, the departures board): Overpass 700, tracked. Nowhere else. */
+  --sign-track: .12em;
+
+  --fs-xs: .78rem; --fs-sm: .875rem; --fs-base: 1.0625rem; --fs-md: 1.1875rem; --fs-lg: 1.375rem;
+  --fs-xl: 1.75rem; --fs-display-sm: 2.25rem; --fs-2xl: clamp(2.5rem, 4.8vw, 3.5rem); --fs-hero: clamp(3.1rem, 7.4vw, 5.75rem);
+  /* The hero headline is set at line-height .95, under the 1.0 display floor, on purpose: Big Shoulders is condensed with
+     short descenders, and its four lines (two weights) read as one sign at .95. No collisions at any width ("hospital."
+     clears "Still waiting" by about 3 px at 1280), and the user text-spacing override still applies. */
+
+  /* Chart text: axis ticks and titles, names, value labels, line-end labels. */
+  --fs-chart-tick: 12px; --fs-chart-label: 14px; --fs-chart-value: 12.5px; --fs-chart-end: 13px;
+  --thumb-size: 22px; /* range-slider thumb; the MA tick on the track offsets by half of it */
+
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 72px; --sp-9: 112px;
+  /* --page is the page color, so the page width is --page-max. Measures are in rem, not ch: a ch is this face's wide
+     "0" and scales with each element's own size. Lines stay at or under 75 characters (measured in Overpass): --measure
+     holds about 68 characters of 17 px body text, --measure-sm about 68 of the 14-15 px notes and captions, and
+     --measure-xs about 72 of the 12.5 px notes and source lines. */
+  --measure: 33.5rem; --measure-sm: 27rem; --measure-xs: 25.5rem; --page-max: 1180px; --gutter: 16px; --radius: 4px;
+  /* The top bar's least height; --topbar-h is its measured height (ui/topbar.js writes it), this until then. */
+  --topbar-min: 52px; --topbar-h: var(--topbar-min);
+}
+@media (min-width: 720px) { :root { --gutter: 28px; } }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0d1117; --surface: #141a22; --wall: #18202b;
+    --ink: #e8edf3; --ink-2: #b7c2cf; --ink-3: #8693a0; --rule: #283240;
+    --ffs: #119c8d; --ma: #c0821f;
+    --ticket: #e0b32e; --ticket-ink: #1d1a0c;
+    --sign: #e6ecf4; --sign-ink: #13202b;
+    --wayfind: #1c4c86; --wayfind-ink: #eef2f7;
+    --band: #123563; --band-ink: #eef2f7; --keyline: rgb(255 255 255 / .7);
+    --led-bezel: #3a4440; --rule-wall: #2e3a4a;
+    --bed-occ: color-mix(in srgb, var(--ink) 30%, var(--surface));
+  }
+}

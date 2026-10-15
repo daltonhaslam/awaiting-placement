@@ -1,0 +1,131 @@
+{
+ "t41": {
+  "fy": 2024,
+  "src": {
+   "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+   "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+   "type": "gov",
+   "verified": true
+  },
+  "all": {
+   "maLos": 5.7,
+   "ffsLos": 5.2,
+   "diff": 0.4,
+   "diffPct": 8.6,
+   "adj": 0.6,
+   "adjPct": 11.2
+  },
+  "rows": [
+   {
+    "dest": "home",
+    "label": "Home (self-care)",
+    "maLos": 3.8,
+    "ffsLos": 3.5,
+    "diff": 0.3,
+    "diffPct": 7.6,
+    "adj": 0.2,
+    "adjPct": 4.9
+   },
+   {
+    "dest": "hha",
+    "label": "Home health agency",
+    "maLos": 5.8,
+    "ffsLos": 5.3,
+    "diff": 0.5,
+    "diffPct": 9.5,
+    "adj": 0.4,
+    "adjPct": 8.4
+   },
+   {
+    "dest": "snf",
+    "label": "Skilled nursing facility",
+    "maLos": 8.9,
+    "ffsLos": 7.2,
+    "diff": 1.6,
+    "diffPct": 22.3,
+    "adj": 1.4,
+    "adjPct": 19.6
+   },
+   {
+    "dest": "irf",
+    "label": "Inpatient rehabilitation facility",
+    "maLos": 9.9,
+    "ffsLos": 7.0,
+    "diff": 2.9,
+    "diffPct": 40.9,
+    "adj": 2.3,
+    "adjPct": 32.3
+   }
+  ]
+ },
+ "sept": {
+  "year": 2023,
+  "src": {
+   "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+   "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+   "type": "gov",
+   "verified": true
+  },
+  "sampleMillions": {
+   "ffs": 25.6,
+   "ma": 27.8
+  },
+  "mix": {
+   "ffs": {
+    "none": 0.59,
+    "hha": 0.17,
+    "snf": 0.18,
+    "irfLtch": 0.05
+   },
+   "ma": {
+    "none": 0.65,
+    "hha": 0.17,
+    "snf": 0.15,
+    "irfLtch": 0.03
+   }
+  },
+  "medians": [
+   {
+    "dest": "none",
+    "ffs": 4,
+    "ma": 5
+   },
+   {
+    "dest": "hha",
+    "ffs": 5,
+    "ma": 6
+   },
+   {
+    "dest": "snf",
+    "ffs": 6,
+    "ma": 8
+   },
+   {
+    "dest": "irf",
+    "ffs": 6,
+    "ma": 9
+   },
+   {
+    "dest": "ltch",
+    "ffs": 13,
+    "ma": 21
+   }
+  ],
+  "staysPer1000": {
+   "ffs": {
+    "ach": 224,
+    "hha": 109,
+    "snf": 53,
+    "irf": 14,
+    "ltch": 2
+   },
+   "ma": {
+    "ach": 207,
+    "hha": 101,
+    "snf": 43,
+    "irf": 5,
+    "ltch": 1
+   }
+  }
+ }
+}

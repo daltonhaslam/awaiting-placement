@@ -1,0 +1,154 @@
+[
+ {
+  "key": "t0",
+  "label": "Current authorization wait",
+  "value": "2.5 days",
+  "why": "Set from the AMRPA survey average of just over 2.5 days for inpatient rehabilitation decisions. The survey did not measure skilled nursing facilities. The model applies the same wait to both, which is an assumption.",
+  "src": [
+   {
+    "label": "AMRPA, 2024 Medicare Advantage prior authorization survey",
+    "url": "https://amrpa.org/medicare-advantage-prior-authorization-survey/",
+    "type": "trade-group",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "key": "t1",
+  "label": "Faster authorization wait",
+  "value": "1.0 day",
+  "why": "An illustrative scenario, not a forecast. Rules allow up to 72 hours for expedited and seven calendar days for standard MA decisions. The AHIP pledge aims for real-time answers to most electronic approvals in 2027.",
+  "src": [
+   {
+    "label": "eCFR, 42 CFR 422.568, standard organization determination timeframes",
+    "url": "https://www.ecfr.gov/current/title-42/section-422.568",
+    "type": "gov",
+    "verified": true,
+    "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.568"
+   },
+   {
+    "label": "eCFR, 42 CFR 422.572, expedited organization determination timeframes",
+    "url": "https://www.ecfr.gov/current/title-42/section-422.572",
+    "type": "gov",
+    "verified": true,
+    "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.572"
+   },
+   {
+    "label": "AHIP, Health Plans Take Action to Simplify Prior Authorization (Jun. 23, 2025)",
+    "url": "https://www.ahip.org/news/press-releases/health-plans-take-action-to-simplify-prior-authorization",
+    "type": "trade-group",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "key": "cvar",
+  "label": "Variable cost of one extra waiting day",
+  "value": "$800",
+  "why": "About a quarter of KFF's $3,132 expense per adjusted inpatient day (2023). One academic center study found the last full day of a stay cost $420, or 2.4 percent of total stay cost. MedPAC says some hospital costs are fixed and do not rise with a longer stay.",
+  "src": [
+   {
+    "label": "KFF State Health Facts, Hospital Expenses per Adjusted Inpatient Day (2023: $3,131.91)",
+    "url": "https://www.kff.org/health-costs/state-indicator/expenses-per-inpatient-day/",
+    "type": "nonprofit",
+    "verified": true
+   },
+   {
+    "label": "Taheri et al., Length of stay has minimal impact on the cost of hospital admission, J Am Coll Surg 2000",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/10945354/",
+    "type": "peer-reviewed",
+    "verified": true,
+    "via": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=10945354&retmode=text&rettype=abstract"
+   },
+   {
+    "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+    "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "key": "rate",
+  "label": "Per-diem rate (per-diem payment only)",
+  "value": "$2,500",
+  "why": "Illustrative. No source gives a typical rate. MedPAC reports that MA plans commonly pay critical access hospitals a per diem.",
+  "src": [
+   {
+    "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+    "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "key": "cm",
+  "label": "Contribution margin per added admission",
+  "value": "$4,500",
+  "why": "Illustrative. A single figure from a Kaufman Hall example reported by Becker's: an average $4,500 margin per admission for a 425-bed hospital. It is not a national benchmark.",
+  "src": [
+   {
+    "label": "Becker's Hospital Review, The cost of unnecessary hospital days in 8 numbers (May 14, 2024), citing Kaufman Hall",
+    "url": "https://www.beckershospitalreview.com/finance/the-cost-of-hospital-unnecessary-hospital-days-8-numbers/",
+    "type": "industry",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "key": "fill",
+  "label": "Share of freed bed-days refilled",
+  "value": "Set from occupancy, 0 to 100%",
+  "why": "An assumption: the share rises from 0% at 70% occupancy to 100% at 90%. National staffed-bed occupancy was 75.3% in the year after the public health emergency, and 85% is a shortage threshold in the Leuchter model. In a hospital benchmarking study, boarding exceeded 4 hours in 88.9% of hospital-months when occupancy passed 85%. Median occupancy in the FY{latestFy} cost reports is {medianOcc}, which suggests available beds exceed staffed beds. Override this if your hospital routinely turns patients away.",
+  "src": [
+   {
+    "label": "Leuchter et al., Health Care Staffing Shortages and Potential National Hospital Bed Shortage, JAMA Netw Open 2025",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11840646/",
+    "type": "peer-reviewed",
+    "verified": true
+   },
+   {
+    "label": "Janke et al., Hospital Occupancy and Emergency Department Boarding During the COVID-19 Pandemic, JAMA Netw Open 2022",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9526134/",
+    "type": "peer-reviewed",
+    "verified": true,
+    "via": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=9526134&retmode=xml"
+   },
+   {
+    "label": "CMS, Cost Reports (HCRIS), hospital form CMS-2552-10",
+    "url": "https://www.cms.gov/data-research/statistics-trends-and-reports/cost-reports/hospital-2552-2010-form",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "key": "mix",
+  "label": "Where MA patients go after discharge",
+  "value": "Home 65%, home health 17%, skilled nursing 15%, inpatient rehabilitation 2.5%",
+  "why": "From MedPAC's 2023 data: 65, 17 and 15 percent for home, home health and skilled nursing. MedPAC combines inpatient rehabilitation and long-term care hospitals at 3 percent. The model uses 2.5 percent for rehabilitation and leaves out long-term care hospitals.",
+  "src": [
+   {
+    "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+    "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "key": "lenses",
+  "label": "Which gap counts as excess",
+  "value": "Placement-related",
+  "why": "Unadjusted and adjusted gaps by discharge destination come from MedPAC Table 4-1. The placement lens is the adjusted gap minus the adjusted gap for patients discharged home, so it shows the extra stay length associated with post-acute placement. MedPAC describes these gaps as associations and says they suggest that plans could slow discharges through activities such as prior authorization.",
+  "src": [
+   {
+    "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+    "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ }
+]

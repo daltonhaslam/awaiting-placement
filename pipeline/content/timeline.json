@@ -1,0 +1,140 @@
+[
+ {
+  "date": "2024-01-01",
+  "title": "CMS-4201-F applies",
+  "body": "The final rule (88 FR 22120) applies to coverage beginning January 1, 2024. MA plans must follow traditional Medicare coverage criteria. These include the inpatient admission payment criteria at 42 CFR 412.3 and the coverage criteria for skilled nursing, home health and inpatient rehabilitation.",
+  "src": [
+   {
+    "label": "Federal Register, CMS-4201-F, Contract Year 2024 Policy and Technical Changes (88 FR 22120)",
+    "url": "https://www.federalregister.gov/d/2023-07115",
+    "via": "https://www.federalregister.gov/documents/full_text/text/2023/04/12/2023-07115.txt",
+    "type": "gov",
+    "verified": true
+   },
+   {
+    "label": "eCFR, 42 CFR 422.101, requirements relating to basic benefits",
+    "url": "https://www.ecfr.gov/current/title-42/section-422.101",
+    "type": "gov",
+    "verified": true,
+    "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.101"
+   }
+  ]
+ },
+ {
+  "date": "2024-10-17",
+  "title": "Senate subcommittee majority staff report",
+  "body": "The majority staff of the Senate Permanent Subcommittee on Investigations reported that UnitedHealthcare, Humana and CVS denied post-acute care prior authorization requests at higher rates than other care in 2022. UnitedHealthcare's initial denial rate for skilled nursing facility requests rose from 1.4 percent in 2019 to 12.6 percent in 2022.",
+  "src": [
+   {
+    "label": "U.S. Senate PSI, Refusal of Recovery (majority staff), Oct. 17, 2024",
+    "url": "https://www.hsgac.senate.gov/wp-content/uploads/2024.10.17-PSI-Majority-Staff-Report-on-Medicare-Advantage.pdf",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "date": "2025-06-23",
+  "title": "Insurer prior authorization pledge",
+  "body": "Health plans, through AHIP, committed to six actions on prior authorization, covering commercial, Medicare Advantage and Medicaid managed care coverage. The commitments are voluntary. CMS and HHS announced the pledge the same day.",
+  "src": [
+   {
+    "label": "AHIP, Health Plans Take Action to Simplify Prior Authorization (Jun. 23, 2025)",
+    "url": "https://www.ahip.org/news/press-releases/health-plans-take-action-to-simplify-prior-authorization",
+    "type": "trade-group",
+    "verified": true
+   },
+   {
+    "label": "CMS, HHS and CMS secure industry pledge on prior authorization (Jun. 23, 2025)",
+    "url": "https://www.cms.gov/newsroom/press-releases/hhs-secretary-kennedy-cms-administrator-oz-secure-industry-pledge-fix-broken-prior-authorization",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "date": "2026-01-01",
+  "title": "CMS-0057-F decision deadlines begin",
+  "body": "Impacted payers, including MA plans, must send prior authorization decisions within 72 hours for expedited requests and seven calendar days for standard requests. MA plans may extend a standard decision by up to 14 calendar days in some cases, such as when the enrollee asks for it.",
+  "src": [
+   {
+    "label": "CMS, Interoperability and Prior Authorization Final Rule (CMS-0057-F) fact sheet",
+    "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f",
+    "type": "gov",
+    "verified": true
+   },
+   {
+    "label": "eCFR, 42 CFR 422.568, standard organization determination timeframes",
+    "url": "https://www.ecfr.gov/current/title-42/section-422.568",
+    "type": "gov",
+    "verified": true,
+    "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.568"
+   },
+   {
+    "label": "eCFR, 42 CFR 422.572, expedited organization determination timeframes",
+    "url": "https://www.ecfr.gov/current/title-42/section-422.572",
+    "type": "gov",
+    "verified": true,
+    "via": "https://www.ecfr.gov/api/versioner/v1/full/2026-10-01/title-42.xml?part=422&section=422.572"
+   }
+  ]
+ },
+ {
+  "date": "2026-06",
+  "title": "MedPAC June 2026 report, Chapter 4",
+  "body": "MedPAC reported that MA stays averaged about 5.7 days against 5.2 for traditional Medicare in FY2024. After adjustment, the gap was 11.2 percent overall and 32.3 percent for stays ending in an inpatient rehabilitation facility.",
+  "src": [
+   {
+    "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+    "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "date": "2026-07-06",
+  "title": "KFF summarizes OIG post-acute denial findings",
+  "body": "KFF reported OIG findings from June 2024 data: initial denials of 65 percent for long-term care hospitals, 54 percent for inpatient rehabilitation facilities and 12 percent for skilled nursing facilities.",
+  "src": [
+   {
+    "label": "KFF, MA insurers deny prior authorization requests for post-acute care at higher rates (Jul. 6, 2026)",
+    "url": "https://www.kff.org/medicare/medicare-advantage-insurers-deny-prior-authorization-requests-for-post-acute-care-at-substantially-higher-rates-than-the-overall-denial-rate/",
+    "type": "nonprofit",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "date": "2026-09-04",
+  "title": "MedPAC post-acute care session",
+  "body": "MedPAC staff presented preliminary 2023 data. Median hospital stays were longer for MA enrollees at every discharge destination, and MA enrollees were discharged less often to skilled nursing, rehabilitation and long-term care hospitals.",
+  "src": [
+   {
+    "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+    "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+    "type": "gov",
+    "verified": true
+   }
+  ]
+ },
+ {
+  "date": "2027-01-01",
+  "title": "API requirements and pledge targets",
+  "body": "Impacted payers generally have until January 1, 2027 to meet the CMS-0057-F API requirements, including a Prior Authorization API. The AHIP pledge sets the same date for a standardized electronic prior authorization framework.",
+  "src": [
+   {
+    "label": "CMS, Interoperability and Prior Authorization Final Rule (CMS-0057-F) fact sheet",
+    "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f",
+    "type": "gov",
+    "verified": true
+   },
+   {
+    "label": "AHIP, Health Plans Take Action to Simplify Prior Authorization (Jun. 23, 2025)",
+    "url": "https://www.ahip.org/news/press-releases/health-plans-take-action-to-simplify-prior-authorization",
+    "type": "trade-group",
+    "verified": true
+   }
+  ]
+ }
+]

@@ -1,0 +1,89 @@
+"""Derived fields and exclusion rules for the HCRIS hospital-year extract (listed for readers on the methods page).
+
+Blank cells in the extract mean "missing" (HCRIS omits zero cells), so every function here tolerates
+None / '' and never raises on them.
+"""
+
+# The exclusion thresholds. exclusion_reason applies them and build_data emits them as meta.rules,
+# so the methods page states exactly what the code does.
+MIN_PERIOD_DAYS = 300
+MIN_MA_DISCHARGES = 30
+MIN_FFS_DISCHARGES = 100
+ALOS_RANGE = (2, 15)
+EXCLUDED_STATES = {'40': 'Puerto Rico', '21': 'Maryland'}  # CCN state code -> label (Maryland is not under IPPS)
+ACUTE_SUFFIX = (1, 879)    # short-term acute care hospitals: CCN ends in 0001 to 0879
+CAH_SUFFIX = (1300, 1399)  # critical access hospitals use this range and are not included
+OCC_PLAUSIBLE = (0.05, 1.0)  # occupancy outside this is flagged and not shown
+
+
+def rules():
+    """The thresholds above, as the JSON-ready dict build_data publishes in meta.rules."""
+    return {'periodDays': MIN_PERIOD_DAYS, 'maDischarges': MIN_MA_DISCHARGES, 'ffsDischarges': MIN_FFS_DISCHARGES,
+            'alos': list(ALOS_RANGE), 'excludedStates': list(EXCLUDED_STATES.values()),
+            'acuteSuffix': list(ACUTE_SUFFIX), 'cahSuffix': list(CAH_SUFFIX), 'occPlausible': list(OCC_PLAUSIBLE)}
+
+
+def _num(v):
+    if v is None or v == '':
+        return None
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _div(a, b):
+    return a / b if a is not None and b else None
+
+
+def derive(row):
+    """Return a copy of `row` with numeric fields parsed and derived fields added (None where undefined)."""
+    d = dict(row)
+    for k in ('period_days', 'beds', 'bed_days', 'ip_days', 'tot_disch', 'ffs_disch', 'ffs_days_l1',
+              'resid_fte', 'npr', 'opex'):
+        d[k] = _num(row.get(k))
+    # Blank means zero for these (HCRIS omits zero cells)
+    for k in ('ffs_days_icu', 'nursery_days', 'ma_disch', 'ma_days'):
+        d[k] = _num(row.get(k)) or 0.0
+    d['ffs_days'] = None if d['ffs_days_l1'] is None else d['ffs_days_l1'] + d['ffs_days_icu']
+    d['ffs_alos'] = _div(d['ffs_days'], d['ffs_disch'])
+    d['ma_alos'] = _div(d['ma_days'], d['ma_disch'])
+    d['gap'] = None if d['ma_alos'] is None or d['ffs_alos'] is None else d['ma_alos'] - d['ffs_alos']
+    both = None if d['ffs_disch'] is None else d['ma_disch'] + d['ffs_disch']
+    d['ma_share'] = _div(d['ma_disch'], both)
+    d['mcr'] = _div(both, d['tot_disch'])
+    d['occ'] = None if d['ip_days'] is None else _div(d['ip_days'] - d['nursery_days'], d['bed_days'])
+    d['teach'] = (d['resid_fte'] or 0) > 0
+    return d
+
+
+def exclusion_reason(d):
+    """First failing rule, in the order below (the methods page lists them the same way), or None if the hospital-year is clean."""
+    ccn = str(d.get('ccn') or '')
+    if ccn[:2] in EXCLUDED_STATES:
+        return 'state'
+    if d.get('period_days') is None or d['period_days'] < MIN_PERIOD_DAYS:
+        return 'period'
+    if d['ma_disch'] <= 0:
+        return 'no_ma'
+    if d['ma_disch'] < MIN_MA_DISCHARGES:
+        return 'ma_volume'
+    if d['ffs_disch'] is not None and d['ffs_disch'] < MIN_FFS_DISCHARGES:
+        return 'ffs_volume'
+    if (any(d.get(k) is None for k in ('beds', 'bed_days', 'tot_disch', 'ffs_disch'))
+            or d['bed_days'] <= 0 or d['occ'] is None
+            or d['ma_disch'] + d['ffs_disch'] > d['tot_disch'] or d['ma_days'] <= 0
+            or not d.get('ffs_days') or d['ffs_days'] <= 0):
+        return 'inconsistent'
+    lo, hi = ALOS_RANGE
+    if not (lo <= d['ma_alos'] <= hi and lo <= d['ffs_alos'] <= hi):
+        return 'alos'
+    return None
+
+
+def occ_flag(d):
+    """True when occupancy is implausible (outside OCC_PLAUSIBLE) or not computable: show "check data"."""
+    o = d.get('occ')
+    return o is None or not OCC_PLAUSIBLE[0] <= o <= OCC_PLAUSIBLE[1]
+
+

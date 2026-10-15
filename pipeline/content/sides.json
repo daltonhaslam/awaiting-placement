@@ -1,0 +1,191 @@
+{
+ "hospitals": [
+  {
+   "key": "per-stay-payment",
+   "text": "MedPAC reports that MA plans commonly pay inpatient hospitals per stay by MS-DRG, so a longer stay does not typically bring extra payment.",
+   "src": [
+    {
+     "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "irf-prior-auth-wait",
+   "text": "In a 2024 survey of 367 inpatient rehabilitation facilities, the average wait for an initial MA prior authorization decision was just over 2.5 days.",
+   "src": [
+    {
+     "label": "AMRPA, 2024 Medicare Advantage prior authorization survey",
+     "url": "https://amrpa.org/medicare-advantage-prior-authorization-survey/",
+     "type": "trade-group",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "fha-discharge-delays",
+   "text": "In a Florida Hospital Association survey of 95 hospitals, prior authorization was the most common driver of discharge delays, at 40 percent.",
+   "src": [
+    {
+     "label": "Florida Hospital Association, 2025 Days Awaiting Discharge Survey (fact sheet)",
+     "url": "https://www.fha.org/common/Uploaded%20files/FHA/Hospital%20Finance/2026_Days_Awaiting_Discharge.pdf",
+     "type": "trade-group",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "oig-denial-rates",
+   "text": "KFF, using OIG data from June 2024, reports MA initial prior authorization denial rates of 65 percent for long-term care hospitals, 54 percent for inpatient rehabilitation facilities and 12 percent for skilled nursing facilities.",
+   "src": [
+    {
+     "label": "KFF, MA insurers deny prior authorization requests for post-acute care at higher rates (Jul. 6, 2026)",
+     "url": "https://www.kff.org/medicare/medicare-advantage-insurers-deny-prior-authorization-requests-for-post-acute-care-at-substantially-higher-rates-than-the-overall-denial-rate/",
+     "type": "nonprofit",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "prolonged-stays-14d",
+   "text": "From 2017 to 2023, MA admissions became 1.2 percentage points more likely than traditional Medicare admissions to last 14 or more days. The authors estimated 1.8 million additional bed-days from prolonged MA stays in 2022.",
+   "src": [
+    {
+     "label": "McGarry et al., Extended Hospital Stays in MA and Traditional Medicare, JAMA Intern Med 2025",
+     "url": "https://pubmed.ncbi.nlm.nih.gov/40920419/",
+     "type": "peer-reviewed",
+     "verified": true,
+     "via": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=40920419&retmode=text&rettype=abstract"
+    }
+   ]
+  }
+ ],
+ "plans": [
+  {
+   "key": "plans-right-level",
+   "text": "MA plans told MedPAC that prior authorization helps ensure beneficiaries get to the right level of care.",
+   "short": "MA plans told MedPAC that prior authorization helps ensure beneficiaries get to the right level of care",
+   "src": [
+    {
+     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "plans-incomplete-requests",
+   "text": "MA plans told MedPAC that some delays come from incomplete information in the request.",
+   "short": "some delays come from incomplete information in the request",
+   "src": [
+    {
+     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "ambulatory-care-hospitalization",
+   "text": "In a 2018 claims study, MA patients had a lower risk of hospitalization for ambulatory care-sensitive conditions than traditional Medicare patients (relative risk 0.94).",
+   "src": [
+    {
+     "label": "Beckman and Frakt, Potentially avoidable acute care use, MA vs traditional Medicare, JAMA Health Forum 2023",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9958527/",
+     "type": "peer-reviewed",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "plans-post-acute-unnecessary",
+   "text": "MedPAC notes that higher use of post-acute care in traditional Medicare may indicate unnecessary care.",
+   "src": [
+    {
+     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "ahip-pledge",
+   "text": "Plans that signed the 2025 AHIP pledge committed that, in 2027, at least 80 percent of electronic prior authorization approvals with complete documentation will be answered in real time.",
+   "src": [
+    {
+     "label": "AHIP, Health Plans Take Action to Simplify Prior Authorization (Jun. 23, 2025)",
+     "url": "https://www.ahip.org/news/press-releases/health-plans-take-action-to-simplify-prior-authorization",
+     "type": "trade-group",
+     "verified": true
+    }
+   ]
+  }
+ ],
+ "unsettled": [
+  {
+   "key": "post-acute-use-ambiguous",
+   "text": "MedPAC says lower MA use of post-acute care may indicate efficient care or worse access, and that appropriateness cannot be judged without medical record review.",
+   "src": [
+    {
+     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "duals-share",
+   "text": "MA and traditional Medicare enrollees in MedPAC's 2023 sample differed: 27 percent of MA enrollees and 17 percent of traditional Medicare beneficiaries were dually eligible or received the low-income subsidy.",
+   "src": [
+    {
+     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "snf-appeals-reversed",
+   "text": "When skilled nursing facility denials were appealed, 95 percent were approved. KFF says this raises questions about routine inappropriate denials, and also that insurers may reverse denials to avoid an independent review.",
+   "src": [
+    {
+     "label": "KFF, MA insurers deny prior authorization requests for post-acute care at higher rates (Jul. 6, 2026)",
+     "url": "https://www.kff.org/medicare/medicare-advantage-insurers-deny-prior-authorization-requests-for-post-acute-care-at-substantially-higher-rates-than-the-overall-denial-rate/",
+     "type": "nonprofit",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "obs-stays",
+   "text": "MA patients had a higher risk of observation stays for ambulatory care-sensitive conditions than traditional Medicare patients (relative risk 2.38).",
+   "src": [
+    {
+     "label": "Beckman and Frakt, Potentially avoidable acute care use, MA vs traditional Medicare, JAMA Health Forum 2023",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9958527/",
+     "type": "peer-reviewed",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "oig-denial-review",
+   "text": "An OIG review of 250 sampled prior authorization denials from 15 large MA organizations (June 1 to 7, 2019) estimated that 13 percent of the denied requests met Medicare coverage rules and would likely have been approved under traditional Medicare.",
+   "src": [
+    {
+     "label": "HHS OIG, OEI-09-18-00260, MA organization denials of prior authorization requests (2022)",
+     "url": "https://oig.hhs.gov/oei/reports/OEI-09-18-00260.asp",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  }
+ ]
+}
