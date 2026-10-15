@@ -37,7 +37,7 @@ export const keepIds = (text) => String(text ?? '').split(ID)
 export function sourceLinks(src) {
   return asList(src).flatMap((x, i) => {
     const href = safeHref(x.url);
-    const node = href ? h('a', { href, rel: 'noopener', target: '_blank' }, keepIds(x.label)) : keepIds(x.label);
+    const node = href ? h('a', { href }, keepIds(x.label)) : keepIds(x.label);
     return i ? ['; ', node] : [node];
   });
 }

@@ -3,7 +3,26 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export function h(tag, attrs, ...children) {
   const el = document.createElement(tag);
-  return finish(el, attrs, children);
+  finish(el, attrs, children);
+  if (tag === 'a') markExternal(el);
+  return el;
+}
+
+// The one choke point for outbound links: an absolute http(s) link to another origin opens in a new tab,
+// with noopener/noreferrer and a visually hidden cue for screen readers. Hash, relative and same-origin links are left alone.
+export const EXTERNAL_CUE = ' (opens in a new tab)';
+function markExternal(a) {
+  const href = a.getAttribute('href');
+  if (!href || !/^https?:\/\//i.test(href)) return;
+  try {
+    const here = globalThis.location?.origin;
+    if (here && new URL(href).origin === here) return;
+  } catch {
+    return;
+  }
+  a.setAttribute('target', '_blank');
+  a.setAttribute('rel', 'noopener noreferrer');
+  a.append(h('span', { class: 'visually-hidden' }, EXTERNAL_CUE));
 }
 
 export function s(tag, attrs, ...children) {

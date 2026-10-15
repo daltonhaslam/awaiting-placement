@@ -52,6 +52,11 @@ for (const scheme of ['light', 'dark']) {
         .filter((el) => !el.closest('[aria-hidden="true"]') && !el.getAttribute('aria-label') && !el.getAttribute('aria-labelledby'))
         .map((el) => el.getAttribute('class') || 'svg'));
       check(!unlabeled.length, `${label}: svg without an aria-label (${unlabeled})`);
+      if (hash === '' || hash === '#methods') {
+        const bad = await page.evaluate(() => [...document.querySelectorAll('a[href^="http"]')]
+          .filter((a) => a.target !== '_blank' || !/\bnoopener\b/.test(a.rel)).map((a) => a.href));
+        check(!bad.length, `${label}: external links open in a new tab with noopener (${bad})`);
+      }
       check(await page.$('#footer a[href^="https://github.com/"]') !== null, `${label}: footer with the repo link`);
       await page.close();
     }

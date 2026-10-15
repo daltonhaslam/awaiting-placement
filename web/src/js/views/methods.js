@@ -200,8 +200,8 @@ function aboutPart(D) {
   const built = D.meta?.builtOn;
   return part('methods-about', 'About',
     dateline(D, 'methods__date'),
-    h('p', null, 'Built by ', h('a', { href: SITE.linkedin, rel: 'noopener' }, SITE.byline), '.'),
-    h('p', null, 'The code and the data pipeline are public on ', h('a', { href: SITE.repo, rel: 'noopener' }, 'GitHub'),
+    h('p', null, 'Built by ', h('a', { href: SITE.linkedin }, SITE.byline), ', using Claude Code.'),
+    h('p', null, 'The code and the data pipeline are public on ', h('a', { href: SITE.repo }, 'GitHub'),
       '. Corrections are welcome there as issues.'),
     built ? h('p', null, `The cost-report data runs through report periods ending ${fmtDate(built)}.`) : null,
     h('p', null, 'The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'),

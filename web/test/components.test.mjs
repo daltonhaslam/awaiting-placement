@@ -270,8 +270,8 @@ test('assumptionList: shared list, optional source prefix; typeLabel is no longe
   const items = [{ label: 'Rate', value: '$1', why: 'because', src: [{ label: 'Src', url: 'https://x.org/a', type: 'gov' }] }, { label: 'Bare' }];
   const withPrefix = assumptionList(items, { srcLabel: 'Source: ' });
   assert.equal(withPrefix.querySelectorAll('.assume__item').length, 2);
-  assert.match(text(withPrefix.querySelector('.assume__src')), /^Source: Src · government$/);
-  assert.match(text(assumptionList(items).querySelector('.assume__src')), /^Src · government$/);
+  assert.match(text(withPrefix.querySelector('.assume__src')), /^Source: Src \(opens in a new tab\) · government$/);
+  assert.match(text(assumptionList(items).querySelector('.assume__src')), /^Src \(opens in a new tab\) · government$/);
   assert.equal(assumptionList([]), null);
   assert.equal(sourceModule.typeLabel, undefined);
 });
@@ -285,8 +285,22 @@ test('keepIds and sourceLinks: hyphenated identifiers are set unbroken, the text
   assert.deepEqual(keepIds(null), []);
   const label = 'CMS, Cost Reports (HCRIS), hospital form CMS-2552-10';
   const linked = h('p', null, sourceLinks([{ label, url: 'https://www.cms.gov/x' }, { label: 'OEI-09-18-00260 report' }]));
-  assert.equal(linked.querySelector('a').textContent, label);
+  assert.equal(linked.querySelector('a').textContent, `${label} (opens in a new tab)`);
   assert.deepEqual([...linked.querySelectorAll('.nw')].map((s) => s.textContent), ['CMS-2552-10', 'OEI-09-18-00260']);
+});
+
+test('external links open in a new tab with a hidden cue; internal links are untouched', () => {
+  const { sourceLinks } = sourceModule;
+  const ext = h('p', null, sourceLinks({ label: 'CMS', url: 'https://www.cms.gov/x' })).querySelector('a');
+  assert.equal(ext.getAttribute('target'), '_blank');
+  assert.match(ext.getAttribute('rel'), /noopener/);
+  assert.match(ext.getAttribute('rel'), /noreferrer/);
+  assert.equal(ext.querySelector('.visually-hidden').textContent, ' (opens in a new tab)');
+  const hash = h('a', { href: '#methods' }, 'Methods');
+  assert.equal(hash.getAttribute('target'), null);
+  assert.equal(hash.getAttribute('rel'), null);
+  assert.equal(hash.querySelector('.visually-hidden'), null);
+  assert.equal(h('a', { href: '#x' }, 'x').textContent, 'x');
 });
 
 test('trackTopbar writes the measured bar height to --topbar-h and follows resizes', () => {

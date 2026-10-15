@@ -10,12 +10,12 @@ export function renderFooter(D) {
   return h('div', { class: 'wrap footer__grid' },
     h('div', { class: 'footer__col' },
       h('p', { class: 'footer__name' }, SITE.name),
-      h('p', null, 'Built by ', h('a', { href: SITE.linkedin, rel: 'noopener' }, SITE.byline), '.'),
+      h('p', null, 'Built by ', h('a', { href: SITE.linkedin }, SITE.byline), ', using Claude Code.'),
       h('p', null, `Data: CMS hospital cost reports, ${span}`
         + `${medpacFy ? `, and MedPAC's analysis of FY${medpacFy} Medicare stays` : ''}. `,
       h('a', { href: '#methods' }, 'Methods and sources'))),
     h('div', { class: 'footer__col' },
       h('p', null, 'Not affiliated with CMS, MedPAC, any hospital, or any health plan.'),
       h('p', null, 'Code MIT-licensed. Federal source data is public domain.'),
-      h('p', null, h('a', { href: SITE.repo, rel: 'noopener' }, 'Source code on GitHub'))));
+      h('p', null, h('a', { href: SITE.repo }, 'Source code on GitHub'))));
 }

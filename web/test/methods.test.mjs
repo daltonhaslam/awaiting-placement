@@ -31,6 +31,8 @@ const D = loadData(structuredClone(fixture));
 const REAL = loadData(structuredClone(real));
 // The same contract with its content replaced (null: no cited content at all).
 const withContent = (raw, content) => loadData({ ...structuredClone(raw), content });
+const CUE = /\s\(opens in a new tab\)/g;
+const CREDIT = /, using Claude Code/g;
 const text = (el) => el.textContent.replace(/\s+/g, ' ');
 const noNaN = (el) => {
   for (const n of el.querySelectorAll('*')) for (const a of n.attributes) assert.ok(!/NaN|undefined|Infinity/.test(a.value), `${n.tagName} ${a.name}="${a.value}"`);
@@ -49,7 +51,8 @@ test('methods: every source is an https link with rel="noopener" and its type la
   for (const src of sources) {
     const a = linkTo(el, src.url);
     assert.ok(a, `no link for ${src.label}`);
-    assert.equal(a.textContent, src.label);
+    assert.equal(a.textContent, `${src.label} (opens in a new tab)`);
+    assert.equal(a.getAttribute('target'), '_blank');
     assert.match(a.getAttribute('rel'), /\bnoopener\b/);
     const row = a.closest('tr');
     assert.ok(row, `${src.label} is not in the sources table`);
@@ -222,7 +225,7 @@ test('methods: the correlation sentence counts the hospitals it actually used (t
   assert.ok(!t.includes(`Across the ${raw.hospitals.length.toLocaleString('en-US')} hospitals`));
 });
 
-test('methods: about has the byline, LinkedIn and the repo, and no AI-tool credit', () => {
+test('methods: about has the byline, LinkedIn and the repo, and only the Claude Code credit', () => {
   const el = renderMethods(REAL);
   const about = el.querySelector('#methods-about')?.closest('section');
   assert.ok(about, 'about section');
@@ -230,7 +233,8 @@ test('methods: about has the byline, LinkedIn and the repo, and no AI-tool credi
   assert.ok(linkTo(about, SITE.linkedin));
   assert.ok(linkTo(about, SITE.repo));
   assert.ok(text(about).includes('The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'));
-  assert.doesNotMatch(text(el), /Claude|Anthropic|built with|AI[- ]generated|ChatGPT/i);
+  assert.ok(text(about).replace(CUE, '').includes(`Built by ${SITE.byline}, using Claude Code.`));
+  assert.doesNotMatch(text(el).replace(CREDIT, ''), /Claude|Anthropic|built with|AI[- ]generated|ChatGPT/i);
   assert.doesNotMatch(text(about), /advisor|employ|based in/i); // byline, LinkedIn and repo only
 });
 
@@ -312,7 +316,7 @@ test('renderHome mounts No. 05 as the real section', () => {
 
 // ---------- Footer and not found ----------
 
-test('footer: byline, data line, not affiliated, MIT, public domain, repo link; no AI credit', () => {
+test('footer: byline, data line, not affiliated, MIT, public domain, repo link; credit is exactly Claude Code', () => {
   const el = renderFooter(REAL);
   const t = text(el);
   assert.ok(t.includes(SITE.byline));
@@ -322,7 +326,8 @@ test('footer: byline, data line, not affiliated, MIT, public domain, repo link; 
   assert.ok(linkTo(el, SITE.repo));
   assert.ok(linkTo(el, SITE.linkedin));
   assert.ok(el.querySelector('a[href="#methods"]'));
-  assert.doesNotMatch(t, /Claude|Anthropic|built with/i);
+  assert.ok(t.replace(CUE, '').includes(`Built by ${SITE.byline}, using Claude Code.`));
+  assert.doesNotMatch(t.replace(CREDIT, ''), /Claude|Anthropic|built with/i);
   noNaN(renderFooter(withContent(fixture, null)));
 });
 
