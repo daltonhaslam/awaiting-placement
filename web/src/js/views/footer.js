@@ -15,7 +15,7 @@ export function renderFooter(D) {
         + `${medpacFy ? `, and MedPAC's analysis of FY${medpacFy} Medicare stays` : ''}. `,
       h('a', { href: '#methods' }, 'Methods and sources'))),
     h('div', { class: 'footer__col' },
-      h('p', null, 'Not affiliated with CMS, MedPAC, any hospital, or any health plan.'),
+      h('p', null, 'An independent, personal project. Does not represent the work or the view of the author\'s employer, CMS, MedPAC, or any hospital or health plan.'),
       h('p', null, 'Code MIT-licensed. Federal source data is public domain.'),
       h('p', null, h('a', { href: SITE.repo }, 'Source code on GitHub'))));
 }

@@ -23,7 +23,7 @@ Works at 360 px wide and in light and dark mode. Charts and panels have text equ
 
 The build writes a single page, `docs/index.html`, with the data, styles and script inlined. The only third-party request is Google Fonts. The page has no analytics, no cookies, and sends nothing else anywhere.
 
-Not affiliated with CMS, MedPAC, any hospital, or any health plan.
+An independent, personal project. Does not represent the work or the view of the author's employer, CMS, MedPAC, or any hospital or health plan.
 
 ## Data
 

@@ -235,7 +235,8 @@ test('methods: about has the byline, LinkedIn and the repo, and only the Claude 
   assert.ok(text(about).includes('The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'));
   assert.ok(text(about).replace(CUE, '').includes(`Built by ${SITE.byline}, using Claude Code.`));
   assert.doesNotMatch(text(el).replace(CREDIT, ''), /Claude|Anthropic|built with|AI[- ]generated|ChatGPT/i);
-  assert.doesNotMatch(text(about), /advisor|employ|based in/i); // byline, LinkedIn and repo only
+  // Byline, LinkedIn and repo only: no job title, named employer or location. "the author's employer" (unnamed) is allowed.
+  assert.doesNotMatch(text(about).replace("author's employer", ''), /advisor|employ|based in|works at|hospital in/i);
 });
 
 test('methods: sparse or missing content renders cleanly', () => {
@@ -320,7 +321,7 @@ test('footer: byline, data line, not affiliated, MIT, public domain, repo link; 
   const el = renderFooter(REAL);
   const t = text(el);
   assert.ok(t.includes(SITE.byline));
-  assert.ok(t.includes('Not affiliated with CMS, MedPAC, any hospital, or any health plan.'));
+  assert.ok(t.includes('An independent, personal project. Does not represent the work or the view of the author\'s employer, CMS, MedPAC, or any hospital or health plan.'));
   assert.ok(t.includes('Code MIT-licensed. Federal source data is public domain.'));
   assert.match(t, /FY2024/);
   assert.ok(linkTo(el, SITE.repo));

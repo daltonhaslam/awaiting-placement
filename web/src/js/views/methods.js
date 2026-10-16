@@ -206,7 +206,7 @@ function aboutPart(D) {
       '. Corrections are welcome there as issues.'),
     built ? h('p', null, `The cost-report data runs through report periods ending ${fmtDate(built)}.`) : null,
     h('p', null, 'The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'),
-    h('p', null, 'Not affiliated with CMS, MedPAC, any hospital, or any health plan. Code MIT-licensed. Federal source data is public domain.'));
+    h('p', null, 'An independent, personal project. Does not represent the work or the view of the author\'s employer, CMS, MedPAC, or any hospital or health plan. Code MIT-licensed. Federal source data is public domain.'));
 }
 
 export function renderMethods(D) {
