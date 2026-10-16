@@ -4,13 +4,13 @@ import { fmtPct } from '../format.js';
 import { mount, fin, r1, bindTip, swapSvg } from './shared.js';
 
 // Where patients went after the hospital: two 100% bars, traditional Medicare over MA. The ordered destinations
-// (none, home health, skilled nursing, rehab or long-term care hospital) use one ink ramp, so color never competes
+// (none, home health, skilled nursing, inpatient rehab) use one ink ramp, so color never competes
 // with the teal/amber identity of the two rows. Values inside a segment only when they fit; else the tooltip and table carry them.
 export const MIX_KEYS = [
   { key: 'none', label: 'No post-acute care', tone: 'none' },
   { key: 'hha', label: 'Home health', tone: 'hha' },
   { key: 'snf', label: 'Skilled nursing', tone: 'snf' },
-  { key: 'irfLtch', label: 'Rehab or long-term care hospital', tone: 'irf' },
+  { key: 'irf', label: 'Inpatient rehab', tone: 'irf' },
 ];
 const ROWS = [
   { id: 'ffs', label: 'Traditional Medicare' },

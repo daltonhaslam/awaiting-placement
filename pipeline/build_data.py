@@ -90,9 +90,9 @@ def derive_medpac(medpac):
               'adjusted': {d: round(rows[d]['adj'], 1) for d in DESTS},
               'placement': {d: round(rows[d]['adj'] - home, 1) for d in DESTS}}
     sept = medpac['sept']
-    ma, stays = sept['mix']['ma'], sept['staysPer1000']['ma']
-    mix = {'home': ma['none'], 'hha': ma['hha'], 'snf': ma['snf'],
-           'irf': round(ma['irfLtch'] * stays['irf'] / (stays['irf'] + stays['ltch']), 3)}
+    # MedPAC's labeled rehab share is inpatient rehab alone (long-term care hospitals are a separate, smaller segment).
+    ma = sept['mix']['ma']
+    mix = {'home': ma['none'], 'hha': ma['hha'], 'snf': ma['snf'], 'irf': ma['irf']}
     all_ = medpac['t41']['all']
     return lenses, mix, {'ma': all_['maLos'], 'ffs': all_['ffsLos'], 'fy': medpac['t41']['fy']}
 

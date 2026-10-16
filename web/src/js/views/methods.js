@@ -127,16 +127,18 @@ function calculatorPart(D) {
   const sept = D.content?.medpac?.sept;
   const stays = sept?.staysPer1000?.ma;
   const ltch = ltchShare(D);
-  const pooled = sept?.mix?.ma?.irfLtch;
+  const irfMa = sept?.mix?.ma?.irf;
+  const irfFfs = sept?.mix?.ffs?.irf;
   const home = L.adjusted?.home;
   const assumptions = list(D.content?.assumptions);
   const defaults = model.defaults ?? {};
   const ranges = model.ranges ?? {};
   const ctx = D.national?.context;
 
-  const mixNote = isNum(pooled) && isNum(mix.irf)
-    ? ` MedPAC reports inpatient rehab and long-term care hospitals together (${fmtPct(pooled)} of MA patients); the model counts `
-      + `${fmtPct(mix.irf, 1)} as inpatient rehab and leaves out long-term care hospitals${isNum(ltch) ? `, about ${fmtPct(ltch, 1)} of MA stays` : ''}.`
+  const mixNote = isNum(irfMa)
+    ? ` MedPAC reports that ${fmtPct(irfMa)} of MA hospital discharges go to inpatient rehab`
+      + `${isNum(irfFfs) ? ` (${fmtPct(irfFfs)} in traditional Medicare)` : ''}, and the model uses that share. `
+      + `Long-term care hospitals are shown separately${isNum(ltch) ? `, at about ${fmtPct(ltch, 1)} of MA stays,` : ''} and are left out.`
     : '';
 
   return part('methods-calculator', 'The calculator',

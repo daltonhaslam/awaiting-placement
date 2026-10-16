@@ -46,7 +46,7 @@ class T(unittest.TestCase):
         self.assertEqual(lenses['placement'], {'home': 0, 'hha': 0.2, 'snf': 1.2, 'irf': 2.1})
         self.assertEqual(lenses['adjusted'], {'home': 0.2, 'hha': 0.4, 'snf': 1.4, 'irf': 2.3})
         self.assertEqual(lenses['unadjusted'], {'home': 0.3, 'hha': 0.5, 'snf': 1.6, 'irf': 2.9})
-        self.assertEqual(mix, {'home': 0.65, 'hha': 0.17, 'snf': 0.15, 'irf': 0.025})
+        self.assertEqual(mix, {'home': 0.65, 'hha': 0.17, 'snf': 0.15, 'irf': 0.03})
         self.assertEqual(medpac, {'ma': 5.7, 'ffs': 5.2, 'fy': 2024})
 
     def test_every_source_in_site_list(self):

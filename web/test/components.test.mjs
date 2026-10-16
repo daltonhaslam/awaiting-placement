@@ -33,7 +33,7 @@ const text = (el) => el.textContent.replace(/\s+/g, ' ');
 
 test('loadData exposes the contract keys at the top level', () => {
   assert.equal(D.content.kff2026.share, 0.55);
-  assert.equal(D.national.context.placement.beds, 4202);
+  assert.equal(D.national.context.placement.beds, 4367);
   assert.equal(D.hospitalsById.get('220071').st, 'MA');
   assert.equal(D.meta.latestFy, 2024);
   assert.deepEqual(D.meta.rules.alos, [2, 15]);
@@ -168,7 +168,7 @@ test('hero: numbers come from the data', () => {
   assert.match(t, /Average stays, FY2024: 7\.0 days in traditional Medicare, 9\.9 in Medicare Advantage\. Adjusted for hospital and diagnosis group, the gap is 2\.3 days\./);
   assert.match(t, /\+2\.3 days/);
   assert.match(t, /55%/);
-  assert.match(t, /≈4,200–7,300 beds/);
+  assert.match(t, /≈4,400–7,500 beds/);
   assert.ok(el.querySelector('a[href="#methods"]'));
   assert.ok(el.querySelector('a[href="#calculator"]'));
   assert.doesNotMatch(t, /NaN|undefined|\[object/);
@@ -195,7 +195,7 @@ test('hero: renders cleanly without content', () => {
   assert.ok(el.querySelector('h1'));
   assert.equal(el.querySelector('.led'), null);
   assert.doesNotMatch(t, /NaN|undefined|null|\[object/);
-  assert.match(t, /≈4,200–7,300 beds/); // national context is not content
+  assert.match(t, /≈4,400–7,500 beds/); // national context is not content
 });
 
 test('pathway: definition, five steps, authorization marked, five signs', () => {

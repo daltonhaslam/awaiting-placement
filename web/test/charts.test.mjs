@@ -65,7 +65,7 @@ test('mixBars: each bar fills the track', () => {
 
 test('mixBars: an all-zero mix draws nothing and stays finite', () => {
   const el = h('div');
-  mixBars(el, { ffs: { none: 0, hha: 0, snf: 0, irfLtch: 0 }, ma: {} });
+  mixBars(el, { ffs: { none: 0, hha: 0, snf: 0, irf: 0 }, ma: {} });
   noNaN(el);
 });
 

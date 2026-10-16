@@ -202,6 +202,12 @@ test('methods: lens table, mix and every assumption with its source type come fr
     assert.ok(t.includes(a.label), `assumption ${a.label}`);
     for (const s of a.src) assert.ok(linkTo(el, s.url), `assumption source ${s.label}`);
   }
+  // The rehab share is MedPAC's inpatient rehab alone, used as is; long-term care hospitals are separate and left out.
+  assert.equal(REAL.model.mix.irf, REAL.content.medpac.sept.mix.ma.irf);
+  assert.match(t, /MedPAC reports that 3% of MA hospital discharges go to inpatient rehab \(5% in traditional Medicare\), and the model uses that share\./);
+  assert.match(t, /Long-term care hospitals are shown separately, at about 0\.5% of MA stays, and are left out\./);
+  assert.doesNotMatch(t, /2\.5%|2\.5 percent|together \(/);
+  assert.match(t, /3 percent for inpatient rehabilitation \(5 percent in traditional Medicare\)/);
   assert.match(t, /trade group/i);
   assert.match(t, /industry/i);
   // "Extra days" is defined once, apart from DRG-expected and case-manager avoidable days.

@@ -75,13 +75,13 @@
     "none": 0.59,
     "hha": 0.17,
     "snf": 0.18,
-    "irfLtch": 0.05
+    "irf": 0.05
    },
    "ma": {
     "none": 0.65,
     "hha": 0.17,
     "snf": 0.15,
-    "irfLtch": 0.03
+    "irf": 0.03
    }
   },
   "medians": [

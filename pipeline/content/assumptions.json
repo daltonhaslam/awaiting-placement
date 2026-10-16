@@ -126,8 +126,8 @@
  {
   "key": "mix",
   "label": "Where MA patients go after discharge",
-  "value": "Home 65%, home health 17%, skilled nursing 15%, inpatient rehabilitation 2.5%",
-  "why": "From MedPAC's 2023 data: 65, 17 and 15 percent for home, home health and skilled nursing. MedPAC combines inpatient rehabilitation and long-term care hospitals at 3 percent. The model uses 2.5 percent for rehabilitation and leaves out long-term care hospitals.",
+  "value": "Home 65%, home health 17%, skilled nursing 15%, inpatient rehabilitation 3%",
+  "why": "From MedPAC's 2023 data: 65, 17 and 15 percent for home, home health and skilled nursing, and 3 percent for inpatient rehabilitation (5 percent in traditional Medicare). MedPAC shows long-term care hospitals separately, at under 1 percent of MA discharges, and the model leaves them out.",
   "src": [
    {
     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",

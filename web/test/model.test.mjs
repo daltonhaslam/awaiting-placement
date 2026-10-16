@@ -7,7 +7,7 @@ const lenses = {
   adjusted: { home: 0.2, hha: 0.4, snf: 1.4, irf: 2.3 },
   unadjusted: { home: 0.3, hha: 0.5, snf: 1.6, irf: 2.9 },
 };
-const mix = { home: 0.65, hha: 0.17, snf: 0.15, irf: 0.025 };
+const mix = { home: 0.65, hha: 0.17, snf: 0.15, irf: 0.03 };
 const P = { lenses, mix };
 const base = { beds: 350, occ: 0.70, dis: 18000, mcr: 0.45, ma: 0.5, lens: 'placement',
   t0: 2.5, t1: 1.0, cvar: 800, pay: 'case', rate: 2500, cm: 4500, fill: null, hospitalGap: null };
@@ -21,7 +21,7 @@ test('autoFill ramps 70%→90%', () => {
 
 test('excessDays: fixed lenses and the hospital lens', () => {
   assert.deepEqual(M.excessDays('placement', lenses, mix, null), lenses.placement);
-  const sumAdj = 0.65 * 0.2 + 0.17 * 0.4 + 0.15 * 1.4 + 0.025 * 2.3;
+  const sumAdj = 0.65 * 0.2 + 0.17 * 0.4 + 0.15 * 1.4 + 0.03 * 2.3;
   const h = M.excessDays('hospital', lenses, mix, sumAdj);
   for (const d of M.DESTS) near(h[d], lenses.adjusted[d]);
   const neg = M.excessDays('hospital', lenses, mix, -0.3);
@@ -34,14 +34,14 @@ test('excessDays: fixed lenses and the hospital lens', () => {
 test('compute: regional worked example (per-case)', () => {
   const r = M.compute(base, P);
   near(r.nMA, 4050);
-  near(r.perMA, 0.2665);
-  near(r.bedDays, 1079.325);
-  near(r.beds, 1079.325 / 365);
+  near(r.perMA, 0.277); // 0.17 × 0.2 + 0.15 × 1.2 + 0.03 × 2.1
+  near(r.bedDays, 1121.85);
+  near(r.beds, 1121.85 / 365);
   near(r.speedup, 1.5);
-  near(r.savedBedDays, 4050 * (0.15 * 1.2 + 0.025 * 1.5));
+  near(r.savedBedDays, 4050 * (0.15 * 1.2 + 0.03 * 1.5));
   assert.equal(r.fill, 0);
   assert.equal(r.addedAdmissions, 0);
-  near(r.dollars.excessNet, -1079.325 * 800);
+  near(r.dollars.excessNet, -1121.85 * 800);
   near(r.dollars.fasterNet, r.savedBedDays * 800);
   assert.equal(r.capped, false);
 });
