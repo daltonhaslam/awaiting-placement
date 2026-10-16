@@ -10,7 +10,7 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-W0wYS/qhvzG9EUNeGLOPwv5iA1krjhj2V4K9mO5UWak=' 'sha256-Nrs/8KaZwAj9Q76LuW8WZzziD2HrQBRh5gty2a6YZvQ='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-W0wYS/qhvzG9EUNeGLOPwv5iA1krjhj2V4K9mO5UWak=' 'sha256-iXW6kkb20ZsfezCEPyVLF5P4WRy3/g71OMXV09PWU0Q='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
       ]
     }
   ]

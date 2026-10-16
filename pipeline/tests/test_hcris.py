@@ -10,6 +10,9 @@ RPT = "\n".join([
 NMRC = "\n".join([
   "1,S300001,00200,00600,5000", "1,S300001,00200,01300,1000",      # MA days, discharges
   "1,S300001,00100,00600,4000", "1,S300001,00800,00600,500",       # FFS line1 + ICU line8
+  "1,S300001,00801,00600,200",  "1,S300001,01203,00600,50",        # subscripted ICU units count too
+  "1,S300001,00100,00601,100",  "1,S300001,00200,00601,25",        # PARHM column 6.01 adds to column 6
+  "1,S300001,01000,00601,10",
   "1,S300001,00100,01300,950",  "1,S300001,00100,01500,4000",
   "1,S300001,01400,00200,200",  "1,S300001,01400,00300,73200",
   "1,S300001,01400,00800,50000","1,S300001,01300,00800,1000",
@@ -40,14 +43,19 @@ class T(unittest.TestCase):
 
     def test_fields(self):
         r = hcris.dedupe(hcris.extract_year(self.tmp.name, 2024))[0]
-        self.assertEqual((r['ma_days'], r['ma_disch']), (5000, 1000))
-        self.assertEqual((r['ffs_days_l1'], r['ffs_days_icu'], r['ffs_disch']), (4000, 500, 950))
+        self.assertEqual((r['ma_days'], r['ma_disch']), (5025, 1000))
+        self.assertEqual((r['ffs_days_l1'], r['ffs_days_icu'], r['ffs_disch']), (4100, 760, 950))
         self.assertEqual((r['tot_disch'], r['beds'], r['nursery_days']), (4000, 200, 1000))
         self.assertEqual((r['npr'], r['opex']), (250000000, 240000000))
         self.assertEqual((r['name'], r['city'], r['state'], r['zip']), ('TEST HOSPITAL', 'SPRINGFIELD', 'IL', '62701'))
 
-    def test_icu_sums_lines_8_to_12(self):
-        self.assertEqual(hcris.ICU_LINES, ('00800', '00900', '01000', '01100', '01200'))
+    def test_icu_lines_cover_subscripts(self):
+        # Every line from 8 through 12.99 in column 6 or 6.01 is an ICU day cell; neighbours are not.
+        for line in ('00800', '00801', '00950', '01200', '01299'):
+            self.assertEqual(hcris._field('S300001', line, '00600'), 'icu', line)
+            self.assertEqual(hcris._field('S300001', line, '00601'), 'icu', line)
+        for line, col in (('00700', '00600'), ('01300', '00600'), ('00800', '00800'), ('00800', '01300')):
+            self.assertNotEqual(hcris._field('S300001', line, col), 'icu', (line, col))
 
 
 class PinnedYearsTest(unittest.TestCase):

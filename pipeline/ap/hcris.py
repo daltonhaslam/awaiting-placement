@@ -11,7 +11,13 @@ G3 = 'G300000'
 COLUMNS = ['fy', 'ccn', 'rpt_rec_num', 'status', 'fy_bgn', 'fy_end', 'period_days', 'name', 'city', 'state', 'zip',
            'beds', 'bed_days', 'ip_days', 'nursery_days', 'tot_disch', 'ffs_disch', 'ma_disch', 'ffs_days_l1',
            'ffs_days_icu', 'ma_days', 'resid_fte', 'npr', 'opex']
-ICU_LINES = ('00800', '00900', '01000', '01100', '01200')
+# S-3 Part I lines 8 through 12 (intensive-care units), including every subscripted unit a hospital adds (8.01, 9.01,
+# 12.03 ...). Matched as a range: a fixed tuple of base lines silently drops the subscripts.
+ICU_LINES = ('00800', '01299')
+# Title XVIII days are column 6; a PARHM-demonstration hospital splits its Medicare days between 6 and 6.01.
+DAYS_COLS = ('00600', '00601')
+# Day fields that sum across cells (column 6 + 6.01, every ICU line) instead of taking one cell.
+ADDITIVE = {'ma_days', 'ffs_days_l1', 'icu'}
 
 # field -> (worksheet, line, column), 5-char zero-padded
 CELLS = {
@@ -35,11 +41,17 @@ ALPHA_CELLS = {
     'zip':   ('S200001', '00200', '00300'),
 }
 
-_ICU_COL = '00600'
 _WKSHTS = {S3, G3}
 _NEEDED = {(w, l, c): f for f, (w, l, c) in CELLS.items()}
-for _l in ICU_LINES:
-    _NEEDED[(S3, _l, _ICU_COL)] = 'icu:' + _l
+_NEEDED[(S3, '00100', '00601')] = 'ffs_days_l1'
+_NEEDED[(S3, '00200', '00601')] = 'ma_days'
+
+
+def _field(ws, line, col):
+    f = _NEEDED.get((ws, line, col))
+    if f is None and ws == S3 and col in DAYS_COLS and ICU_LINES[0] <= line <= ICU_LINES[1]:
+        return 'icu'
+    return f
 _ALPHA_NEEDED = {(w, l, c): f for f, (w, l, c) in ALPHA_CELLS.items()}
 
 def member(zf, kind):
@@ -100,12 +112,13 @@ def extract_year(zip_path, fy):
             rid = r[0].strip()
             if rid not in vals:
                 continue
-            f = _NEEDED.get((r[1], r[2].strip().zfill(5), r[3].strip().zfill(5)))
+            f = _field(r[1], r[2].strip().zfill(5), r[3].strip().zfill(5))
             if f is None:
                 continue
             v = _num(r[4])
-            if v is not None:
-                vals[rid][f] = v
+            if v is None:
+                continue
+            vals[rid][f] = vals[rid].get(f, 0) + v if f in ADDITIVE else v
         text = {rid: {} for rid in reports}
         for r in _rows(zf, member(zf, 'ALPHA')):
             if len(r) < 5 or r[1] != 'S200001':
@@ -119,10 +132,9 @@ def extract_year(zip_path, fy):
     out = []
     for rid, row in reports.items():
         v = vals[rid]
-        icu = [v['icu:' + l] for l in ICU_LINES if 'icu:' + l in v]
         for f in CELLS:
             row[f] = v.get(f, '')
-        row['ffs_days_icu'] = sum(icu) if icu else ''
+        row['ffs_days_icu'] = v.get('icu', '')
         for f in ALPHA_CELLS:
             row[f] = text[rid].get(f, '')
         out.append(row)

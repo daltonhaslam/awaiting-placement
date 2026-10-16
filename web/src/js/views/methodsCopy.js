@@ -37,9 +37,10 @@ export function definitions(r) {
     ['Fiscal year', 'The year the report period begins, which is how CMS files the reports. When a hospital has more than one '
       + 'report for a year, the longest period is kept, then the most recently processed.'],
     ['Medicare Advantage (MA) days and discharges', 'Worksheet S-3, Part I, line 2: days in column 6, discharges in column 13.'],
-    ['Traditional Medicare days', 'Line 1 plus lines 8 to 12 (intensive care and other special-care units), column 6. '
-      + 'Line 2 counts MA days in every unit, so the special-care lines are added to traditional Medicare to compare like with like. '
-      + 'Traditional Medicare is the fee-for-service (FFS) program.'],
+    ['Traditional Medicare days', 'Line 1 plus lines 8 to 12 (intensive care and other special-care units, including any '
+      + 'subscripted unit lines such as 8.01), column 6. Line 2 counts MA days in every unit, so the special-care lines are added '
+      + 'to traditional Medicare to compare like with like. Traditional Medicare is the fee-for-service (FFS) program. '
+      + 'Where a Pennsylvania Rural Health Model hospital splits its Medicare days between columns 6 and 6.01, the two are added.'],
     ['Traditional Medicare discharges', 'Line 1, column 13.'],
     ['Average stay and gap', 'Days divided by discharges, for each group. The gap is the MA average minus the traditional Medicare average.'],
     ['MA share', 'MA discharges divided by MA plus traditional Medicare discharges.'],
