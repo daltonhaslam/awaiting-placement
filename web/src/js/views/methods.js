@@ -127,7 +127,9 @@ function calculatorPart(D) {
 
   return part('methods-calculator', 'The calculator',
     h('p', null, 'The calculator estimates how many beds a hospital\'s MA patients hold on an average day because their stays run longer. '
-      + 'It applies MedPAC\'s national gaps by discharge destination to one hospital\'s volumes. It is a model built on averages, not a measurement of any hospital.'),
+      + 'It applies MedPAC\'s national gaps by discharge destination to one hospital\'s volumes. It is a model built on averages, not a measurement of any hospital. '
+      + '"Extra days" here means the difference between MA and traditional Medicare stays. It is not the same as days over the '
+      + 'DRG\'s expected length of stay or as avoidable days logged by case managers.'),
     h('h3', null, 'Extra days per MA stay'),
     table({ 'data-table': 'lenses' },
       [['Destination'], ['Share of MA patients', true], ['Unadjusted', true], ['Adjusted', true], ['Placement-related', true]],
@@ -143,7 +145,7 @@ function calculatorPart(D) {
       h('li', null, `Placement-related is the adjusted gap minus the adjusted gap for patients who went home on their own${isNum(home) ? ` (${fmt1(home)} days)` : ''}. `
         + 'It keeps only the extra days associated with going to post-acute care, and it is the default.'),
       h('li', null, 'This hospital\'s own gap, offered once a hospital is chosen, scales the adjusted column so that its average across the mix '
-        + 'equals the hospital\'s cost-report gap. A gap of zero or less counts as no excess.'),
+        + 'equals the hospital\'s cost-report gap. A gap of zero or less counts as no extra days.'),
       h('li', null, `The mix is MedPAC's for ${sept?.year ?? 'its sample year'}.${mixNote} `, sept?.src ? h('span', { class: 'note-src' }, '(', sourceLinks(sept.src), ')') : null)),
 
     h('h3', null, 'Formulas'),
@@ -177,7 +179,7 @@ function calculatorPart(D) {
       h('h3', null, 'The national estimate'),
       h('p', null, `MedPAC counted ${stays.ach} acute hospital stays per 1,000 MA enrollees in ${sept.year}, in a sample of `
         + `${sept.sampleMillions.ma} million enrollees: about ${fmtNum(ctx.maStays2023)} stays. Applying the mix and the extra days per stay gives `
-        + `${fmtNum(ctx.placement.bedDays)} waiting bed-days a year under the placement-related gap (${fmtNum(ctx.placement.beds)} beds on an average day) `
+        + `${fmtNum(ctx.placement.bedDays)} extra MA bed-days a year under the placement-related gap (${fmtNum(ctx.placement.beds)} beds on an average day) `
         + `and ${fmtNum(ctx.adjusted.bedDays)} under the full adjusted gap (${fmtNum(ctx.adjusted.beds)} beds). `
         + `It combines ${sept.year} volumes with FY${t41?.fy ?? D.meta?.latestFy} gaps, so read it as a rough range.`),
     ] : null);

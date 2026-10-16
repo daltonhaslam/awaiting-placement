@@ -109,11 +109,11 @@ test('choosing a hospital loads its inputs, enables its lens and puts h= in the 
   assert.ok(own.hasAttribute('disabled'));
 });
 
-test('a hospital with gap <= 0 under its own lens shows no excess and 0.0', () => {
+test('a hospital with gap <= 0 under its own lens shows no extra days and 0.0', () => {
   const raw = structuredClone(fixture);
   raw.hospitals[0].gap = -0.2;
   const el = renderCalculator(loadData(raw), { query: `h=${raw.hospitals[0].id}&l=hospital` });
-  assert.match(text(el), /This hospital reports no MA excess/);
+  assert.match(text(el), /This hospital's FY\d{4} cost report shows no longer MA stays \(.*\), so nothing is counted under this lens\. The other lenses use MedPAC's national averages, which may not fit this hospital\./);
   assert.equal(readout(el), '0.0');
   clean(el);
 });
@@ -189,7 +189,7 @@ test('per diem with rate below variable cost: a signed negative dollar line and 
   assert.ok(!field(el, 'rate').closest('.fld').hasAttribute('hidden'), 'rate shown for per diem');
 });
 
-test('per case: the waiting days are a cost; the rate field is hidden', () => {
+test('per case: the extra days are a cost; the rate field is hidden', () => {
   const el = renderCalculator(D, { query: '' });
   const row = el.querySelector('[data-row="excessNet"]');
   assert.match(row.querySelector('dd').textContent, /^−\$/);
@@ -199,7 +199,7 @@ test('per case: the waiting days are a cost; the rate field is hidden', () => {
   assert.match(faster.querySelector('dd').textContent, /^\+\$/);
 });
 
-test('per diem above cost: the waiting days bring in revenue, faster decisions trade it', () => {
+test('per diem above cost: the extra days bring in revenue, faster decisions trade it', () => {
   const el = renderCalculator(D, { query: 'p=diem&r=2500&c=800' });
   assert.match(el.querySelector('[data-row="excessNet"] dd').textContent, /^\+\$/);
   assert.match(text(el.querySelector('[data-row="excessNet"]')), /pays for each day/);

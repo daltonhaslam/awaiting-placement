@@ -24,15 +24,15 @@ export const PAYS = [
 
 // Ledger rows: [key, label]. The first group is beds and days, the second dollars.
 export const LEDGER = [
-  ['bedDays', 'Waiting bed-days a year'],
+  ['bedDays', 'Extra MA bed-days a year'],
   ['bedShare', 'Share of beds'],
   ['alosAdded', 'Days added to the average stay, all patients'],
-  ['occWithout', 'Occupancy without the excess'],
+  ['occWithout', 'Occupancy without the extra MA days'],
   ['savedBedDays', 'Bed-days freed by faster decisions'],
   ['addedAdmissions', 'Added admissions a year'],
 ];
 export const DOLLARS = [
-  ['excessNet', 'Hospital\'s net on the waiting days'],
+  ['excessNet', 'Hospital\'s net on the extra days'],
   ['fasterNet', 'Hospital\'s net from faster decisions'],
 ];
 
@@ -44,21 +44,21 @@ const usd = (x) => `$${fmtNum(x)}`;
 
 // {key: [value, note]} for every ledger and dollar row, from compute() result `r` and the inputs behind it.
 export function ledgerRows(r, inputs) {
-  const perDay = inputs.pay === 'diem' ? inputs.rate - inputs.cvar : -inputs.cvar; // the hospital's net on one waiting day
+  const perDay = inputs.pay === 'diem' ? inputs.rate - inputs.cvar : -inputs.cvar; // the hospital's net on one extra day
   const margin = r.addedAdmissions > 0 ? `, plus ${usd(inputs.cm)} of margin on each added admission` : '';
   let excess;
   let faster;
   if (inputs.pay === 'case') {
-    excess = `Under per-case payment the plan pays once for the stay, so each waiting day adds about ${usd(inputs.cvar)} of variable cost and no revenue.`;
+    excess = `Under per-case payment the plan pays once for the stay, so each extra day adds about ${usd(inputs.cvar)} of variable cost and no revenue.`;
     faster = `Variable cost avoided on freed days${margin}.`;
   } else if (perDay > 0) {
     excess = 'Under per-diem contracts the plan pays for each day, so these days bring in revenue. Faster decisions trade that revenue for open beds.';
     faster = `Margin on added admissions, minus the per-diem net the freed days would have earned.${r.dollars.fasterNet < 0 ? ' Negative here: those days earned more than the added admissions would.' : ''}`;
   } else if (perDay < 0) {
-    excess = `The per-diem rate (${usd(inputs.rate)}) is below the variable cost of a day (${usd(inputs.cvar)}), so each waiting day loses money even though the plan pays for it.`;
+    excess = `The per-diem rate (${usd(inputs.rate)}) is below the variable cost of a day (${usd(inputs.cvar)}), so each extra day loses money even though the plan pays for it.`;
     faster = `Each freed day stops losing ${usd(-perDay)}${margin}.`;
   } else {
-    excess = 'The per-diem rate equals the variable cost of a day, so the waiting days net nothing.';
+    excess = 'The per-diem rate equals the variable cost of a day, so the extra days net nothing.';
     faster = 'Margin on added admissions. The freed days netted nothing.';
   }
   return {
@@ -66,7 +66,7 @@ export function ledgerRows(r, inputs) {
       ? `Capped at the hospital's occupied bed-days. ${fmtNum(r.nMA)} MA discharges × ${r.perMA.toFixed(3)} extra days each would be ${fmtNum(r.nMA * r.perMA)}.`
       : `About ${fmtNum(r.nMA)} MA discharges × ${r.perMA.toFixed(3)} extra days each, weighted by where patients go next.`],
     bedShare: [fmtPct(r.bedShare, 1), `Of ${fmtNum(inputs.beds)} beds.`],
-    alosAdded: [`+${days2(r.alosAdded)}`, `Average stay ${days2(r.alos)} with the excess, ${days2(Math.max(0, r.alos - r.alosAdded))} without.`],
+    alosAdded: [`+${days2(r.alosAdded)}`, `Average stay ${days2(r.alos)} with the extra MA days, ${days2(Math.max(0, r.alos - r.alosAdded))} without.`],
     occWithout: [fmtPct(r.occWithout, 1), `Now ${fmtPct(inputs.occ, 1)}.`],
     savedBedDays: [fmtNum(r.savedBedDays), r.speedup > 0
       ? `${fmtBeds(r.bedsFreed)} beds on an average day, from deciding ${fmtDays(r.speedup)} sooner.`

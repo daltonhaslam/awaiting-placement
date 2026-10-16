@@ -43,7 +43,7 @@
  },
  {
   "key": "cvar",
-  "label": "Variable cost of one extra waiting day",
+  "label": "Variable cost of one extra day",
   "value": "$800",
   "why": "About a quarter of KFF's $3,297 expense per adjusted inpatient day (2024, from the AHA Annual Survey), on the reasoning that most staffing, overhead and capital costs do not change with one more low-acuity day. One academic center study found the last full day of a stay cost $420 in 1990s dollars, or 2.4 percent of total stay cost. MedPAC says some hospital costs are fixed and do not rise with a longer stay.",
   "src": [
@@ -139,7 +139,7 @@
  },
  {
   "key": "lenses",
-  "label": "Which gap counts as excess",
+  "label": "Which gap counts as extra days",
   "value": "Placement-related",
   "why": "Unadjusted and adjusted gaps by discharge destination come from MedPAC Table 4-1. The placement lens is the adjusted gap minus the adjusted gap for patients discharged home, so it shows the extra stay length associated with post-acute placement. MedPAC describes these gaps as associations and says they suggest that plans could slow discharges through activities such as prior authorization.",
   "src": [

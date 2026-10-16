@@ -190,7 +190,7 @@ export function renderHospital(D, id) {
     cant,
     h('p', { class: 'profile__cta' },
       h('a', { class: 'btn', href: calculatorHref(D, x) }, 'Open in calculator'),
-      hasExcess(x) ? null : h('span', { class: 'card__note' }, ' This hospital reports no MA excess, so the calculator opens with MedPAC\'s national estimate.'),
+      hasExcess(x) ? null : h('span', { class: 'card__note' }, ' This hospital\'s cost report shows no longer MA stays. The calculator opens with MedPAC\'s national averages instead, which may not fit this hospital.'),
       x.occFlag ? h('span', { class: 'card__note' }, ' The calculator uses a typical occupancy instead of this hospital\'s flagged figure.') : null),
     h('p', null, h('a', { href: link('share') }, 'Back to the national picture')));
 }

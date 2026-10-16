@@ -276,10 +276,10 @@ test('table twin names the combined end rows', () => {
   assert.match(t, /combine the outlying hospitals/);
 });
 
-test('Open in calculator: the hospital lens only for a hospital with MA excess; otherwise the default lens and a note', () => {
+test('Open in calculator: the hospital lens only for a hospital with longer MA stays; otherwise the default lens and a note', () => {
   const href = (id) => render(D, id).querySelector('a.btn').getAttribute('href');
   const ctaNote = (id) => text(render(D, id).querySelector('.profile__cta'));
-  const NOTE = /This hospital reports no MA excess, so the calculator opens with MedPAC's national estimate\./;
+  const NOTE = /This hospital's cost report shows no longer MA stays\. The calculator opens with MedPAC's national averages instead, which may not fit this hospital\./;
   const zero = D.hospitalsById.get('050123'); // fixture: gap below zero
   assert.ok(zero.gap <= 0);
   const q = new URLSearchParams(href('050123').split('?')[1]);

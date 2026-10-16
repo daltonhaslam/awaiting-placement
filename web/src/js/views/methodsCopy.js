@@ -55,18 +55,18 @@ export function definitions(r) {
 export const formulas = () => [
   ['MA discharges', 'nMA = discharges × Medicare share × MA share'],
   ['Average stay, all patients', 'alos = occupancy × beds × 365 / discharges'],
-  ['Waiting bed-days a year', 'W = nMA × Σ mix[d] × e[d]'],
+  ['Extra MA bed-days a year', 'W = nMA × Σ mix[d] × e[d]'],
   ['Beds held on an average day', 'E = W / 365'],
   ['Share of beds', 'E / beds'],
   ['Days added to the average stay', 'W / discharges'],
-  ['Occupancy without the excess', 'occupancy − W / (beds × 365)'],
+  ['Occupancy without the extra MA days', 'occupancy − W / (beds × 365)'],
   ['Speed-up, skilled nursing and inpatient rehab only', 's = max(0, t0 − t1)'],
   ['Bed-days freed, summed over skilled nursing and inpatient rehab', 'S = nMA × Σ mix[d] × min(s, e[d])'],
   ['Added admissions', 'A = S × fill / alos'],
   ['Refill share, unless set by hand', `fill = min(1, max(0, (occupancy − ${FILL_LO.toFixed(2)}) / ${(FILL_HI - FILL_LO).toFixed(2)}))`],
-  ['Per case: net on the waiting days', '−W × cvar'],
+  ['Per case: net on the extra days', '−W × cvar'],
   ['Per case: net from faster decisions', 'S × cvar + A × cm'],
-  ['Per diem: net on the waiting days', 'W × (rate − cvar)'],
+  ['Per diem: net on the extra days', 'W × (rate − cvar)'],
   ['Per diem: net from faster decisions', 'A × cm − S × (rate − cvar)'],
 ];
 

@@ -185,6 +185,9 @@ test('methods: lens table, mix and every assumption with its source type come fr
   }
   assert.match(t, /trade group/i);
   assert.match(t, /industry/i);
+  // "Extra days" is defined once, apart from DRG-expected and case-manager avoidable days.
+  assert.match(t, /"Extra days" here means the difference between MA and traditional Medicare stays\./);
+  assert.match(t, /avoidable days logged by case managers/);
   // What the calculator does not measure.
   assert.match(t, /truly avoidable/);
   assert.match(t, /skilled nursing facilities/);

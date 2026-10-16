@@ -411,8 +411,8 @@ export function renderCalculator(D, { query } = {}) {
       lensNote.textContent = isNum(g) && g > 0
         ? `${stays ? `${stays} in its FY${fy} cost report, a gap of ${fmtSigned(shownGap, fmtDays)}` : `Its FY${fy} cost-report gap is ${fmtSigned(shownGap, fmtDays)}`}. `
           + 'The gap is raw (not adjusted) and is spread across destinations in MedPAC\'s adjusted pattern.'
-        : `This hospital reports no MA excess: ${stays ? `${stays} in its FY${fy} cost report` : `its FY${fy} cost report shows no longer MA stays`}`
-          + ', so nothing is counted under this lens.';
+        : `This hospital's FY${fy} cost report shows no longer MA stays${stays ? ` (${stays})` : ''}, so nothing is counted under this lens. `
+          + 'The other lenses use MedPAC\'s national averages, which may not fit this hospital.';
     } else lensNote.textContent = hospital ? lensDef.explain
       : `${lensDef.explain} Choose a hospital to use its own cost-report gap.`;
 
