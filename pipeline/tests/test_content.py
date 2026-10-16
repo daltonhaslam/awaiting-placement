@@ -34,7 +34,7 @@ class T(unittest.TestCase):
         self.assertEqual(set(self.c), {'medpac', 'kff2026', 'timeline', 'sides', 'assumptions', 'sources'})
         self.assertEqual(set(self.c['sides']), {'hospitals', 'plans', 'unsettled'})
         for k, v in self.c['sides'].items():
-            self.assertTrue(3 <= len(v) <= 5, k)
+            self.assertTrue(3 <= len(v) <= 7, k)
 
     def test_assumption_keys_cover_defaults(self):
         keys = {a['key'] for a in self.c['assumptions']}

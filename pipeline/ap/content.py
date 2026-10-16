@@ -97,8 +97,8 @@ def load_content(dir):
     if set(c['sides']) != set(SIDES):
         _fail('sides', f'needs exactly {SIDES}')
     for k in SIDES:
-        if not 3 <= len(c['sides'][k]) <= 5:
-            _fail(f'sides.{k}', 'needs 3 to 5 items')
+        if not 3 <= len(c['sides'][k]) <= 7:
+            _fail(f'sides.{k}', 'needs 3 to 7 items')
         for i, it in enumerate(c['sides'][k]):
             if not str(it.get('text', '')).strip():
                 _fail(f'sides.{k}[{i}]', 'empty text')

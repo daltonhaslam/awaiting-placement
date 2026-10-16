@@ -17,7 +17,7 @@
    "text": "In a 2024 survey of 367 inpatient rehabilitation facilities, the average wait for an initial MA prior authorization decision was just over 2.5 days.",
    "src": [
     {
-     "label": "AMRPA, 2024 Medicare Advantage prior authorization survey",
+     "label": "AMRPA, the inpatient rehab trade group, 2024 Medicare Advantage prior authorization survey",
      "url": "https://amrpa.org/medicare-advantage-prior-authorization-survey/",
      "type": "trade-group",
      "verified": true
@@ -44,6 +44,18 @@
      "label": "KFF, MA insurers deny prior authorization requests for post-acute care at higher rates (Jul. 6, 2026)",
      "url": "https://www.kff.org/medicare/medicare-advantage-insurers-deny-prior-authorization-requests-for-post-acute-care-at-substantially-higher-rates-than-the-overall-denial-rate/",
      "type": "nonprofit",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "oig-denial-review",
+   "text": "An OIG review of 250 sampled prior authorization denials from 15 large MA organizations (June 1 to 7, 2019) estimated that 13 percent of the denied requests met Medicare coverage rules and would likely have been approved under traditional Medicare.",
+   "src": [
+    {
+     "label": "HHS OIG, OEI-09-18-00260, MA organization denials of prior authorization requests (2022)",
+     "url": "https://oig.hhs.gov/reports/all/2022/some-medicare-advantage-organization-denials-of-prior-authorization-requests-raise-concerns-about-beneficiary-access-to-medically-necessary-care/",
+     "type": "gov",
      "verified": true
     }
    ]
@@ -91,12 +103,36 @@
   },
   {
    "key": "ambulatory-care-hospitalization",
-   "text": "In a 2018 claims study, MA patients had a lower risk of hospitalization for ambulatory care-sensitive conditions than traditional Medicare patients (relative risk 0.94).",
+   "text": "Using 2018 claims, a 2023 study found MA enrollees were 6 percent less likely than traditional Medicare patients to be hospitalized for conditions that good outpatient care can often prevent (relative risk 0.94). Plans argue that if fewer of their healthier members are admitted, the MA patients who are admitted may be sicker, and stay longer for reasons other than delay.",
    "src": [
     {
      "label": "Beckman et al., Potentially avoidable acute care use, MA vs traditional Medicare, JAMA Health Forum 2023",
      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9958527/",
      "type": "peer-reviewed",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "irf-use-narrower",
+   "text": "MA enrollees used inpatient rehabilitation at about a third of the traditional Medicare rate (5 vs 14 stays per 1,000 in 2023). The MA patients who do go to rehab are a narrower group, so part of their longer hospital stay may reflect who they are, which adjustment for diagnosis group cannot fully remove.",
+   "src": [
+    {
+     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/09/Tab-E-PAC-volume-Sept26-FINAL.pdf",
+     "type": "gov",
+     "verified": true
+    }
+   ]
+  },
+  {
+   "key": "per-diem-contracts",
+   "text": "Where a plan pays a hospital by the day, a longer stay is paid for. MedPAC notes most plans pay per stay, but per-diem contracts exist, and under them a hospital has less reason to shorten the stay.",
+   "src": [
+    {
+     "label": "MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1, FY 2024 MedPAR)",
+     "url": "https://www.medpac.gov/wp-content/uploads/2026/06/Jun26_Ch4_MedPAC_Report_To_Congress_SEC.pdf",
+     "type": "gov",
      "verified": true
     }
    ]
@@ -118,7 +154,7 @@
    "text": "Plans that signed the 2025 AHIP pledge committed that, in 2027, at least 80 percent of electronic prior authorization approvals with complete documentation will be answered in real time.",
    "src": [
     {
-     "label": "AHIP, Health Plans Take Action to Simplify Prior Authorization (Jun. 23, 2025)",
+     "label": "AHIP, the health plans' trade group, Health Plans Take Action to Simplify Prior Authorization (Jun. 23, 2025)",
      "url": "https://www.ahip.org/news/press-releases/health-plans-take-action-to-simplify-prior-authorization",
      "type": "trade-group",
      "verified": true
@@ -171,18 +207,6 @@
      "label": "Beckman et al., Potentially avoidable acute care use, MA vs traditional Medicare, JAMA Health Forum 2023",
      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9958527/",
      "type": "peer-reviewed",
-     "verified": true
-    }
-   ]
-  },
-  {
-   "key": "oig-denial-review",
-   "text": "An OIG review of 250 sampled prior authorization denials from 15 large MA organizations (June 1 to 7, 2019) estimated that 13 percent of the denied requests met Medicare coverage rules and would likely have been approved under traditional Medicare.",
-   "src": [
-    {
-     "label": "HHS OIG, OEI-09-18-00260, MA organization denials of prior authorization requests (2022)",
-     "url": "https://oig.hhs.gov/reports/all/2022/some-medicare-advantage-organization-denials-of-prior-authorization-requests-raise-concerns-about-beneficiary-access-to-medically-necessary-care/",
-     "type": "gov",
      "verified": true
     }
    ]
