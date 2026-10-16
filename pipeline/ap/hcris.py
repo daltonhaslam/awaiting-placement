@@ -16,7 +16,8 @@ COLUMNS = ['fy', 'ccn', 'rpt_rec_num', 'status', 'fy_bgn', 'fy_end', 'period_day
 ICU_LINES = ('00800', '01299')
 # Title XVIII days are column 6; a PARHM-demonstration hospital splits its Medicare days between 6 and 6.01.
 DAYS_COLS = ('00600', '00601')
-# Day fields that sum across cells (column 6 + 6.01, every ICU line) instead of taking one cell.
+# Day fields that sum across cells (column 6 + 6.01, every ICU line) instead of taking one cell. Each cell counts once:
+# a repeated (line, column) row in the export replaces the earlier value, as it does for single-cell fields.
 ADDITIVE = {'ma_days', 'ffs_days_l1', 'icu'}
 
 # field -> (worksheet, line, column), 5-char zero-padded
@@ -112,13 +113,17 @@ def extract_year(zip_path, fy):
             rid = r[0].strip()
             if rid not in vals:
                 continue
-            f = _field(r[1], r[2].strip().zfill(5), r[3].strip().zfill(5))
+            line, col = r[2].strip().zfill(5), r[3].strip().zfill(5)
+            f = _field(r[1], line, col)
             if f is None:
                 continue
             v = _num(r[4])
             if v is None:
                 continue
-            vals[rid][f] = vals[rid].get(f, 0) + v if f in ADDITIVE else v
+            if f in ADDITIVE:
+                vals[rid].setdefault(f, {})[(line, col)] = v
+            else:
+                vals[rid][f] = v
         text = {rid: {} for rid in reports}
         for r in _rows(zf, member(zf, 'ALPHA')):
             if len(r) < 5 or r[1] != 'S200001':
@@ -132,6 +137,9 @@ def extract_year(zip_path, fy):
     out = []
     for rid, row in reports.items():
         v = vals[rid]
+        for f in ADDITIVE:
+            if f in v:
+                v[f] = sum(v[f].values())
         for f in CELLS:
             row[f] = v.get(f, '')
         row['ffs_days_icu'] = v.get('icu', '')

@@ -48,8 +48,11 @@ const OG_ALT = `Awaiting Placement: Ready to leave the hospital. Still waiting f
 const OG = `<meta property="og:image" content="${cardImageUrl(readFileSync(here('../docs/og.png')))}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`
   + `<meta property="og:image:alt" content="${attr(OG_ALT)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image:alt" content="${attr(OG_ALT)}">`;
 const CANON = new URL(SITE.url).href;
-// Light and dark page colours from tokens.css, so the browser chrome matches the page on phones.
-const THEME_COLOR = `<meta name="theme-color" content="#f4f3ee" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">`;
+// Light and dark page colours read from tokens.css (the first --page is the light one), so the browser chrome on phones
+// matches the page and cannot drift from it.
+const pageColor = (css) => /--page:\s*(#[0-9a-fA-F]{3,8})\b/.exec(css)?.[1] ?? (() => { throw new Error('tokens.css: --page not found'); })();
+const THEME_COLOR = `<meta name="theme-color" content="${pageColor(tokens)}" media="(prefers-color-scheme: light)">`
+  + `<meta name="theme-color" content="${pageColor(darkDecls)}" media="(prefers-color-scheme: dark)">`;
 const title = `${SITE.name}: Medicare Advantage and hospital length of stay`;
 // Apply a saved Day/Night choice before first paint (no flash), then start the non-blocking font stylesheet.
 // Inline scripts are allowed by their sha256 in the CSP (see below), not by 'unsafe-inline'.

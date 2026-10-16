@@ -5,6 +5,7 @@ import { chromium } from 'playwright';
 import { serveWithHeaders, builtPage, firstHospital, makeCheck } from './_lib.mjs';
 import { HASH_DEBOUNCE_MS, LIVE_DEBOUNCE_MS, NOTICE_FADE_MS } from '../src/js/timing.js';
 import { cardNumbers } from '../og-card.mjs';
+import { ledGlyphs } from '../src/js/format.js';
 
 const html = builtPage();
 const { base: PAGE, close } = serveWithHeaders(html);
@@ -137,7 +138,7 @@ for (const motion of ['no-preference', 'reduce']) {
     .catch(() => check(false, `LED count-up ends at ${LED} (${motion})`));
   // Doto's zero is slashed, so the LED shows the letter O for 0; the panel's spoken name keeps the number.
   const led = await page.evaluate(() => [document.querySelector('.hero .led__digits').textContent, document.querySelector('.hero .led').getAttribute('aria-label')]);
-  check(led[0] === 'O7' && /^Now serving 07:/.test(led[1]), `LED shows O7 and is named 07 (${led})`);
+  check(led[0] === ledGlyphs(LED) && led[1].startsWith(`Now serving ${LED}:`), `LED shows ${ledGlyphs(LED)} and is named ${LED} (${led})`);
   const ids = await page.$$eval('.sec h2', (els) => els.map((e) => e.id).join(','));
   check(ids === 'wait,gap,share,calculator,sides', `section order ${ids}`);
   check((await page.$$('.dests .sign')).length === 5, 'five destination signs');

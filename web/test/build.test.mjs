@@ -27,7 +27,7 @@ test('title and fonts', () => {
   assert.match(html, /<title>Awaiting Placement/);
   assert.match(html, /<link rel="canonical" href="https:\/\/awaiting-placement\.vercel\.app\/">/);
   assert.match(html, /<meta property="og:site_name" content="Awaiting Placement">/);
-  assert.equal(html.match(/<meta name="theme-color" /g).length, 2);
+  assert.match(html, /<meta name="theme-color" content="#f4f3ee" media="\(prefers-color-scheme: light\)"><meta name="theme-color" content="#0d1117" media="\(prefers-color-scheme: dark\)">/);
   const desc = /<meta name="description" content="([^"]*)">/.exec(html)[1];
   assert.ok(desc.length > 50 && desc.length <= 160, `description ${desc.length} chars`);
   assert.ok(html.includes(`<link rel="stylesheet" href="${FONTS_HREF}">`));

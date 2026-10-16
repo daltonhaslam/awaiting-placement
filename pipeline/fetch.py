@@ -29,6 +29,10 @@ class UnsafeArchiveError(Exception):
     pass
 
 
+class UnsafeRedirectError(Exception):
+    pass
+
+
 def sha256_of(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -63,15 +67,15 @@ def download(url, dest, expected=None):
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_suffix(dest.suffix + ".part")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=120) as resp, open(part, "wb") as out:
-        if url.startswith("https://") and not resp.geturl().startswith("https://"):
-            raise ChecksumError(f"{url}: redirected to a non-https address ({resp.geturl()}); refusing to use it")
-        shutil.copyfileobj(resp, out)
     try:
+        with urllib.request.urlopen(req, timeout=120) as resp, open(part, "wb") as out:
+            if url.startswith("https://") and not resp.geturl().startswith("https://"):
+                raise UnsafeRedirectError(f"{url}: redirected to a non-https address ({resp.geturl()}); refusing to use it")
+            shutil.copyfileobj(resp, out)
         if expected:
             verify_sha256(part, expected)
-    except ChecksumError:
-        part.unlink()
+    except (ChecksumError, UnsafeRedirectError):
+        part.unlink(missing_ok=True)
         raise
     part.replace(dest)
 
@@ -112,10 +116,15 @@ def main(argv=None):
         try:
             fetch_source(src, args.refresh_hashes)
         except ChecksumError as e:
+            fallback = (" Until then the committed pipeline/derived/hcris_extract.csv already holds this file's extracted rows."
+                        if src['name'].startswith('hcris_') else '')
             print(f"\n{e}\n\nThe file CMS now serves is not the one the published numbers were built from (CMS refreshes these"
                   f" files). That is deliberate: different bytes mean different numbers. To move to the new file on purpose,"
                   f" re-pin it with `python3 -I pipeline/fetch.py --only {src['name']} --refresh-hashes`, rebuild, and expect"
-                  f" the outputs to change. Until then the committed pipeline/derived/hcris_extract.csv is the reproducible input.", file=sys.stderr)
+                  f" the outputs to change.{fallback}", file=sys.stderr)
+            return 1
+        except UnsafeRedirectError as e:
+            print(f"\n{e}\nNothing was saved. Check the url in pipeline/sources.json before trying again.", file=sys.stderr)
             return 1
     if args.refresh_hashes:
         SOURCES.write_text(json.dumps(sources, indent=2) + "\n", encoding="utf-8")

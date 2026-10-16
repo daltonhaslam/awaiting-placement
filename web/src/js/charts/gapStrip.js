@@ -105,8 +105,11 @@ function draw(el, c) {
   // The label grows leftward when it would run off the right edge (13 px Overpass 700 is about 7.4 px a glyph),
   // and never past the left edge either.
   const labelW = youText.length * 7.4;
-  const youLeft = you != null && youX + 10 + labelW > pw + M.right - 2;
-  const youTx = youLeft ? Math.max(youX - 10, labelW - M.left + 2) : youX + 10;
+  const fitsRight = youX + 10 + labelW <= pw + M.right - 2;
+  const fitsLeft = youX - 10 - labelW >= -M.left + 2;
+  // Prefer the right; take the left when only it fits; if neither fits, the side with more room overflows a little.
+  const youLeft = you != null && !fitsRight && (fitsLeft || youX > pw / 2);
+  const youTx = youLeft ? youX - 10 : youX + 10;
   const svg = s('svg', { class: 'gs__svg', width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', focusable: 'false', 'aria-label': aria },
     s('g', { transform: `translate(${M.left},${M.top})` },
       yAxis(y, y.ticks(3), { group: 'gs__yticks', line: 'gs__', w: pw, fmt: fmtNum }),
