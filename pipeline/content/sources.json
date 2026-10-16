@@ -26,7 +26,7 @@
  },
  {
   "label": "KFF, Medicare Advantage in 2026: Enrollment Update and Key Trends",
-  "url": "https://www.kff.org/medicare/medicare-advantage-enrollment-update-and-key-trends/",
+  "url": "https://www.kff.org/medicare/medicare-advantage-in-2026-enrollment-update-and-key-trends/",
   "type": "nonprofit",
   "verified": true
  },
@@ -37,7 +37,7 @@
   "verified": true
  },
  {
-  "label": "KFF State Health Facts, Hospital Expenses per Adjusted Inpatient Day (2023: $3,131.91)",
+  "label": "KFF State Health Facts, Hospital Expenses per Adjusted Inpatient Day (2024: $3,297.26)",
   "url": "https://www.kff.org/health-costs/state-indicator/expenses-per-inpatient-day/",
   "type": "nonprofit",
   "verified": true
@@ -72,7 +72,7 @@
  },
  {
   "label": "CMS, Interoperability and Prior Authorization Final Rule (CMS-0057-F) fact sheet",
-  "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f",
+  "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-prior-authorization-final-rule-cms-0057-f",
   "type": "gov",
   "verified": true
  },
@@ -96,7 +96,7 @@
  },
  {
   "label": "HHS OIG, OEI-09-18-00260, MA organization denials of prior authorization requests (2022)",
-  "url": "https://oig.hhs.gov/oei/reports/OEI-09-18-00260.asp",
+  "url": "https://oig.hhs.gov/reports/all/2022/some-medicare-advantage-organization-denials-of-prior-authorization-requests-raise-concerns-about-beneficiary-access-to-medically-necessary-care/",
   "type": "gov",
   "verified": true
  },
@@ -113,7 +113,7 @@
   "verified": true
  },
  {
-  "label": "Beckman and Frakt, Potentially avoidable acute care use, MA vs traditional Medicare, JAMA Health Forum 2023",
+  "label": "Beckman et al., Potentially avoidable acute care use, MA vs traditional Medicare, JAMA Health Forum 2023",
   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9958527/",
   "type": "peer-reviewed",
   "verified": true

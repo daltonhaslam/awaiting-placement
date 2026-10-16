@@ -45,10 +45,10 @@
   "key": "cvar",
   "label": "Variable cost of one extra waiting day",
   "value": "$800",
-  "why": "About a quarter of KFF's $3,132 expense per adjusted inpatient day (2023). One academic center study found the last full day of a stay cost $420, or 2.4 percent of total stay cost. MedPAC says some hospital costs are fixed and do not rise with a longer stay.",
+  "why": "About a quarter of KFF's $3,297 expense per adjusted inpatient day (2024, from the AHA Annual Survey), on the reasoning that most staffing, overhead and capital costs do not change with one more low-acuity day. One academic center study found the last full day of a stay cost $420 in 1990s dollars, or 2.4 percent of total stay cost. MedPAC says some hospital costs are fixed and do not rise with a longer stay.",
   "src": [
    {
-    "label": "KFF State Health Facts, Hospital Expenses per Adjusted Inpatient Day (2023: $3,131.91)",
+    "label": "KFF State Health Facts, Hospital Expenses per Adjusted Inpatient Day (2024: $3,297.26)",
     "url": "https://www.kff.org/health-costs/state-indicator/expenses-per-inpatient-day/",
     "type": "nonprofit",
     "verified": true

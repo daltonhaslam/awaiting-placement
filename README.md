@@ -33,7 +33,8 @@ Not affiliated with CMS, MedPAC, any hospital, or any health plan.
 | CMS Hospital General Information | Display names and cities |
 | MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1) | Mean days before post-acute care by destination, and the adjusted gap |
 | MedPAC, September 2026 staff slides (preliminary) | Discharge-destination mix, median hospital stays by destination (including long-term care hospitals), and sample differences such as the dual-eligible and low-income share |
-| KFF, Medicare Advantage in 2026 | MA share of beneficiaries; prior-authorization context; hospital expense per adjusted inpatient day, used in the cost assumption |
+| KFF, Medicare Advantage in 2026 | MA share of beneficiaries; prior-authorization context |
+| KFF State Health Facts, hospital expenses per adjusted inpatient day (AHA Annual Survey) | The cost assumption in the calculator |
 | Federal rules and reports (42 CFR 422.568, 422.572, 422.101; CMS-4201-F; CMS-0057-F; the 2025 prior-authorization pledge) | Decision deadlines and the policy timeline |
 | Published studies and surveys (JAMA, HHS OIG, Senate PSI, AMRPA, the Florida Hospital Association) | Context for what hospitals and plans each report; assumptions in the calculator |
 

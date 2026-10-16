@@ -72,7 +72,7 @@ export const formulas = () => [
 
 // [key, label, format]: the calculator's inputs, in the order the table lists them.
 export const INPUTS = [
-  ['beds', 'Staffed beds', fmtNum],
+  ['beds', 'Beds (available beds from the cost report, or your own staffed count)', fmtNum],
   ['occ', 'Occupancy', (v) => fmtPct(v)],
   ['dis', 'Discharges a year, all payers', fmtNum],
   ['mcr', 'Medicare share of discharges', (v) => fmtPct(v)],

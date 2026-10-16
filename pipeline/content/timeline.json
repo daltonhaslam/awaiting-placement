@@ -54,12 +54,12 @@
  },
  {
   "date": "2026-01-01",
-  "title": "CMS-0057-F decision deadlines begin",
-  "body": "Impacted payers, including MA plans, must send prior authorization decisions within 72 hours for expedited requests and seven calendar days for standard requests. MA plans may extend a standard decision by up to 14 calendar days in some cases, such as when the enrollee asks for it.",
+  "title": "CMS-0057-F shorter standard deadline begins",
+  "body": "For items and services subject to prior authorization, impacted payers, including MA plans, must now send standard decisions within seven calendar days instead of 14. The 72-hour deadline for expedited requests already applied. MA plans may extend a standard decision by up to 14 calendar days in some cases, such as when the enrollee asks for it.",
   "src": [
    {
     "label": "CMS, Interoperability and Prior Authorization Final Rule (CMS-0057-F) fact sheet",
-    "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f",
+    "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-prior-authorization-final-rule-cms-0057-f",
     "type": "gov",
     "verified": true
    },
@@ -125,7 +125,7 @@
   "src": [
    {
     "label": "CMS, Interoperability and Prior Authorization Final Rule (CMS-0057-F) fact sheet",
-    "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f",
+    "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-prior-authorization-final-rule-cms-0057-f",
     "type": "gov",
     "verified": true
    },
