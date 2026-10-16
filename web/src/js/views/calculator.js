@@ -339,7 +339,7 @@ export function renderCalculator(D, { query } = {}) {
           h('p', { class: 'ctl__head' }, 'Faster authorization'),
           h('p', { class: 'calc__lead' }, 'Plan decisions take'),
           h('div', { class: 'calc__faster' },
-            numField('t0', [h('span', { class: 'visually-hidden' }, 'Plan decision time, '), 'Today'], { step: 0.5, unit: 'days', dp: 1 }),
+            numField('t0', [h('span', { class: 'visually-hidden' }, 'Plan decision time, '), 'Now (survey average)'], { step: 0.5, unit: 'days', dp: 1 }),
             h('span', { class: 'calc__arrow', 'aria-hidden': 'true' }, '→'),
             numField('t1', [h('span', { class: 'visually-hidden' }, 'Plan decision time, '), 'With faster decisions'], { step: 0.5, unit: 'days', dp: 1 })),
           fasterNote),
