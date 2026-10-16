@@ -103,10 +103,12 @@ checks the committed `ap.json` equals a fresh build. Fetch that file first for a
 - [ ] `cd web && node og.mjs` to regenerate the share card (and `og.stamp.json`, the hash of the card's HTML that `npm test` checks), then `node build.mjs` so the image URL (`?v=` content hash) and CSP hashes are current.
 - [ ] `npm test` and all three e2e commands.
 - [ ] Commit `docs/index.html`, `docs/og.png` and `vercel.json` together.
+- [ ] Push and check the `check` workflow (`.github/workflows/check.yml`, on every push to `main` and every pull request) is green: it runs the Python and unit tests, rebuilds `docs/index.html` from the committed `ap.json` and fails unless it is byte-identical, then runs `npm run e2e:docs` against the committed page. A red rebuild step means the committed page is stale: rebuild locally and commit it with `vercel.json`.
 
 ## Layout
 
 ```
+.github/workflows/    check.yml: tests, byte-identical rebuild and e2e on every push to main and every pull request
 docs/                 published page (index.html), share card (og.png), and hand-written 404.html, robots.txt, sitemap.xml
 pipeline/
   fetch.py            download + sha256-verify raw files into data/raw/ (gitignored)

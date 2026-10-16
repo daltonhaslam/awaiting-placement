@@ -1,0 +1,50 @@
+name: check
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26 # match local; the build's output is pinned by package-lock.json (esbuild, linkedom)
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      # Without the gitignored raw hospital-names file, 12 tests skip, including the ap.json rebuild check; CMS
+      # re-publishes that file, so CI does not fetch it.
+      - name: Python tests
+        run: python3 -I pipeline/run_tests.py
+      - name: Install web deps
+        run: npm ci
+        working-directory: web
+      - name: Unit tests
+        run: npm test
+        working-directory: web
+      # The pre-render runs the views in Node (linkedom), not a browser, so this needs no Chrome and does not depend on
+      # its version: the output depends only on the committed source, ap.json and the locked npm packages.
+      - name: docs/index.html rebuilds byte-identically from committed ap.json
+        working-directory: web
+        run: |
+          BUILD_OUT_DIR="$RUNNER_TEMP/rebuild" node build.mjs
+          cmp "$RUNNER_TEMP/rebuild/index.html" ../docs/index.html
+          git diff --exit-code -- ../vercel.json ../docs
+      # The e2e scripts drive the installed Google Chrome Stable (Playwright channel "chrome"), as they do locally.
+      # ubuntu-latest ships it; install it only if missing. headers.mjs also loads Google Fonts live.
+      - name: Chrome for the e2e checks
+        working-directory: web
+        run: |
+          command -v google-chrome >/dev/null || npx playwright install --with-deps chrome
+          google-chrome --version
+      - name: e2e against the committed page
+        run: npm run e2e:docs
+        working-directory: web
