@@ -77,7 +77,7 @@ export const INPUTS = [
   ['dis', 'Discharges a year, all payers', fmtNum],
   ['mcr', 'Medicare share of discharges', (v) => fmtPct(v)],
   ['ma', 'MA share of Medicare discharges', (v) => fmtPct(v)],
-  ['t0', 'Plan decision time today, days', fmt1],
+  ['t0', 'Plan decision time now, days (survey average)', fmt1],
   ['t1', 'Plan decision time, faster, days', fmt1],
   ['cvar', 'Variable cost of one extra day', (v) => `$${fmtNum(v)}`],
   ['rate', 'Per-diem rate', (v) => `$${fmtNum(v)}`],

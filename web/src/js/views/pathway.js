@@ -8,7 +8,7 @@ const STEPS = [
   { title: 'Medically ready', note: 'The care team agrees the patient no longer needs hospital care.' },
   { title: 'Referral sent', note: 'A case manager sends referrals to facilities that can meet the patient\'s needs.' },
   { title: 'Facility accepts', note: 'A facility reviews the record and offers a bed.' },
-  { title: 'Plan authorization', note: 'MA plans can require it. Traditional Medicare generally does not for these stays.', ma: true },
+  { title: 'Plan authorization', note: 'MA plans can require it. Traditional Medicare does not for these stays.', ma: true },
   { title: 'Transport home or to facility', note: 'The hospital bed opens for the next patient.' },
 ];
 

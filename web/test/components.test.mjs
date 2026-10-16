@@ -207,7 +207,7 @@ test('pathway: definition, five steps, authorization marked, five signs', () => 
     ['Medically ready', 'Referral sent', 'Facility accepts', 'Plan authorization', 'Transport home or to facility']);
   const auth = steps[3];
   assert.ok(auth.classList.contains('path__step--ma'));
-  assert.match(text(auth), /MA plans can require it\. Traditional Medicare generally does not for these stays\./);
+  assert.match(text(auth), /MA plans can require it\. Traditional Medicare does not for these stays\./);
   assert.equal(el.querySelectorAll('.sign').length, 5);
   const words = [...el.querySelectorAll('.sec__body > p')].map((p) => p.textContent).join(' ').split(/\s+/).filter(Boolean);
   assert.ok(words.length > 40 && words.length <= 250, `copy is ${words.length} words`);
