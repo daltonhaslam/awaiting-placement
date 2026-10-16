@@ -23,6 +23,8 @@ Works at 360 px wide and in light and dark mode. Charts and panels have text equ
 
 The build writes a single page, `docs/index.html`, with the data, styles and script inlined. The only third-party request is Google Fonts. The page has no analytics, no cookies, and sends nothing else anywhere.
 
+The build also pre-renders the story page and the Methods page into that HTML, so the text, figures and sources read without JavaScript (search and AI crawlers, reader modes, a slow phone before the script has run). It runs the page's own view code in Node against a lightweight DOM (linkedom), not in a browser, so the build needs no browser and stays byte-identical across machines. On load the script replaces the pre-rendered markup with its own render; the calculator, chart tooltips and hospital profiles need JavaScript.
+
 An independent, personal project. Does not represent the work or the view of the author's employer, CMS, MedPAC, or any hospital or health plan.
 
 ## Data
@@ -48,7 +50,8 @@ Each hospital-year comes from one cost report: duplicates are resolved by taking
 
 Requirements: Python 3.9+ (standard library only; always run it isolated with `-I`), Node 18+ with npm, and, for the
 browser checks and the share card, Google Chrome Stable plus network access to Google Fonts (Playwright drives the
-installed Chrome; `npm ci` downloads no browsers). Tested on macOS with Python 3.9.6 and Node 26; a rebuild there is
+installed Chrome; `npm ci` downloads no browsers). `node build.mjs` itself needs no browser, including its pre-render
+step. Tested on macOS with Python 3.9.6 and Node 26; a rebuild there is
 byte-identical to the committed `docs/index.html`, `vercel.json` and `docs/og.png`.
 
 Fastest path (about 1.4 MB, seconds). The extract of the cost reports is already committed, so only the hospital
@@ -123,6 +126,7 @@ web/
   test/               unit tests and the fixture
   e2e/                browser checks
   build.mjs           bundles everything into docs/index.html
+  prerender.mjs       renders the story page and Methods into that HTML at build time
   og.mjs              renders the share card
   og-card.mjs         the card's HTML and its versioned image URL
   og.stamp.json       hash of the card HTML; npm test fails if the card is stale

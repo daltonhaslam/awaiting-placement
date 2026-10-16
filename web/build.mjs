@@ -7,8 +7,10 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { escapeInlineScript, cspHash, withScriptHashes } from './inline-script.mjs';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
-import { SITE, FONTS_HREF, THEME_KEY } from './src/js/site.js';
+import { SITE, FONTS_HREF, THEME_KEY, PUBLISHED } from './src/js/site.js';
+import { SECTIONS } from './src/js/router.js';
 import { cardImageUrl, cardNumbers } from './og-card.mjs';
+import { prerender } from './prerender.mjs';
 
 const here = (p) => new URL(p, import.meta.url);
 const read = (p) => readFileSync(here(p), 'utf8');
@@ -54,18 +56,32 @@ const pageColor = (css) => /--page:\s*(#[0-9a-fA-F]{3,8})\b/.exec(css)?.[1] ?? (
 const THEME_COLOR = `<meta name="theme-color" content="${pageColor(tokens)}" media="(prefers-color-scheme: light)">`
   + `<meta name="theme-color" content="${pageColor(darkDecls)}" media="(prefers-color-scheme: dark)">`;
 const title = `${SITE.name}: Medicare Advantage and hospital length of stay`;
-// Apply a saved Day/Night choice before first paint (no flash), then start the non-blocking font stylesheet.
+// Before first paint: apply a saved Day/Night choice (no flash), start the non-blocking font stylesheet, and name the
+// route in data-boot so the boot CSS shows the pre-rendered page the app will render ("home" for the story page and
+// its sections, "methods", else "other", which shows "Loading…"). build.test.mjs checks it against router.parseHash.
 // Inline scripts are allowed by their sha256 in the CSP (see below), not by 'unsafe-inline'.
-const THEME_JS = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});`
+const HEAD_JS = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});`
   + `if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
-  + `var l=document.createElement('link');l.rel='stylesheet';l.href=${JSON.stringify(FONTS_HREF)};document.head.appendChild(l);`;
-const THEME = `<script>${THEME_JS}</script>`;
+  + `var l=document.createElement('link');l.rel='stylesheet';l.href=${JSON.stringify(FONTS_HREF)};document.head.appendChild(l);`
+  + `var h=location.hash.replace(/^#\\/?/,''),q=h.indexOf('?'),p=q<0?h:h.slice(0,q);`
+  + `document.documentElement.setAttribute('data-boot',p==='calculator'||q<0&&${JSON.stringify(['', 'top', ...SECTIONS])}.indexOf(p)>=0?'home'`
+  + `:p==='methods'&&q<0?'methods':'other');`;
+const HEAD = `<script>${HEAD_JS}</script>`;
 const APP_JS = escapeInlineScript(js);
+
+// The story page and Methods, rendered from the same data, in place of the shell's placeholders.
+const pre = await prerender(JSON.parse(rawData), { published: PUBLISHED, origin: SITE.url });
+const fill = (html, name, markup) => {
+  const mark = `<!--prerender:${name}-->`;
+  if (!html.includes(mark)) throw new Error(`shell.html: ${mark} not found`);
+  return html.replace(mark, () => markup);
+};
+const body = fill(fill(read('src/shell.html'), 'main', pre.main), 'footer', pre.footer);
 const doc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`
   + `<title>${attr(title)}</title><meta name="description" content="${attr(DESC)}"><link rel="canonical" href="${CANON}">${THEME_COLOR}`
   + `<meta property="og:title" content="${attr(title)}"><meta property="og:description" content="${attr(DESC)}"><meta property="og:type" content="website"><meta property="og:url" content="${CANON}">`
   + `<meta property="og:site_name" content="${attr(SITE.name)}"><meta property="og:locale" content="en_US">${OG}`
-  + `${THEME}${ICON}${FONTS}<style>${css}</style></head><body>${read('src/shell.html')}`
+  + `${HEAD}${ICON}${FONTS}<style>${css}</style></head><body>${body}`
   + `<script id="ap-data" type="application/json">${data}</script><script>${APP_JS}</script></body></html>`;
 
 // Pin the CSP's script-src to exactly these two inline scripts. Only the real build (default data, default output) may
@@ -73,7 +89,7 @@ const doc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta na
 if (!process.env.BUILD_OUT_DIR && !process.env.AP_DATA) {
   const vercelPath = fileURLToPath(here('../vercel.json'));
   const vercel = readFileSync(vercelPath, 'utf8');
-  const csp = withScriptHashes(/"Content-Security-Policy",\s*"value": "([^"]*)"/.exec(vercel)[1], [cspHash(THEME_JS), cspHash(APP_JS)]);
+  const csp = withScriptHashes(/"Content-Security-Policy",\s*"value": "([^"]*)"/.exec(vercel)[1], [cspHash(HEAD_JS), cspHash(APP_JS)]);
   writeFileSync(vercelPath, vercel.replace(/("Content-Security-Policy",\s*"value": ")[^"]*"/, `$1${csp}"`));
 }
 
@@ -81,4 +97,4 @@ const outDir = process.env.BUILD_OUT_DIR ?? fileURLToPath(here('../docs/'));
 mkdirSync(outDir, { recursive: true });
 writeFileSync(join(outDir, 'index.html'), doc);
 const kb = (s) => `${(Buffer.byteLength(s) / 1024).toFixed(0)} KB`;
-console.log(`${join(outDir, 'index.html')} ${kb(doc)} (js ${kb(js)}, css ${kb(css)}, data ${kb(data)})`);
+console.log(`${join(outDir, 'index.html')} ${kb(doc)} (js ${kb(js)}, css ${kb(css)}, data ${kb(data)}, pre-rendered ${kb(pre.main + pre.footer)})`);

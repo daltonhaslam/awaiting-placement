@@ -145,6 +145,54 @@ for (const motion of ['no-preference', 'reduce']) {
   check((await page.$$('section[aria-labelledby="sides"] ol.board > li')).length > 0, 'No. 05 shows the policy timeline');
   await page.close();
 }
+// Pre-rendered page. Without JavaScript: the story page, Methods and the footer read; "Loading…" never shows.
+{
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto(PAGE);
+  const s = await page.evaluate(() => ({
+    h1: document.querySelector('.hero h1')?.textContent,
+    shown: [...document.querySelectorAll('[data-prerender]')].filter((e) => e.checkVisibility()).map((e) => e.dataset.prerender),
+    loading: document.querySelector('.loading')?.checkVisibility(),
+    footer: document.querySelector('#footer a[href^="https://github.com/"]') !== null,
+  }));
+  check(s.h1 === 'Ready to leave the hospital. Still waiting for the next bed.' && s.shown.join() === 'home,methods' && !s.loading && s.footer,
+    `no JavaScript: story page, Methods and footer show, "Loading…" does not (${JSON.stringify(s)})`);
+  await ctx.close();
+}
+// Before the bundle runs (head script only): the route's pre-rendered page shows, or "Loading…" for one not pre-rendered.
+{
+  const bare = String(html).replace(/<script>(?:(?!<\/script>)[\s\S])*<\/script><\/body>/, '</body>');
+  check(bare !== String(html), 'app script found to strip');
+  const srv = serveWithHeaders(bare);
+  for (const [hash, want] of [['', 'home'], ['#calculator', 'home'], ['#methods', 'methods'], [`#hospital-${hospital.id}`, 'loading']]) {
+    const page = await newPage();
+    await page.goto(srv.base + hash);
+    const shown = await page.evaluate(() => [...document.querySelectorAll('[data-prerender], .loading')]
+      .filter((e) => e.checkVisibility()).map((e) => e.dataset.prerender ?? 'loading').join());
+    check(shown === want, `boot ${hash || '#'}: shows ${want} (${shown})`);
+    await page.close();
+  }
+  srv.close();
+}
+// After the app has run: nothing pre-rendered survives, ids are unique, one of each landmark, and the hero LED kept its
+// number (no reset to 00) on the first render.
+for (const hash of ['', '#methods', `#hospital-${hospital.id}`]) {
+  const page = await newPage();
+  await page.goto(PAGE + hash);
+  const s = await page.evaluate(() => {
+    const ids = [...document.querySelectorAll('[id]')].map((e) => e.id);
+    return { pre: document.querySelectorAll('[data-prerender], .loading').length, boot: document.documentElement.hasAttribute('data-boot'),
+      dup: ids.filter((x, i) => ids.indexOf(x) !== i), landmarks: ['main', 'body > header', 'body > footer', 'h1'].map((t) => document.querySelectorAll(t).length).join(),
+      led: document.querySelector('.hero .led__digits')?.getAttribute('data-value') ?? null, theme: document.querySelectorAll('.theme-btn').length };
+  });
+  const label = hash || '#';
+  check(!s.pre && !s.boot, `${label}: pre-rendered markup and data-boot removed (${s.pre}, ${s.boot})`);
+  check(!s.dup.length, `${label}: duplicate ids ${s.dup}`);
+  check(s.landmarks === '1,1,1,1' && s.theme === 1, `${label}: one main, header, footer, h1 and theme button (${s.landmarks}, ${s.theme})`);
+  if (!hash) check(s.led === LED, `hero LED shows ${LED} on load without counting up from 00 (${s.led})`);
+  await page.close();
+}
 // The skip link moves focus to <main> without changing the route or wiping the page.
 {
   const page = await newPage();

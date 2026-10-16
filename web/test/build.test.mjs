@@ -9,12 +9,16 @@ import { SITE, FONTS_HREF } from '../src/js/site.js';
 import { cardHtml, cardImageUrl, cardNumbers } from '../og-card.mjs';
 import { loadData } from '../src/js/data.js';
 import { escapeInlineScript, cspHash } from '../inline-script.mjs';
+import { parseHTML } from 'linkedom';
+import { parseHash } from '../src/js/router.js';
+import { prerender } from '../prerender.mjs';
 
 const cwd = new URL('..', import.meta.url).pathname;
 const vercelBefore = readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8');
 const out = mkdtempSync(join(tmpdir(), 'ap-build-'));
 execFileSync('node', ['build.mjs'], { cwd, env: { ...process.env, AP_DATA: 'test/fixtures/ap.min.json', BUILD_OUT_DIR: out } });
 const html = readFileSync(join(out, 'index.html'), 'utf8');
+const fixture = JSON.parse(readFileSync(new URL('./fixtures/ap.min.json', import.meta.url), 'utf8'));
 
 test('one data script, no raw closing tag inside it', () => {
   assert.equal(html.match(/<script id="ap-data" type="application\/json">/g).length, 1);
@@ -58,6 +62,58 @@ test('saved theme applies in <head> before first paint, guarded for blocked stor
   assert.match(script[1], /try\s*\{[\s\S]*localStorage[\s\S]*\}\s*catch/);
   assert.match(script[1], /awaiting-placement-theme/);
   assert.match(script[1], /data-theme/);
+});
+
+// Pre-render: the story page and Methods are in the HTML as served, so the page reads without running any script.
+test('pre-rendered: <main> carries the story page and Methods without running any script', () => {
+  const { document } = parseHTML(html); // linkedom runs no scripts
+  const main = document.querySelector('main');
+  const home = main.querySelector('[data-prerender="home"]');
+  const methods = main.querySelector('[data-prerender="methods"]');
+  assert.ok(home && methods, 'both pre-rendered pages');
+  assert.match(home.querySelector('.hero .dek').textContent, /^When a hospital patient on a Medicare Advantage plan needs rehab/);
+  assert.equal(home.querySelector('.hero h1').textContent, 'Ready to leave the hospital. Still waiting for the next bed.');
+  assert.deepEqual([...home.querySelectorAll('.sec h2')].map((x) => x.id), ['wait', 'gap', 'share', 'calculator', 'sides']);
+  assert.equal(methods.id, 'methods', 'no-JS #methods links land on it');
+  assert.equal(methods.querySelector('h1').textContent, 'Methods');
+  assert.ok(methods.querySelectorAll('table[data-table="sources"] a').length > 0, 'the source list');
+  assert.match(document.querySelector('#footer').textContent, /Source code on GitHub/);
+  assert.match(main.querySelector('noscript').innerHTML, /calculator[^<]*need JavaScript/);
+  assert.ok(main.textContent.replace(/\s+/g, ' ').length > 5000, 'readable text in <main>');
+});
+test('pre-rendered markup: no inline handlers or javascript: URLs, no duplicate ids', () => {
+  const body = /<body>([\s\S]*?)<script id="ap-data"/.exec(html)[1];
+  assert.doesNotMatch(body, /<[a-z][^>]*\son[a-z]+\s*=/i);
+  assert.doesNotMatch(body, /javascript:/i);
+  const ids = [...body.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(ids.filter((x, i) => ids.indexOf(x) !== i), []);
+});
+test('pre-render is deterministic: a second build is byte-identical, and its clock is the publication month', async () => {
+  const again = mkdtempSync(join(tmpdir(), 'ap-build-'));
+  execFileSync('node', ['build.mjs'], { cwd, env: { ...process.env, AP_DATA: 'test/fixtures/ap.min.json', BUILD_OUT_DIR: again } });
+  assert.equal(readFileSync(join(again, 'index.html'), 'utf8'), html);
+  // The fixture's one timeline item is dated 2026-01-01: "Upcoming" only when published before it.
+  const opts = { origin: SITE.url };
+  assert.match((await prerender(fixture, { ...opts, published: '2025-06' })).main, /board__status">Upcoming/);
+  assert.doesNotMatch((await prerender(fixture, { ...opts, published: '2026-10' })).main, /board__status/);
+  assert.equal(typeof globalThis.document, 'undefined', 'the DOM globals are removed afterwards');
+  assert.ok(Math.abs(Date.now() - new Date().getTime()) < 1000 && new Date().getFullYear() >= 2026, 'the real clock is back');
+  assert.ok(Math.random() < 1, 'Math.random is restored');
+  await assert.rejects(prerender(fixture, { ...opts, published: 'soon' }), /publication month/);
+});
+test('head script names the route in data-boot as the router reads it', () => {
+  const head = /<head>[\s\S]*?<script>([\s\S]*?)<\/script>/.exec(html)[1];
+  const boot = (hash) => {
+    const attrs = {};
+    const doc = { documentElement: { setAttribute: (k, v) => { attrs[k] = v; } }, createElement: () => ({}), head: { appendChild() {} } };
+    new Function('localStorage', 'document', 'location', head)({ getItem: () => null }, doc, { hash });
+    return attrs['data-boot'];
+  };
+  const expected = (hash) => ({ home: 'home', calculator: 'home', methods: 'methods' })[parseHash(hash).view] ?? 'other';
+  for (const hash of ['', '#', '#/', '#top', '#top?x', '#wait', '#gap', '#share', '#sides', '#sides?x', '#calculator',
+    '#calculator?b=300&a=0.5', '#/calculator?h=220071', '#methods', '#methods?x', '#/methods', '#hospital-220071', '#hospital-1', '#nope']) {
+    assert.equal(boot(hash), expected(hash), `data-boot for "${hash}"`);
+  }
 });
 
 const vercelCsp = () => {

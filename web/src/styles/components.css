@@ -348,6 +348,14 @@
 .view { padding-top: var(--sp-7); }
 .view h1 { font-size: var(--fs-2xl); margin-bottom: var(--sp-4); }
 .loading { padding-top: var(--sp-7); color: var(--ink-3); }
+/* Before the app runs: the build pre-renders the story page and Methods into <main> (both show without JavaScript), and
+   the head script names the route in data-boot. Show the pre-rendered page that route will render, or "Loading…" for a
+   route that was not pre-rendered. main.js replaces all of it on its first render. The words live here, not in the
+   HTML, so a reader of the page source (a crawler) never sees "Loading…". */
+.loading, [data-boot="home"] [data-prerender="methods"], [data-boot="methods"] [data-prerender="home"],
+  [data-boot="other"] [data-prerender] { display: none; }
+[data-boot="other"] .loading { display: block; }
+.loading::before { content: 'Loading\2026'; }
 
 /* ---------- Buttons and form fields (calculator) ---------- */
 .btn {
