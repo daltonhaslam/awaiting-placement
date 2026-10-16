@@ -81,7 +81,7 @@ export function renderHospital(D, id) {
 
   const stat = (label, value, note) => h('div', { class: 'stat' }, h('dt', null, label), ' ', h('dd', { class: note ? 'stat__text' : null }, value, note ? h('span', { class: 'stat__note' }, ` ${note}`) : null));
   const card = h('section', { class: 'card', 'aria-labelledby': 'cost-report' },
-    h('h2', { id: 'cost-report' }, 'What the cost report says'),
+    h('h2', { id: 'cost-report' }, `What its FY${fy} cost report says`),
     h('p', { class: 'card__basis' }, `Medicare Advantage (MA) and traditional Medicare stays. From this hospital's FY${fy} cost report (self-reported, not adjusted for case mix).`),
     h('p', { class: 'card__days' },
       // A no-break space before each "·" keeps it with the figure before it, so a wrapped line never starts with it.
@@ -185,7 +185,7 @@ export function renderHospital(D, id) {
   return h('div', { class: 'wrap view profile' },
     header,
     card,
-    h('section', { 'aria-labelledby': 'vs-nation' }, h('h2', { id: 'vs-nation' }, 'Against other hospitals'), stripFig),
+    h('section', { 'aria-labelledby': 'vs-nation' }, h('h2', { id: 'vs-nation' }, 'Compared with other hospitals'), stripFig),
     h('section', { 'aria-labelledby': 'own-trend' }, h('h2', { id: 'own-trend' }, 'Over the years'), trend),
     cant,
     h('p', { class: 'profile__cta' },
