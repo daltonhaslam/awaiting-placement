@@ -210,7 +210,13 @@ test('pathway: definition, five steps, authorization marked, five signs', () => 
   assert.match(text(auth), /MA plans can require it\. Traditional Medicare generally does not for these stays\./);
   assert.equal(el.querySelectorAll('.sign').length, 5);
   const words = [...el.querySelectorAll('.sec__body > p')].map((p) => p.textContent).join(' ').split(/\s+/).filter(Boolean);
-  assert.ok(words.length > 40 && words.length <= 160, `copy is ${words.length} words`);
+  assert.ok(words.length > 40 && words.length <= 250, `copy is ${words.length} words`);
+  // Coverage shapes two steps: MA network and prior authorization; traditional Medicare's three-midnight rule.
+  const t = text(el);
+  assert.match(t, /Coverage shapes two steps\./);
+  assert.match(t, /peer-to-peer review with the plan's physician/);
+  assert.match(t, /only after three inpatient midnights, and observation days do not count/);
+  assert.match(t, /custodial placement that neither program pays for\./);
 });
 
 test('pathway: the deadline line comes from the timeline, or is omitted', () => {

@@ -35,9 +35,14 @@ export function renderPathway(D, now = new Date()) {
       + 'but cannot safely go home. They need a bed somewhere that can keep caring for them: a skilled nursing facility, '
       + 'an inpatient rehabilitation facility, or a long-term care hospital. Until that bed is arranged, they stay in a hospital bed.'),
     h('p', null, 'Arranging the move takes several handoffs, and any of them can add a day. A facility may not have a bed, '
-      + 'a family may need time to choose, or a request may be missing information. One step depends on coverage. '
-      + 'Medicare Advantage (MA) plans can require their approval, called prior authorization, before a patient moves '
-      + 'to a facility. Traditional Medicare generally does not require it for these stays.'),
+      + 'a family may need time to choose, or a request may be missing information. Coverage shapes two steps. '
+      + 'Medicare Advantage (MA) plans can limit which facilities are in network, and they can require their approval, '
+      + 'called prior authorization, before a patient moves to a facility. If the plan denies the request, the hospital can '
+      + 'ask for a peer-to-peer review with the plan\'s physician, appeal, or look for a different level of care. '
+      + 'Traditional Medicare does not require prior authorization for these stays. It pays for a skilled nursing stay only '
+      + 'after three inpatient midnights, and observation days do not count, though most MA plans and many accountable care '
+      + 'organizations waive that rule. Some patients no longer need skilled care at all and wait for a custodial placement '
+      + 'that neither program pays for.'),
     h('ol', { class: 'path', 'aria-label': 'Steps from medically ready to leaving the hospital' },
       STEPS.map((st, i) => h('li', { class: st.ma ? 'path__step path__step--ma' : 'path__step' },
         h('span', { class: 'path__node', 'aria-hidden': 'true' }, String(i + 1)),
