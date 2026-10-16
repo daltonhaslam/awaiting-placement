@@ -13,7 +13,8 @@ import { INPUTS, ccnRanges, definitions, formulas, occRange, ruleLabels } from '
 const list = (x) => (Array.isArray(x) ? x : []);
 const v = (name) => h('code', null, name); // a variable in running text
 
-const table = (attrs, head, rows, foot) => h('div', { class: 'dtable__scroll' },
+// The wrapper scrolls sideways on narrow screens, so it is focusable and named (Safari does not make scrollers focusable).
+const table = (attrs, head, rows, foot) => h('div', { class: 'dtable__scroll', tabindex: '0', role: 'region', 'aria-label': `${attrs['data-table']} table` },
   h('table', { class: 'dtable', ...attrs },
     h('thead', null, h('tr', null, head.map(([label, num]) => h('th', { scope: 'col', class: num ? 'num' : null }, label)))),
     h('tbody', null, rows),

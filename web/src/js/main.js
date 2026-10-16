@@ -58,6 +58,12 @@ onRoute((r) => {
     if (key === 'home') renderHome(main, D, r);
     else main.append(view(r));
     flushDraws();
+    // A new page puts focus on its heading, so a keyboard or screen-reader user lands where they navigated to. The
+    // story page keeps today's behaviour: its sections scroll into view without moving focus.
+    if (key !== 'home') {
+      const h1 = main.querySelector('h1');
+      if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
+    }
     current = key;
   } else if (r.view === 'calculator' && r.query) restoreCalculator(r.query); // a new scenario link while the page is up
   if (r.section) document.getElementById(r.section)?.scrollIntoView();

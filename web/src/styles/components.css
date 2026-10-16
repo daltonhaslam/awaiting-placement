@@ -59,6 +59,10 @@
   }
   .sections::-webkit-scrollbar { display: none; }
   .sections a { padding-block: 12px; }
+  /* Under 380 px the six links no longer fit on one line (350 px in a 328 px box at 360), and the hidden scrollbar gave
+     no sign that "Methods" was off-screen: set them a size smaller (about 318 px), and under 340 px let them wrap. */
+  @media (max-width: 379px) { .sections { font-size: .75rem; } }
+  @media (max-width: 339px) { .sections { flex-wrap: wrap; overflow: visible; } .sections a { padding-block: 6px; } }
   .wordmark { padding-block: 12px 2px; }
 }
 /* Phones: the condensed wordmark is still about 180 px wide at 24 px; at 20.8 px it leaves the queue slot room for the
@@ -663,6 +667,8 @@ fieldset.seg > legend { padding: 0; }
 .dtable thead th { vertical-align: bottom; border-bottom-color: var(--ink-3); }
 .dtable th:last-child, .dtable td:last-child { padding-right: 0; }
 .dtable td.num { white-space: nowrap; }
+/* At 360 the ranges table is 4 px wider than the screen, which lands on the limits' last digits. */
+@media (max-width: 400px) { .dtable th, .dtable td { padding-right: 10px; } .dtable th:last-child, .dtable td:last-child { padding-right: 0; } }
 .dtable .dtable__type { color: var(--ink-2); white-space: nowrap; }
 .dtable .dtable__note { text-align: right; color: var(--ink-2); white-space: nowrap; }
 .dtable tfoot th, .dtable tfoot td { border-bottom: 0; font-weight: 400; }

@@ -5,7 +5,8 @@ import { fmtDays, fmtNum, fmtSigned, isNum } from '../format.js';
 import { mount, bindTip, swapSvg, yAxis, r1 } from './shared.js';
 
 // The national spread of hospital stay gaps (MA minus traditional Medicare, FY latest) as a histogram,
-// with one hospital marked. Options: hist {bins:[{x0,x1,n}], median, p10, p90}; value: this hospital's gap (number or null).
+// with one hospital marked. Options: hist {bins:[{x0,x1,n}], median, p10, p90}; value: this hospital's gap (number or null);
+// shown: the gap as the page displays it (defaults to value), used for the label so the chart matches the card.
 export const gapStrip = (el, opts) => mount(el, opts, draw);
 
 const sd = (v) => fmtSigned(v, fmtDays);
@@ -53,7 +54,7 @@ export function clipHist(hist) {
 const tickText = (v) => (v === 0 ? '0' : fmtSigned(v, (a) => String(+a.toFixed(1))));
 
 function draw(el, c) {
-  const { hist, value } = c.opts;
+  const { hist, value, shown = value } = c.opts;
   const { lo, hi, rows } = clipHist(hist);
   const W = Math.max(260, c.width);
   const wide = W >= 560;
@@ -85,7 +86,7 @@ function draw(el, c) {
   const aria = `Histogram of the gap in average stay, MA minus traditional Medicare, across ${fmtNum(nAll)} hospitals, from ${sd(lo)} to ${sd(hi)}${lowOver || highOver ? ', with hospitals beyond that range combined into end bars' : ''}. `
     + (isNum(median) ? `The national median is ${sd(median)}. ` : '')
     + (band ? `The middle 80% of hospitals fall between ${sd(p10)} and ${sd(p90)}. ` : '')
-    + (you != null ? `This hospital is at ${sd(value)}.` : 'This hospital has no gap to place.');
+    + (you != null ? `This hospital is at ${sd(shown)}.` : 'This hospital has no gap to place.');
 
   const bars = rows.map((b, i) => {
     const gapPx = b.over ? 0 : 1;
@@ -100,7 +101,12 @@ function draw(el, c) {
   const xt = x.ticks(wide ? 10 : 5).filter((v) => v >= lo && v <= hi && !(lowOver && v === lo) && !(highOver && v === hi));
   const overLabels = rows.filter((b) => b.over).map((b) => s('text', { x: r1((x(b.x0) + x(b.x1)) / 2), y: ph + 18, 'text-anchor': 'middle' }, b.over === 'low' ? `≤ ${tickText(lo)}` : `≥ ${tickText(hi)}`));
   const youX = you == null ? 0 : r1(you);
-  const youLeft = you != null && youX > pw * 0.62; // label grows leftward near the right edge
+  const youText = `This hospital ${sd(shown)}`;
+  // The label grows leftward when it would run off the right edge (13 px Overpass 700 is about 7.4 px a glyph),
+  // and never past the left edge either.
+  const labelW = youText.length * 7.4;
+  const youLeft = you != null && youX + 10 + labelW > pw + M.right - 2;
+  const youTx = youLeft ? Math.max(youX - 10, labelW - M.left + 2) : youX + 10;
   const svg = s('svg', { class: 'gs__svg', width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', focusable: 'false', 'aria-label': aria },
     s('g', { transform: `translate(${M.left},${M.top})` },
       yAxis(y, y.ticks(3), { group: 'gs__yticks', line: 'gs__', w: pw, fmt: fmtNum }),
@@ -117,7 +123,7 @@ function draw(el, c) {
       you != null && s('g', { class: 'gs__you' },
         s('line', { x1: youX, x2: youX, y1: -8, y2: ph }),
         s('path', { class: 'gs__flag', d: `M${youX - 6},-14L${youX + 6},-14L${youX},-6Z` }),
-        s('text', { x: youLeft ? youX - 10 : youX + 10, y: -14, 'text-anchor': youLeft ? 'end' : 'start' }, `This hospital ${sd(value)}`))));
+        s('text', { x: youTx, y: -14, 'text-anchor': youLeft ? 'end' : 'start' }, youText))));
 
   swapSvg(el, 'gs__svg', svg);
 }

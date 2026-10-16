@@ -7,7 +7,7 @@ export function tableAlt({ caption, columns, rows }) {
   const cell = (c, r) => (r[c.key] == null ? '—' : c.fmt ? c.fmt(r[c.key], r) : r[c.key]);
   return h('details', { class: 'table-alt' },
     h('summary', null, 'Show as table'),
-    h('div', { class: 'table-alt__scroll' },
+    h('div', { class: 'table-alt__scroll', tabindex: '0', role: 'region', 'aria-label': caption || 'Data table' },
       h('table', null,
         caption ? h('caption', null, caption) : null,
         h('thead', null, h('tr', null, columns.map((c, i) => h('th', { scope: 'col', class: num[i] ? 'num' : null }, c.label)))),

@@ -116,7 +116,8 @@ export function renderHospital(D, id) {
       rows: clipHist(hist).rows,
     }),
   });
-  if (hist?.bins?.length) gapStrip(stripHost, { hist, value: x.gap });
+  // Positioned by the raw gap; labeled with the card's rounded gap, so one page never shows two different numbers.
+  if (hist?.bins?.length) gapStrip(stripHost, { hist, value: x.gap, shown: shownGap });
 
   let trend = h('p', { class: 'profile__lead' }, 'This hospital has fewer than two years of cost reports that passed the data checks, so no trend is shown.');
   if (years.length >= 2) {

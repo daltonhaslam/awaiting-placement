@@ -103,6 +103,10 @@ test('gap strip marks this hospital and names the median and the middle 80%', ()
   assert.equal(strip.querySelectorAll('rect.gs__bar').length, D.gapHist.bins.length);
   assert.equal(strip.querySelectorAll('.gs__you').length, 1);
   assert.ok(text(strip).includes('This hospital'));
+  // The flag carries the card's rounded gap (MA stay minus traditional stay as displayed), not the raw gap.
+  const shown = displayedGap(x.maAlos, x.ffsAlos) ?? x.gap;
+  assert.ok(text(strip).includes(`This hospital ${fmtSigned(shown, fmtDays)}`));
+  assert.ok(strip.getAttribute('aria-label').includes(`This hospital is at ${fmtSigned(shown, fmtDays)}`));
   assert.match(strip.getAttribute('aria-label'), /median/i);
   const t = text(el);
   assert.ok(t.includes(`Median ${fmtSigned(D.gapHist.median, fmtDays)}`));
