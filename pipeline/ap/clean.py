@@ -14,13 +14,18 @@ EXCLUDED_STATES = {'40': 'Puerto Rico', '21': 'Maryland'}  # CCN state code -> l
 ACUTE_SUFFIX = (1, 879)    # short-term acute care hospitals: CCN ends in 0001 to 0879
 CAH_SUFFIX = (1300, 1399)  # critical access hospitals use this range and are not included
 OCC_PLAUSIBLE = (0.05, 1.0)  # occupancy outside this is flagged and not shown
+# "Check this hospital's data": a clean hospital whose gap is far outside the usual range is kept (in every count,
+# the histogram and the national numbers) but marked on its page, and the calculator uses national averages for it.
+CHECK_GAP_DAYS = 3.0  # |MA ALOS - traditional ALOS| above this, in days
+CHECK_ALOS_RATIO = 2.0  # longer ALOS more than this many times the shorter one
 
 
 def rules():
     """The thresholds above, as the JSON-ready dict build_data publishes in meta.rules."""
     return {'periodDays': MIN_PERIOD_DAYS, 'maDischarges': MIN_MA_DISCHARGES, 'ffsDischarges': MIN_FFS_DISCHARGES,
             'alos': list(ALOS_RANGE), 'excludedStates': list(EXCLUDED_STATES.values()),
-            'acuteSuffix': list(ACUTE_SUFFIX), 'cahSuffix': list(CAH_SUFFIX), 'occPlausible': list(OCC_PLAUSIBLE)}
+            'acuteSuffix': list(ACUTE_SUFFIX), 'cahSuffix': list(CAH_SUFFIX), 'occPlausible': list(OCC_PLAUSIBLE),
+            'checkGapDays': CHECK_GAP_DAYS, 'checkAlosRatio': CHECK_ALOS_RATIO}
 
 
 def _num(v):
@@ -87,3 +92,16 @@ def occ_flag(d):
     return o is None or not OCC_PLAUSIBLE[0] <= o <= OCC_PLAUSIBLE[1]
 
 
+
+
+def check_data(d):
+    """True when the gap is far outside the usual range: |gap| above CHECK_GAP_DAYS, or one average stay more than
+    CHECK_ALOS_RATIO times the other. Both thresholds are strict (exactly 3.0 days or exactly twofold is not flagged).
+    A missing average stay is never flagged; a zero or negative one cannot form a ratio, so only the gap test applies."""
+    ma, ffs = d.get('ma_alos'), d.get('ffs_alos')
+    if ma is None or ffs is None:
+        return False
+    if abs(ma - ffs) > CHECK_GAP_DAYS:
+        return True
+    lo, hi = min(ma, ffs), max(ma, ffs)
+    return lo > 0 and hi > CHECK_ALOS_RATIO * lo

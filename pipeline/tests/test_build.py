@@ -53,6 +53,17 @@ class T(unittest.TestCase):
         self.assertEqual([p['id'] for p in self.out['presets']], ['community', 'regional', 'academic'])
     def test_national_series(self):
         self.assertEqual([s['fy'] for s in self.out['national']['series']], self.out['meta']['trendFys'])
+    def test_check_data_flag_marks_but_keeps(self):
+        from ap import clean
+        hs = self.out['hospitals']
+        flagged = [h for h in hs if 'checkData' in h]
+        self.assertEqual(self.out['meta']['flagged'], len(flagged))
+        self.assertTrue(flagged)
+        self.assertTrue(all(h['checkData'] is True for h in flagged))  # omitted, never false
+        g, k = clean.CHECK_GAP_DAYS, clean.CHECK_ALOS_RATIO
+        for h in flagged:  # rounded figures, so the test allows the rounding at the boundary
+            self.assertTrue(abs(h['gap']) >= g - 0.01 or max(h['maAlos'], h['ffsAlos']) >= k * min(h['maAlos'], h['ffsAlos']) - 0.02, h['id'])
+        self.assertEqual(sum(b['n'] for b in self.out['gapHist']['bins']), self.out['meta']['nClean'])
     def test_exclusions_sum(self):
         m = self.out['meta']
         self.assertEqual(sum(m['exclusions'].values()) + m['nClean'], m['nAcute'])

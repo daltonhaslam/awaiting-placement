@@ -68,5 +68,33 @@ class T(unittest.TestCase):
     def test_flags(self):
         self.assertTrue(clean.occ_flag(self.d(ip_days=80000, nursery_days=0)))
 
+    def test_check_data_flag(self):
+        r = clean.rules()
+        self.assertEqual((r['checkGapDays'], r['checkAlosRatio']), (3.0, 2.0))
+        flag = lambda ma, ffs: clean.check_data({'ma_alos': ma, 'ffs_alos': ffs})
+        self.assertFalse(flag(5.0, 4.5))
+        # Gap: strictly more than 3.0 days either way (values chosen to be exact in binary floating point).
+        self.assertFalse(flag(7.0, 4.0))
+        self.assertFalse(flag(4.0, 7.0))
+        self.assertTrue(flag(7.25, 4.0))
+        self.assertTrue(flag(4.0, 7.25))
+        # Ratio: strictly more than twofold either way, with the gap under 3 days.
+        self.assertFalse(flag(5.0, 2.5))
+        self.assertFalse(flag(2.5, 5.0))
+        self.assertTrue(flag(5.0, 2.25))
+        self.assertTrue(flag(2.25, 5.0))
+        # Zero, negative or missing stays never divide or raise; a zero stay is judged on the gap alone.
+        self.assertFalse(flag(0.0, 2.0))
+        self.assertFalse(flag(2.0, 0.0))
+        self.assertFalse(flag(0.0, 0.0))
+        self.assertTrue(flag(0.0, 3.5))
+        self.assertFalse(flag(None, 4.0))
+        self.assertFalse(clean.check_data({}))
+        # Through derive(): MA 10 days a stay against traditional 4.5 is flagged, and the hospital is still clean.
+        d = self.d(ma_days=10000)
+        self.assertTrue(clean.check_data(d))
+        self.assertIsNone(clean.exclusion_reason(d))
+        self.assertFalse(clean.check_data(self.d()))
+
 if __name__ == '__main__':
     unittest.main()

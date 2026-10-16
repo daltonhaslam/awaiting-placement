@@ -87,7 +87,7 @@ cd web && npm run e2e && npm run e2e:headers && npm run e2e:docs
 committed page; `e2e:headers`, `e2e:docs` and `node og.mjs` load Google Fonts live. All of them drive the installed
 Google Chrome Stable (Playwright channel `chrome`), not a downloaded Chromium.
 
-Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with 12 tests skipped, including the one that
+Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with 13 tests skipped, including the one that
 checks the committed `ap.json` equals a fresh build. Fetch that file first for a real pass.
 
 ## Yearly refresh
@@ -95,7 +95,7 @@ checks the committed `ap.json` equals a fresh build. Fetch that file first for a
 - [ ] Add the new HCRIS fiscal year to `pipeline/sources.json`: copy the previous year's entry, change `name` (`hcris_fyYYYY`), `file` (`HOSP10FYYYYY.ZIP`) and `url`, then pin it with `python3 -I pipeline/fetch.py --only hcris_fyYYYY --refresh-hashes`. The extract step reads its years from there. Do not run `--refresh-hashes` without `--only` unless you mean to re-pin every year (CMS refreshes older files quarterly, so earlier years' numbers would change too). Re-pin `hospital_general_info` the same way when CMS releases a new file.
 - [ ] Update the MedPAC, KFF and policy figures in `pipeline/content/`. Every `src` URL must also appear in `pipeline/content/sources.json` with `"verified": true` (set it only after opening the link; the build fails otherwise). Re-check every link (some move to new slugs each year). Search `web/src/js/views/` for the old year ("in 2026", "September 2026") and for the year-named keys `kff2026` and `maStays2023`.
 - [ ] Run `fetch.py`, `extract_hcris.py` and `build_data.py`, then `python3 -I pipeline/run_tests.py`.
-- [ ] Review any change in exclusion counts before accepting the new data.
+- [ ] Review any change in exclusion counts before accepting the new data, and the hospitals marked "check this hospital's data" (`build_data.py` prints them; the thresholds are in `pipeline/ap/clean.py`).
 - [ ] Bump `PUBLISHED` in `web/src/js/site.js` to the release month (the dateline reads it; nothing sets it automatically). Update the MedPAC values pinned in `pipeline/tests/test_content.py`.
 - [ ] `cd web && node og.mjs` to regenerate the share card (and `og.stamp.json`, the hash of the card's HTML that `npm test` checks), then `node build.mjs` so the image URL (`?v=` content hash) and CSP hashes are current.
 - [ ] `npm test` and all three e2e commands.

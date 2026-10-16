@@ -136,6 +136,29 @@ test('an unknown hospital id is dropped and the lens falls back', () => {
   clean(el);
 });
 
+test('a "check this hospital\'s data" hospital: own-gap lens off, national lens, and a sentence saying why', () => {
+  const x = D.hospitalsById.get('080321'); // fixture: flagged, gap +5.2
+  assert.equal(x.checkData, true);
+  const SENT = new RegExp(`Its FY${D.meta.latestFy} cost-report gap is \\+5\\.2 days, far outside the usual range, so this estimate uses MedPAC's national averages instead\\.`);
+  // An old link asking for the hospital lens falls back to the default lens.
+  const el = renderCalculator(D, { query: 'h=080321&l=hospital' });
+  const own = el.querySelector('input[name="lens"][value="hospital"]');
+  assert.ok(own.hasAttribute('disabled'));
+  assert.ok(el.querySelector(`input[name="lens"][value="${D.model.defaults.lens}"]`).checked);
+  assert.match(link(el), /h=080321/);
+  assert.match(link(el), new RegExp(`l=${D.model.defaults.lens}`));
+  assert.match(text(el.querySelector('.calc__lens-note')), SENT);
+  clean(el);
+  // Picking it from the search after another hospital's own lens also falls back.
+  const el2 = renderCalculator(D, { query: 'h=220071&l=hospital' });
+  pick(el2, 'fixture swingbed');
+  assert.match(link(el2), /h=080321/);
+  assert.match(link(el2), new RegExp(`l=${D.model.defaults.lens}`));
+  assert.ok(el2.querySelector('input[name="lens"][value="hospital"]').hasAttribute('disabled'));
+  assert.match(text(el2.querySelector('.calc__lens-note')), SENT);
+  clean(el2);
+});
+
 test('a hostile share link loads clamped, with no NaN and nothing injected', () => {
   const el = renderCalculator(D, { query: 'b=abc&a=5&l=<script>&h=../x&o=-3&d=1e999&t1=NaN' });
   clean(el);

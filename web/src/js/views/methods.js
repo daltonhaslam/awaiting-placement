@@ -54,6 +54,19 @@ function sourcesPart(D) {
       sources.map((x) => h('tr', null, h('th', { scope: 'row' }, sourceLinks(x)), h('td', { class: 'dtable__type' }, SRC_TYPE[x.type] ?? '—')))) : null);
 }
 
+// Included hospitals whose gap is far outside the usual range: kept, but marked on their page. Thresholds and count from the data.
+function checkDataSentence(m) {
+  const n = m.flagged;
+  const gap = m.rules?.checkGapDays;
+  const ratio = m.rules?.checkAlosRatio;
+  if (!isNum(n) || n < 1 || !isNum(gap) || !isNum(ratio)) return null;
+  const one = n === 1;
+  return h('p', null, `${fmtNum(n)} ${one ? 'hospital' : 'hospitals'} whose gap is larger than ${gap} days either way, `
+    + `or whose MA and traditional Medicare stays differ more than ${ratio === 2 ? 'twofold' : `${ratio}-fold`}, `
+    + `${one ? 'is' : 'are'} kept but marked "check this hospital's data" on ${one ? 'its' : 'their'} page; `
+    + `the calculator uses national averages for ${one ? 'it' : 'them'}.`);
+}
+
 function costReportPart(D) {
   const m = D.meta ?? {};
   const fy = m.latestFy;
@@ -87,6 +100,7 @@ function costReportPart(D) {
         h('tr', null, h('th', { scope: 'row' }, 'Excluded'), h('td', { class: 'num' }, fmtNum(excluded))),
         h('tr', null, h('th', { scope: 'row' }, 'Included'), h('td', { class: 'num' }, fmtNum(m.nClean))),
       ]),
+    checkDataSentence(m),
     fys.length > 1 ? h('p', null, `The national trend in No. 03 applies the same rules to each year from FY${fys[0]} to FY${fys.at(-1)}.`
       + (covid.length ? ` The COVID years, FY${covid[0]} to FY${covid.at(-1)}, are shaded.` : '')) : null,
     cc?.hcris && cc?.medpac ? [

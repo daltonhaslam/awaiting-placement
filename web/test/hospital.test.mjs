@@ -75,6 +75,37 @@ test('gap at or below zero says MA stays were not longer here and still renders'
   noNaN(el);
 });
 
+test('"check this hospital\'s data": the card note, no rank sentence, and the calculator opens on the national lens', () => {
+  const x = D.hospitalsById.get('080321'); // fixture: flagged, gap +5.2
+  assert.equal(x.checkData, true);
+  const el = render(D, '080321');
+  const t = text(el);
+  const note = [...el.querySelectorAll('.card .card__note')].map(text);
+  assert.ok(note.includes("Check this hospital's data. The gap in its cost report is far outside the usual range, which often means "
+    + 'days from another unit, such as swing beds, were reported on the acute line.'), note.join(' | '));
+  assert.ok(t.includes(line(x)), 'the figures are still shown');
+  assert.equal(el.querySelector('.card__rank'), null);
+  assert.ok(!/This gap is (larger|smaller)/.test(t));
+  assert.ok(el.querySelector('svg'), 'still on the strip');
+  const q = new URLSearchParams(el.querySelector('a.btn').getAttribute('href').split('?')[1]);
+  assert.equal(q.get('l'), D.model.defaults.lens, 'default lens, not the hospital lens');
+  assert.equal(q.get('h'), '080321');
+  assert.match(text(el.querySelector('.profile__cta')), /far outside the usual range, so the calculator opens with MedPAC's national averages instead\./);
+  assert.doesNotMatch(text(el.querySelector('.profile__cta')), /reports no MA excess/);
+  noNaN(el);
+  // An unflagged hospital has neither.
+  const ok = text(render(D, '220071'));
+  assert.ok(!ok.includes("Check this hospital's data"));
+  // Real data: every flagged hospital renders the note and no rank sentence; the count matches meta.
+  const flagged = REAL.hospitals.filter((y) => y.checkData);
+  assert.equal(flagged.length, REAL.meta.flagged);
+  for (const y of flagged) {
+    const ry = render(REAL, y.id);
+    assert.ok(text(ry).includes("Check this hospital's data."), y.id);
+    assert.ok(!/This gap is (larger|smaller)/.test(text(ry)), y.id);
+  }
+});
+
 test('flagged occupancy replaces the value with a plain note', () => {
   const x = D.hospitalsById.get('060456');
   assert.equal(x.occFlag, true);

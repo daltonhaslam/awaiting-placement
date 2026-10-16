@@ -23,6 +23,8 @@ import { HASH_DEBOUNCE_MS, LIVE_DEBOUNCE_MS } from '../timing.js';
 
 const MEDPAC = ['placement', 'adjusted', 'unadjusted'];
 const HASH_KEY = { beds: 'b', occ: 'o', dis: 'd', mcr: 'm', ma: 'a' };
+// The own-gap lens needs a hospital, and not one whose gap is marked "check this hospital's data" (far outside the usual range).
+const ownGapOk = (x) => !!x && !x.checkData;
 
 const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : f());
 const flag = (el, attr, on) => (on ? el.setAttribute(attr, '') : el.removeAttribute(attr));
@@ -72,7 +74,8 @@ export function renderCalculator(D, { query } = {}) {
       const fromHospital = inputsFromHospital(D, x);
       inp.hospitalGap = fromHospital.hospitalGap;
       for (const k of BASICS) if (!given.has(HASH_KEY[k])) inp[k] = fromHospital[k]; // values in the link win over the hospital's
-    } else if (inp.lens === 'hospital') inp.lens = D.model.defaults.lens;
+    }
+    if (!ownGapOk(x) && inp.lens === 'hospital') inp.lens = D.model.defaults.lens;
     return { inp, x };
   }
   let { inp: inputs, x: hospital } = fromQuery(query);
@@ -154,6 +157,7 @@ export function renderCalculator(D, { query } = {}) {
   function useHospital(x) {
     hospital = x;
     Object.assign(inputs, inputsFromHospital(D, x));
+    if (!ownGapOk(x) && inputs.lens === 'hospital') inputs.lens = D.model.defaults.lens;
     changed(null);
   }
 
@@ -401,8 +405,8 @@ export function renderCalculator(D, { query } = {}) {
     // MA share and lens
     echo.replaceChildren(h('strong', null, shown), ' beds held on an average day. Details below.');
     const own = lens.inputsByValue.get('hospital');
-    flag(own, 'disabled', !hospital);
-    own.closest('.seg__opt')?.classList.toggle('is-off', !hospital);
+    flag(own, 'disabled', !ownGapOk(hospital));
+    own.closest('.seg__opt')?.classList.toggle('is-off', !ownGapOk(hospital));
     if (inputs.lens === 'hospital' && hospital) {
       const g = hospital.gap; // the model's gap decides the branch; the text shows the displayed (rounded) one so it adds up
       const shownGap = displayedGap(hospital.maAlos, hospital.ffsAlos) ?? g;
@@ -413,6 +417,10 @@ export function renderCalculator(D, { query } = {}) {
           + 'The gap is raw (not adjusted) and is spread across destinations in MedPAC\'s adjusted pattern.'
         : `This hospital's FY${fy} cost report shows no longer MA stays${stays ? ` (${stays})` : ''}, so nothing is counted under this lens. `
           + 'The other lenses use MedPAC\'s national averages, which may not fit this hospital.';
+    } else if (hospital?.checkData) {
+      const shownGap = displayedGap(hospital.maAlos, hospital.ffsAlos) ?? hospital.gap;
+      lensNote.textContent = `${lensDef.explain} Its FY${fy} cost-report gap is ${fmtSigned(shownGap, fmtDays)}, `
+        + 'far outside the usual range, so this estimate uses MedPAC\'s national averages instead.';
     } else lensNote.textContent = hospital ? lensDef.explain
       : `${lensDef.explain} Choose a hospital to use its own cost-report gap.`;
 

@@ -182,6 +182,8 @@ def _build():
             'maAlos': round(d['ma_alos'], 2), 'ffsAlos': round(d['ffs_alos'], 2), 'gap': round(d['gap'], 2),
             'teach': d['teach'], 'trend': trend_of(d['ccn']),
         })
+        if clean.check_data(d):  # omitted when false, to keep the file small
+            hospitals[-1]['checkData'] = True
 
     # Prose in content/*.json that quotes a figure from this data carries a {placeholder}, filled here so it cannot go stale.
     med_occ = f"{statistics.median(h['occ'] for h in hospitals) * 100:.1f}%"
@@ -207,6 +209,7 @@ def _build():
         'meta': {'latestFy': latest, 'trendFys': fys, 'covidFys': COVID_FYS, 'rules': clean.rules(),
                  'builtOn': max(d['fy_end'] for d in ds), 'nClean': len(by_fy[latest]), 'nAcute': cov['acute'],
                  'exclusions': {k: cov[k] for k in REASONS},
+                 'flagged': sum(1 for x in hospitals if x.get('checkData')),
                  'crossCheck': {'hcris': {'ma': round(wl['maAlos'], 2), 'ffs': round(wl['ffsAlos'], 2)}, 'medpac': medpac_all}},
         'national': {'series': series,
                      'context': {'maStays2023': ma_stays, 'placement': stays_effect('placement'),
@@ -236,6 +239,10 @@ def main():
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(dump(out), encoding='utf-8')
     print_coverage(cov)
+    flagged = [x for x in out['hospitals'] if x.get('checkData')]
+    print(f"check this hospital's data: {len(flagged)}")
+    for x in flagged:
+        print(f"  {x['id']}  {x['gap']:+.2f}  {x['name']}")
     print(f"wrote {OUT_PATH} ({OUT_PATH.stat().st_size:,} bytes), nClean={out['meta']['nClean']}")
 
 

@@ -44,10 +44,14 @@ export const rankSentence = (p) => (Math.round(p) < 1 ? 'This gap is smaller tha
 // The calculator's hospital lens scales the national gap to this hospital's own, so it only means something above zero;
 // a hospital with no MA excess opens on the calculator's default lens instead.
 const hasExcess = (x) => isNum(x.gap) && x.gap > 0;
+// A gap the pipeline marks "check this hospital's data" (far outside the usual range) is not used for the hospital lens either.
+const ownGapLens = (x) => hasExcess(x) && !x.checkData;
+export const CHECK_DATA_NOTE = 'Check this hospital\'s data. The gap in its cost report is far outside the usual range, which often means '
+  + 'days from another unit, such as swing beds, were reported on the acute line.';
 
 function calculatorHref(D, x) {
   const inputs = { ...defaultInputs(D, D.presets.find((p) => p.id === 'regional') ?? D.presets[0]), ...inputsFromHospital(D, x) };
-  if (hasExcess(x)) inputs.lens = 'hospital';
+  if (ownGapLens(x)) inputs.lens = 'hospital';
   return `#calculator?${new URLSearchParams(encodeState(inputs, x.id))}`;
 }
 
@@ -88,7 +92,7 @@ export function renderHospital(D, id) {
       h('span', { class: 'nw' }, 'MA ', h('strong', null, fmtDays(x.maAlos))), '\u00a0· ',
       h('span', { class: 'nw' }, 'traditional ', h('strong', null, fmtDays(x.ffsAlos))), '\u00a0· ',
       h('span', { class: 'nw' }, 'gap ', h('strong', null, days(shownGap)))),
-    hasGap ? h('p', { class: 'card__rank' }, longer
+    hasGap && !(longer && x.checkData) ? h('p', { class: 'card__rank' }, longer
       ? rankSentence(pct)
       : 'MA stays were not longer here. Traditional Medicare stays averaged the same or longer.') : null,
     h('dl', { class: 'stats' },
@@ -96,6 +100,7 @@ export function renderHospital(D, id) {
       x.occFlag ? stat('Occupancy', 'looks off in this cost report', 'The reported figure is outside a plausible range, so it is not shown.')
         : stat('Occupancy', fmtPct(x.occ)),
       stat('Total discharges', fmtNum(x.dis))),
+    x.checkData ? h('p', { class: 'card__note' }, CHECK_DATA_NOTE) : null,
     isNum(x.ma) && x.ma > 0.9 ? h('p', { class: 'card__note' }, 'Nearly all Medicare patients here are in MA. The traditional Medicare average rests on a small, selected group, so the gap is less reliable.') : null);
 
   const hist = D.gapHist;
@@ -190,7 +195,8 @@ export function renderHospital(D, id) {
     cant,
     h('p', { class: 'profile__cta' },
       h('a', { class: 'btn', href: calculatorHref(D, x) }, 'Open in calculator'),
-      hasExcess(x) ? null : h('span', { class: 'card__note' }, ' This hospital\'s cost report shows no longer MA stays. The calculator opens with MedPAC\'s national averages instead, which may not fit this hospital.'),
+      x.checkData ? h('span', { class: 'card__note' }, ' This hospital\'s gap is far outside the usual range, so the calculator opens with MedPAC\'s national averages instead.') : null,
+      hasExcess(x) || x.checkData ? null : h('span', { class: 'card__note' }, ' This hospital\'s cost report shows no longer MA stays. The calculator opens with MedPAC\'s national averages instead, which may not fit this hospital.'),
       x.occFlag ? h('span', { class: 'card__note' }, ' The calculator uses a typical occupancy instead of this hospital\'s flagged figure.') : null),
     h('p', null, h('a', { href: link('share') }, 'Back to the national picture')));
 }

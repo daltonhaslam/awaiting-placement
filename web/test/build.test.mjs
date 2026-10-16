@@ -21,7 +21,7 @@ test('one data script, no raw closing tag inside it', () => {
   const body = /<script id="ap-data" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1];
   assert.ok(!/<\/script/i.test(body));
   assert.ok(!body.includes('<'));
-  assert.ok(JSON.parse(body).hospitals.length === 6);
+  assert.ok(JSON.parse(body).hospitals.length === 7);
 });
 test('title and fonts', () => {
   assert.match(html, /<title>Awaiting Placement/);

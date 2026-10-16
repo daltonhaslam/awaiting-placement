@@ -100,6 +100,25 @@ test('methods: without meta.rules no threshold is invented', () => {
   noNaN(el);
 });
 
+test('methods: the "check this hospital\'s data" rule and its count come from meta', () => {
+  const SENT = (n, many) => `${n} ${many ? 'hospitals' : 'hospital'} whose gap is larger than 3 days either way, or whose MA and traditional Medicare stays `
+    + `differ more than twofold, ${many ? 'are' : 'is'} kept but marked "check this hospital's data" on ${many ? 'their' : 'its'} page; `
+    + `the calculator uses national averages for ${many ? 'them' : 'it'}.`;
+  assert.ok(REAL.meta.flagged > 1);
+  assert.ok(text(renderMethods(REAL)).includes(SENT(REAL.meta.flagged.toLocaleString('en-US'), true)));
+  assert.equal(D.meta.flagged, 1);
+  assert.ok(text(renderMethods(D)).includes(SENT('1', false)));
+  // Thresholds follow meta.rules; no count or no rules, no sentence.
+  const raw = structuredClone(real);
+  Object.assign(raw.meta.rules, { checkGapDays: 2.5, checkAlosRatio: 3 });
+  raw.meta.flagged = 1234;
+  const t = text(renderMethods(loadData(raw)));
+  assert.match(t, /1,234 hospitals whose gap is larger than 2\.5 days either way, or whose MA and traditional Medicare stays differ more than 3-fold/);
+  const none = structuredClone(real);
+  delete none.meta.flagged;
+  assert.doesNotMatch(text(renderMethods(loadData(none))), /check this hospital's data/);
+});
+
 test('the fixture and the real data publish the same rule keys', () => {
   assert.deepEqual(Object.keys(fixture.meta.rules).sort(), Object.keys(real.meta.rules).sort());
 });
