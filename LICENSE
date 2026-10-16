@@ -20,6 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Data note: the CMS and US Census source files this project processes are works of
-the US federal government and are in the public domain. us-atlas geometry is
-ISC-licensed (Mike Bostock), derived from Census cartographic boundary files.
+Data note: the CMS source files this project processes, and the extract derived
+from them, are works of the US federal government and are in the public domain.
+Figures transcribed from MedPAC, KFF and other published sources are attributed
+and linked; those sources keep their own terms.

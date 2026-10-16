@@ -4,11 +4,13 @@
 import { chromium } from 'playwright';
 import { serveWithHeaders, builtPage, firstHospital, makeCheck } from './_lib.mjs';
 import { HASH_DEBOUNCE_MS, LIVE_DEBOUNCE_MS, NOTICE_FADE_MS } from '../src/js/timing.js';
+import { cardNumbers } from '../og-card.mjs';
 
 const html = builtPage();
 const { base: PAGE, close } = serveWithHeaders(html);
 const hospital = firstHospital(html);
 const data = JSON.parse(/<script id="ap-data" type="application\/json">(.*?)<\/script>/s.exec(String(html))[1]);
+const LED = cardNumbers(data).now; // the hero's LED value, from the same table the hero reads
 const HOSTILE = '#calculator?b=abc&a=5&l=<script>&h=../x';
 // Fixture edge cases: gap below zero, flagged occupancy, a missing trend year (real builds: unknown ids render not-found).
 const EDGE_IDS = ['050123', '060456', '070789'];
@@ -104,7 +106,7 @@ for (const scheme of ['light', 'dark']) {
   await page.waitForSelector('#main h1');
   check((await page.textContent('#main h1')) === 'Methods', 'methods heading');
   check((await page.title()) === 'Methods · Awaiting Placement', `methods title (${await page.title()})`);
-  check(/Published Oct 2026\s· Data: FY\d{4} cost reports, MedPAC \w+ \d{4}/.test(await page.innerText('section[aria-labelledby="methods-about"]')), 'methods About carries the dateline');
+  check(/Published [A-Z][a-z]+ \d{4}\s· Data: FY\d{4} cost reports, MedPAC \w+ \d{4}/.test(await page.innerText('section[aria-labelledby="methods-about"]')), 'methods About carries the dateline');
   const reasons = await page.$$eval('tr[data-reason]', (rows) => rows.map((r) => r.getAttribute('data-reason')));
   check(reasons.join() === Object.keys(data.meta.exclusions).join(), `methods lists every exclusion rule (${reasons})`);
   // Overpass Mono draws "÷" as a minus-like bar: no text set in the mono face may carry it, and formulas set no ligatures.
@@ -130,9 +132,9 @@ for (const motion of ['no-preference', 'reduce']) {
   await page.waitForSelector('.hero h1');
   check((await page.textContent('.hero h1')) === 'Ready to leave the hospital. Still waiting for the next bed.', `home h1 (${motion})`);
   // The hero's LED (the top bar's small copy comes first in the document, so name the hero's).
-  if (motion === 'reduce') check((await page.getAttribute('.hero .led__digits', 'data-value')) === '07', 'LED is static under reduced motion');
-  await page.waitForFunction(() => document.querySelector('.hero .led__digits')?.getAttribute('data-value') === '07', null, { timeout: 3000 })
-    .catch(() => check(false, `LED count-up ends at 07 (${motion})`));
+  if (motion === 'reduce') check((await page.getAttribute('.hero .led__digits', 'data-value')) === LED, 'LED is static under reduced motion');
+  await page.waitForFunction((v) => document.querySelector('.hero .led__digits')?.getAttribute('data-value') === v, LED, { timeout: 3000 })
+    .catch(() => check(false, `LED count-up ends at ${LED} (${motion})`));
   // Doto's zero is slashed, so the LED shows the letter O for 0; the panel's spoken name keeps the number.
   const led = await page.evaluate(() => [document.querySelector('.hero .led__digits').textContent, document.querySelector('.hero .led').getAttribute('aria-label')]);
   check(led[0] === 'O7' && /^Now serving 07:/.test(led[1]), `LED shows O7 and is named 07 (${led})`);

@@ -27,6 +27,9 @@ def main():
     out, t0 = [], time.time()
     for fy in YEARS:
         z = ROOT / 'data' / 'raw' / ('hcris_fy%d' % fy) / ('HOSP10FY%d.ZIP' % fy)
+        if not z.exists():
+            sys.exit('%s is missing: run `python3 -I pipeline/fetch.py` first (about 1.2 GB for every year). The committed '
+                     'pipeline/derived/hcris_extract.csv already holds this step\'s output, so build_data.py works without it.' % z)
         rows = hcris.dedupe(hcris.extract_year(str(z), fy))
         out.extend(rows)
         print('FY%d: %d reports  (%.0fs elapsed)' % (fy, len(rows), time.time() - t0), flush=True)

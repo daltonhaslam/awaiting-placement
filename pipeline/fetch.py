@@ -64,6 +64,8 @@ def download(url, dest, expected=None):
     part = dest.with_suffix(dest.suffix + ".part")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=120) as resp, open(part, "wb") as out:
+        if url.startswith("https://") and not resp.geturl().startswith("https://"):
+            raise ChecksumError(f"{url}: redirected to a non-https address ({resp.geturl()}); refusing to use it")
         shutil.copyfileobj(resp, out)
     try:
         if expected:
@@ -84,10 +86,12 @@ def fetch_source(src, refresh_hashes=False, raw_dir=RAW_DIR):
     folder = raw_dir / src["name"]
     dest = folder / src["file"]
     if refresh_hashes or not dest.exists() or sha256_of(dest) != src["sha256"]:
-        print(f"  downloading {src['url']}")
+        print(f"  downloading {src['url']}", flush=True)
         download(src["url"], dest, None if refresh_hashes else src["sha256"])
         if refresh_hashes:
             src["sha256"] = sha256_of(dest)
+    else:
+        print(f"  ok: {dest.name} is present and matches its pinned sha256", flush=True)
     if src.get("unzip"):
         safe_unzip(dest, folder / "extracted")
 
@@ -98,11 +102,21 @@ def main(argv=None):
     ap.add_argument("--refresh-hashes", action="store_true", help="record current file hashes instead of verifying")
     args = ap.parse_args(argv)
     sources = json.loads(SOURCES.read_text(encoding="utf-8"))
+    if args.only and args.only not in {s["name"] for s in sources}:
+        print(f"no source named {args.only!r} in sources.json; names are: {', '.join(s['name'] for s in sources)}", file=sys.stderr)
+        return 2
     for src in sources:
         if args.only and src["name"] != args.only:
             continue
-        print(f"[{src['name']}]")
-        fetch_source(src, args.refresh_hashes)
+        print(f"[{src['name']}]", flush=True)
+        try:
+            fetch_source(src, args.refresh_hashes)
+        except ChecksumError as e:
+            print(f"\n{e}\n\nThe file CMS now serves is not the one the published numbers were built from (CMS refreshes these"
+                  f" files). That is deliberate: different bytes mean different numbers. To move to the new file on purpose,"
+                  f" re-pin it with `python3 -I pipeline/fetch.py --only {src['name']} --refresh-hashes`, rebuild, and expect"
+                  f" the outputs to change. Until then the committed pipeline/derived/hcris_extract.csv is the reproducible input.", file=sys.stderr)
+            return 1
     if args.refresh_hashes:
         SOURCES.write_text(json.dumps(sources, indent=2) + "\n", encoding="utf-8")
         print("sources.json hashes refreshed")

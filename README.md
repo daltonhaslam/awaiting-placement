@@ -46,14 +46,34 @@ Each hospital-year comes from one cost report: duplicates are resolved by taking
 
 ## Rebuilding
 
-Python is standard library only. Always run it isolated with `-I`.
+Requirements: Python 3.9+ (standard library only; always run it isolated with `-I`), Node 18+ with npm, and, for the
+browser checks and the share card, Google Chrome Stable plus network access to Google Fonts (Playwright drives the
+installed Chrome; `npm ci` downloads no browsers). Tested on macOS with Python 3.9.6 and Node 26; a rebuild there is
+byte-identical to the committed `docs/index.html`, `vercel.json` and `docs/og.png`.
+
+Fastest path (about 1.4 MB, seconds). The extract of the cost reports is already committed, so only the hospital
+names file is needed:
+
+```sh
+python3 -I pipeline/fetch.py --only hospital_general_info   # -> data/raw/ (gitignored)
+python3 -I pipeline/build_data.py                            # -> web/src/data/ap.json (git should show no change)
+cd web && npm ci && node build.mjs                           # -> docs/index.html, vercel.json (git should show no change)
+```
+
+Full path, to re-derive the committed extract from CMS (nine zips, about 1.2 GB; allow a few minutes):
 
 ```sh
 python3 -I pipeline/fetch.py          # download raw files to data/raw/ and check their sha256 pins
-python3 -I pipeline/extract_hcris.py  # every pinned year -> pipeline/derived/hcris_extract.csv
+python3 -I pipeline/extract_hcris.py  # every pinned year (FY2016 to FY2024) -> pipeline/derived/hcris_extract.csv
 python3 -I pipeline/build_data.py     # -> web/src/data/ap.json
 cd web && npm ci && node build.mjs    # -> docs/index.html
 ```
+
+"Pinned" means `pipeline/sources.json` records the sha256 of the exact file the published numbers were built from.
+CMS republishes these files (HCRIS quarterly; the Hospital General Information link carries a release token), so a
+later download can fail with a checksum error. That is deliberate: different bytes mean different numbers. To move to
+the new file on purpose, re-pin that one source (`fetch.py --only <name> --refresh-hashes`), rebuild, and expect
+`ap.json` and the page to change. Until then the committed `pipeline/derived/hcris_extract.csv` is the reproducible input.
 
 Tests:
 
@@ -63,24 +83,34 @@ cd web && npm test
 cd web && npm run e2e && npm run e2e:headers && npm run e2e:docs
 ```
 
-`npm run e2e` builds from a small fixture. `npm run e2e:docs` tests the committed page. The e2e scripts need Chrome installed.
+`npm run e2e` builds from a small fixture and stubs the fonts, so it works offline. `npm run e2e:docs` tests the
+committed page; `e2e:headers`, `e2e:docs` and `node og.mjs` load Google Fonts live. All of them drive the installed
+Google Chrome Stable (Playwright channel `chrome`), not a downloaded Chromium.
+
+Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with 12 tests skipped, including the one that
+checks the committed `ap.json` equals a fresh build. Fetch that file first for a real pass.
 
 ## Yearly refresh
 
-- [ ] Add the new HCRIS fiscal year to `pipeline/sources.json` (the extract step reads its years from there). CMS refreshes older files quarterly, so re-pin with `python3 -I pipeline/fetch.py --refresh-hashes`, which re-downloads every source.
-- [ ] Update the MedPAC, KFF and policy figures in `pipeline/content/` and check each source link.
+- [ ] Add the new HCRIS fiscal year to `pipeline/sources.json`: copy the previous year's entry, change `name` (`hcris_fyYYYY`), `file` (`HOSP10FYYYYY.ZIP`) and `url`, then pin it with `python3 -I pipeline/fetch.py --only hcris_fyYYYY --refresh-hashes`. The extract step reads its years from there. Do not run `--refresh-hashes` without `--only` unless you mean to re-pin every year (CMS refreshes older files quarterly, so earlier years' numbers would change too). Re-pin `hospital_general_info` the same way when CMS releases a new file.
+- [ ] Update the MedPAC, KFF and policy figures in `pipeline/content/`. Every `src` URL must also appear in `pipeline/content/sources.json` with `"verified": true` (set it only after opening the link; the build fails otherwise). Re-check every link (some move to new slugs each year). Search `web/src/js/views/` for the old year ("in 2026", "September 2026") and for the year-named keys `kff2026` and `maStays2023`.
 - [ ] Run `fetch.py`, `extract_hcris.py` and `build_data.py`, then `python3 -I pipeline/run_tests.py`.
 - [ ] Review any change in exclusion counts before accepting the new data.
-- [ ] Bump `PUBLISHED` in `web/src/js/site.js` to the release month (the dateline reads it; nothing sets it automatically).
-- [ ] `cd web && node build.mjs`, then `node og.mjs` to regenerate the share card, then `node build.mjs` again so the image URL and CSP hashes are current.
+- [ ] Bump `PUBLISHED` in `web/src/js/site.js` to the release month (the dateline reads it; nothing sets it automatically). Update the MedPAC values pinned in `pipeline/tests/test_content.py`.
+- [ ] `cd web && node og.mjs` to regenerate the share card (and `og.stamp.json`, the hash of the card's HTML that `npm test` checks), then `node build.mjs` so the image URL (`?v=` content hash) and CSP hashes are current.
 - [ ] `npm test` and all three e2e commands.
 - [ ] Commit `docs/index.html`, `docs/og.png` and `vercel.json` together.
 
 ## Layout
 
 ```
-docs/                 published page (index.html) and share card (og.png)
+docs/                 published page (index.html), share card (og.png), and hand-written 404.html, robots.txt, sitemap.xml
 pipeline/
+  fetch.py            download + sha256-verify raw files into data/raw/ (gitignored)
+  sources.json        the raw-file pins (not the site's citation list, which is content/sources.json)
+  extract_hcris.py    cost-report zips -> derived/hcris_extract.csv
+  build_data.py       extract + content -> web/src/data/ap.json
+  run_tests.py        runs pipeline/tests under python3 -I
   ap/                 cleaning, cost-report parsing and content loading
   content/            sourced figures and copy as JSON
   derived/            extracted cost-report table (committed)
@@ -94,11 +124,14 @@ web/
   e2e/                browser checks
   build.mjs           bundles everything into docs/index.html
   og.mjs              renders the share card
-vercel.json           headers, including the content security policy
+  og-card.mjs         the card's HTML and its versioned image URL
+  og.stamp.json       hash of the card HTML; npm test fails if the card is stale
+  inline-script.mjs   escapes inline JS and computes its CSP hash
+vercel.json           headers, including the content security policy, and the /index.html redirect
 ```
 
 ## License
 
-Code is MIT (see `LICENSE`). The underlying federal data is in the public domain; other sources keep their own terms and are linked, not redistributed.
+Code is MIT (see `LICENSE`). CMS cost-report and hospital data are US federal works in the public domain, as is the committed extract derived from them. Figures transcribed from MedPAC, KFF and other published sources are attributed and linked; those sources keep their own terms.
 
 By [Dalton Haslam, MD, MBA](https://www.linkedin.com/in/dalton-haslam).

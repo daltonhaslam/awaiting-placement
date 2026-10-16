@@ -8,6 +8,7 @@ const dom = parseHTML('<!doctype html><html><head></head><body><main id="main"><
 Object.assign(globalThis, { window: dom.window, document: dom.document, Node: dom.Node, HTMLElement: dom.HTMLElement });
 
 const { h } = await import('../src/js/dom.js');
+const { PUBLISHED } = await import('../src/js/site.js');
 const { loadData } = await import('../src/js/data.js');
 const { ticket, numberTicket } = await import('../src/js/ui/ticket.js');
 const { nowServing, update, defaultAria } = await import('../src/js/ui/nowServing.js');
@@ -154,10 +155,12 @@ test('hero: numbers come from the data', () => {
   const t = text(el);
   assert.equal(el.querySelector('h1').textContent, 'Ready to leave the hospital. Still waiting for the next bed.');
   assert.doesNotMatch(t, /Awaiting Placement/i, 'no masthead repeating the wordmark');
-  assert.match(t, /Published Oct 2026 · Data: FY2024 cost reports, MedPAC June 2026/);
-  assert.equal(el.querySelector('.hero__date time').getAttribute('datetime'), '2026-10');
+  // The month comes from PUBLISHED in site.js (bumped each release), so this test survives the yearly refresh.
+  const published = new Date(`${PUBLISHED}-01T00:00:00Z`).toLocaleString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+  assert.match(t, new RegExp(`Published ${published} · Data: FY2024 cost reports, MedPAC June 2026`));
+  assert.equal(el.querySelector('.hero__date time').getAttribute('datetime'), PUBLISHED);
   assert.deepEqual([...el.querySelectorAll('.hero__date .nw')].map((s) => s.textContent),
-    ['Published Oct 2026', 'FY2024 cost reports', 'MedPAC June 2026'], 'each dateline phrase stays on one line');
+    [`Published ${published}`, 'FY2024 cost reports', 'MedPAC June 2026'], 'each dateline phrase stays on one line');
   assert.equal(el.querySelector('.led__digits').getAttribute('data-value'), '07');
   assert.equal(el.querySelector('.led__digits').textContent, 'O7');
   assert.match(el.querySelector('.led').getAttribute('aria-label'), /Now serving 07: .*7\.0/);
