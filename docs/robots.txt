@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://awaiting-placement.vercel.app/sitemap.xml

@@ -32,8 +32,12 @@ const js = (await build({ entryPoints: [fileURLToPath(here('src/js/main.js'))], 
 // Escape every '<' so no data string can close the script element.
 const data = rawData.replace(/</g, '\\u003c');
 
-const DESC = `How much longer Medicare Advantage patients stay in the hospital before post-acute care, what those days mean for beds and costs, `
-  + `and figures for ${nClean.toLocaleString('en-US')} hospitals from FY${latestFy} cost reports.`;
+// Attribute values in the head: a quote or angle bracket in the copy must not end the attribute or the tag.
+const attr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+// Under 160 characters, so search results and link previews show it whole.
+const DESC = `Medicare Advantage patients stay longer in the hospital before post-acute care. What those days mean for beds. `
+  + `Profiles of ${nClean.toLocaleString('en-US')} hospitals, FY${latestFy} cost reports.`;
+if (DESC.length > 160) throw new Error(`meta description is ${DESC.length} characters; keep it under 160`);
 const FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
   // Non-blocking: the hashed head script appends the stylesheet link (no inline event handler, so no 'unsafe-inline').
   + `<noscript><link rel="stylesheet" href="${FONTS_HREF}"></noscript>`;
@@ -42,7 +46,10 @@ const cardN = cardNumbers(JSON.parse(rawData));
 const ICON = `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="3" fill="#111513"/><text x="16" y="22" font-family="monospace" font-weight="700" font-size="16" text-anchor="middle" fill="#ff6a3d">${cardN.now}</text></svg>`)}">`;
 const OG_ALT = `Awaiting Placement: Ready to leave the hospital. Still waiting for the next bed. Now serving ${cardN.now}, your number ${cardN.you}: average days in hospital before inpatient rehab, traditional Medicare vs Medicare Advantage.`;
 const OG = `<meta property="og:image" content="${cardImageUrl(readFileSync(here('../docs/og.png')))}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`
-  + `<meta property="og:image:alt" content="${OG_ALT}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image:alt" content="${OG_ALT}">`;
+  + `<meta property="og:image:alt" content="${attr(OG_ALT)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image:alt" content="${attr(OG_ALT)}">`;
+const CANON = new URL(SITE.url).href;
+// Light and dark page colours from tokens.css, so the browser chrome matches the page on phones.
+const THEME_COLOR = `<meta name="theme-color" content="#f4f3ee" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">`;
 const title = `${SITE.name}: Medicare Advantage and hospital length of stay`;
 // Apply a saved Day/Night choice before first paint (no flash), then start the non-blocking font stylesheet.
 // Inline scripts are allowed by their sha256 in the CSP (see below), not by 'unsafe-inline'.
@@ -52,8 +59,9 @@ const THEME_JS = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});`
 const THEME = `<script>${THEME_JS}</script>`;
 const APP_JS = escapeInlineScript(js);
 const doc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`
-  + `<title>${title}</title><meta name="description" content="${DESC}">`
-  + `<meta property="og:title" content="${title}"><meta property="og:description" content="${DESC}"><meta property="og:type" content="website"><meta property="og:url" content="${new URL(SITE.url).href}">${OG}`
+  + `<title>${attr(title)}</title><meta name="description" content="${attr(DESC)}"><link rel="canonical" href="${CANON}">${THEME_COLOR}`
+  + `<meta property="og:title" content="${attr(title)}"><meta property="og:description" content="${attr(DESC)}"><meta property="og:type" content="website"><meta property="og:url" content="${CANON}">`
+  + `<meta property="og:site_name" content="${attr(SITE.name)}"><meta property="og:locale" content="en_US">${OG}`
   + `${THEME}${ICON}${FONTS}<style>${css}</style></head><body>${read('src/shell.html')}`
   + `<script id="ap-data" type="application/json">${data}</script><script>${APP_JS}</script></body></html>`;
 

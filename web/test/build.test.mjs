@@ -25,6 +25,11 @@ test('one data script, no raw closing tag inside it', () => {
 });
 test('title and fonts', () => {
   assert.match(html, /<title>Awaiting Placement/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/awaiting-placement\.vercel\.app\/">/);
+  assert.match(html, /<meta property="og:site_name" content="Awaiting Placement">/);
+  assert.equal(html.match(/<meta name="theme-color" /g).length, 2);
+  const desc = /<meta name="description" content="([^"]*)">/.exec(html)[1];
+  assert.ok(desc.length > 50 && desc.length <= 160, `description ${desc.length} chars`);
   assert.ok(html.includes(`<link rel="stylesheet" href="${FONTS_HREF}">`));
 });
 test('type system: the four families, a metric-matched local fallback for each web face, none of the old faces', () => {
