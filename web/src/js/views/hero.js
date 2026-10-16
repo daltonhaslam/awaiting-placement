@@ -56,7 +56,7 @@ export function renderHero(D) {
         h('div', { class: 'hero__text' },
           h('h1', { id: 'top' }, 'Ready to leave the hospital. ', h('em', null, 'Still waiting for the next bed.')),
           h('p', { class: 'dek' }, 'When a hospital patient on a Medicare Advantage plan needs rehab or a skilled nursing facility next, '
-            + 'the move can wait on the plan\'s approval. Those waiting days add up to beds.'),
+            + 'the move can wait on the plan\'s approval. Those extra days add up to beds.'),
           h('p', { class: 'hero__cta' },
             h('a', { class: 'go', href: '#calculator' }, 'Try the calculator',
               s('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' }, s('path', { d: ARROW }))),
