@@ -53,20 +53,17 @@
 
 @media (max-width: 879px) {
   .topbar { column-gap: var(--sp-3); }
-  .sections {
-    order: 3; flex-basis: 100%; overflow-x: auto; scrollbar-width: none;
-    margin-inline: -4px; font-size: .8125rem;
-  }
-  .sections::-webkit-scrollbar { display: none; }
+  /* The nav is its own row and may wrap to a second line at any width below the desktop bar: never a scroller (a
+     hidden scrollbar gave no sign that "Methods" was off-screen, and whether six links fit depends on the font that
+     loads, which the e2e suite cannot know). */
+  .sections { order: 3; flex-basis: 100%; flex-wrap: wrap; margin-inline: -4px; font-size: .8125rem; }
   .sections a { padding-block: 12px; }
-  /* Under 400 px the six links are a size smaller, lose their 2 px gaps and may wrap to a second line; nothing is
-     ever hidden in a scroller (the hidden scrollbar gave no sign that "Methods" was off-screen). Wrapping depends on
-     the font that loads, so it is allowed rather than tuned away. 11 px of padding keeps each tap target 44 px tall
+  /* Under 400 px the six links are a size smaller and lose their 2 px gaps, so they usually still fit on one line. 11 px of padding keeps each tap target 44 px tall
      (22 px line + 22) while a wrapped nav stays as short as it can; 12 px across (the margin takes the extra px back,
      so nothing moves) keeps "Gap" 44 px wide in Overpass, which sets it narrower than the fallback font the e2e suite
      measures with. The e2e suite checks no link is cut off. */
   @media (max-width: 399px) {
-    .sections { font-size: .75rem; gap: 0; flex-wrap: wrap; overflow: visible; }
+    .sections { font-size: .75rem; gap: 0; }
     .sections a { padding: 11px 12px; margin-inline: -8px; }
   }
   .wordmark { padding-block: 12px 2px; }
