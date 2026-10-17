@@ -222,7 +222,7 @@ function aboutPart(D) {
     h('p', null, 'The code and the data pipeline are public on ', h('a', { href: SITE.repo }, 'GitHub'),
       '. Corrections are welcome there as issues.'),
     built ? h('p', null, `The cost-report data runs through report periods ending ${fmtDate(built)}.`) : null,
-    h('p', null, 'The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'),
+    h('p', null, 'The page loads everything it needs, fonts included, from this site. It has no analytics, no cookies, and sends nothing anywhere.'),
     h('p', null, `${DISCLAIMER} Code MIT-licensed. Federal source data is public domain.`));
 }
 

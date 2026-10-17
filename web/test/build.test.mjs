@@ -33,7 +33,27 @@ test('title and fonts', () => {
   assert.match(html, /<meta name="theme-color" content="#f4f3ee" media="\(prefers-color-scheme: light\)"><meta name="theme-color" content="#0d1117" media="\(prefers-color-scheme: dark\)">/);
   const desc = /<meta name="description" content="([^"]*)">/.exec(html)[1];
   assert.ok(desc.length > 50 && desc.length <= 160, `description ${desc.length} chars`);
-  assert.ok(html.includes(`<link rel="stylesheet" href="${FONTS_HREF}">`));
+});
+test('fonts are self-hosted: an inline @font-face for every family in FONTS_HREF, each file a woff2 in docs/fonts/', () => {
+  const fams = [...FONTS_HREF.matchAll(/family=([^:&]+)/g)].map((m) => m[1].replace(/\+/g, ' '));
+  const style = /<style>([\s\S]*?)<\/style>/.exec(html)[1];
+  const faces = [...style.matchAll(/@font-face\{([^}]*)\}/g)].map((m) => m[1])
+    .map((b) => ({ family: /font-family:"?([^";]+)"?/.exec(b)?.[1], src: /src:url\(([^)]+)\)/.exec(b)?.[1] }))
+    .filter((f) => fams.includes(f.family));
+  for (const f of fams) assert.ok(faces.some((x) => x.family === f), `${f}: @font-face in the page`);
+  for (const { family, src } of faces) {
+    assert.match(src, /^fonts\/[a-z-]+\.woff2$/, `${family}: same-origin relative url`);
+    assert.equal(readFileSync(new URL(`../../docs/${src}`, import.meta.url)).subarray(0, 4).toString('latin1'), 'wOF2', `${src} is woff2`);
+  }
+  assert.ok(readFileSync(new URL('../../docs/fonts/OFL.txt', import.meta.url), 'utf8').includes('SIL Open Font License'));
+});
+test('the page makes no third-party request: no external stylesheet, script, font, image or preconnect', () => {
+  assert.doesNotMatch(html, /fonts\.googleapis|fonts\.gstatic|<link rel="preconnect"|<noscript><link/);
+  // Every <link>, <script src> and CSS url() points at this origin (canonical and og:url name the site, they load nothing).
+  const loads = [...html.matchAll(/<link [^>]*href="([^"]+)"/g)].filter((m) => !/rel="canonical"/.test(m[0])).map((m) => m[1])
+    .concat([...html.matchAll(/<script [^>]*src="([^"]+)"/g)].map((m) => m[1]))
+    .concat([...(/<style>([\s\S]*?)<\/style>/.exec(html)[1]).matchAll(/url\(([^)]+)\)/g)].map((m) => m[1].replace(/^["']|["']$/g, '')));
+  for (const u of loads) assert.ok(!/^(https?:)?\/\//.test(u), `third-party load: ${u.slice(0, 80)}`);
 });
 test('type system: the four families, a metric-matched local fallback for each web face, none of the old faces', () => {
   const tokens = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
@@ -114,17 +134,15 @@ test('head script names the route in data-boot (router.parseHash, inlined)', () 
     assert.equal(boot(hash), want, `data-boot for "${hash}"`);
   }
 });
-test('head script stays ES5 syntax, and a failing route part leaves the theme and fonts alone', () => {
+test('head script stays ES5 syntax, and a failing route part leaves the theme alone', () => {
   const head = /<head>[\s\S]*?<script>([\s\S]*?)<\/script>/.exec(html)[1];
-  // One newer construct is a parse error in an old browser, which drops the whole script (theme and fonts too).
+  // One newer construct is a parse error in an old browser, which drops the whole script (the theme too).
   assert.doesNotMatch(head, /\?\?|\?\.[^\d]|catch\s*\{|=>|`|\b(let|const|class)\s/);
   const attrs = {};
-  let linked = false;
-  const doc = { documentElement: { setAttribute: (k, v) => { attrs[k] = v; } }, createElement: () => ({}), head: { appendChild() { linked = true; } } };
+  const doc = { documentElement: { setAttribute: (k, v) => { attrs[k] = v; } } };
   const location = { get hash() { throw new Error('no hash'); } };
   new Function('localStorage', 'document', 'location', head)({ getItem: () => 'dark' }, doc, location);
   assert.equal(attrs['data-theme'], 'dark');
-  assert.ok(linked, 'font stylesheet still started');
   assert.equal(attrs['data-boot'], undefined);
 });
 
@@ -143,9 +161,15 @@ test('CSP script-src has no unsafe-inline and pins exactly the two inline script
 test('no inline event handlers, so no unsafe-inline is needed', () => {
   assert.doesNotMatch(html, /<[a-z][^>]*\son[a-z]+\s*=/i);
 });
-test('fonts stylesheet is started by the head script and kept in <noscript>', () => {
-  assert.match(inlineScripts()[0], /createElement\('link'\)/);
-  assert.ok(inlineScripts()[0].includes(FONTS_HREF));
+test('CSP: hashes only for scripts, same-origin fonts, nothing else loadable or submittable, no third-party origin', () => {
+  const csp = vercelCsp();
+  const dir = Object.fromEntries(csp.split(';').map((d) => d.trim().split(/\s+/)).map(([k, ...v]) => [k, v]));
+  assert.ok(dir['script-src'].every((v) => /^'sha256-[A-Za-z0-9+/=]+'$/.test(v)), `script-src: ${dir['script-src']}`);
+  assert.deepEqual(dir['font-src'], ["'self'"]);
+  assert.deepEqual(dir['img-src'], ["'self'", 'data:']);
+  for (const k of ['connect-src', 'object-src', 'base-uri', 'form-action', 'frame-ancestors']) assert.deepEqual(dir[k], ["'none'"], k);
+  assert.deepEqual(dir['require-trusted-types-for'], ["'script'"], 'no HTML string sinks (e2e:headers proves enforcement)');
+  assert.doesNotMatch(csp, /https?:|blob:|unsafe-eval/);
 });
 test('escapeInlineScript neutralizes </script and <!--', () => {
   assert.equal(escapeInlineScript('a="</script>";b="<!--"'), 'a="<\\/script>";b="\\x3c!--"');

@@ -38,7 +38,7 @@ jobs:
           BUILD_OUT_DIR="$RUNNER_TEMP/rebuild" node build.mjs
           cmp "$RUNNER_TEMP/rebuild/index.html" ../docs/index.html
       # The e2e scripts drive the installed Google Chrome Stable (Playwright channel "chrome"), as they do locally.
-      # ubuntu-latest ships it; install it only if missing. headers.mjs also loads Google Fonts live.
+      # ubuntu-latest ships it; install it only if missing. The checks need no network: the fonts are self-hosted.
       - name: Chrome for the e2e checks
         working-directory: web
         run: |

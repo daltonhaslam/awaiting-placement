@@ -21,7 +21,7 @@ Works at 360 px wide and in light and dark mode. Charts and panels have text equ
 
 ## One file
 
-The build writes a single page, `docs/index.html`, with the data, styles and script inlined. The only third-party request is Google Fonts. The page has no analytics, no cookies, and sends nothing else anywhere.
+The build writes a single page, `docs/index.html`, with the data, styles and script inlined. Its fonts are served from the same site (`docs/fonts/`, SIL Open Font License), so the page makes no third-party request. It has no analytics, no cookies, and sends nothing anywhere.
 
 The build also pre-renders the story page and the Methods page into that HTML, so the text, figures and sources read without JavaScript (search and AI crawlers, reader modes, a slow phone before the script has run). It runs the page's own view code in Node against a lightweight DOM (linkedom), not in a browser, so the build needs no browser and stays byte-identical across machines. On load the script replaces the pre-rendered markup with its own render; the calculator, chart tooltips and hospital profiles need JavaScript.
 
@@ -49,9 +49,9 @@ Each hospital-year comes from one cost report: duplicates are resolved by taking
 ## Rebuilding
 
 Requirements: Python 3.9+ (standard library only; always run it isolated with `-I`), Node 18+ with npm, and, for the
-browser checks and the share card, Google Chrome Stable plus network access to Google Fonts (Playwright drives the
-installed Chrome; `npm ci` downloads no browsers). `node build.mjs` itself needs no browser, including its pre-render
-step. Tested on macOS with Python 3.9.6 and Node 26; a rebuild there is
+browser checks, Google Chrome Stable (Playwright drives the installed Chrome; `npm ci` downloads no browsers). The share
+card (`node og.mjs`) and the font download (`node fonts.mjs`) also need network access to Google Fonts. `node build.mjs`
+itself needs no browser, including its pre-render step. Tested on macOS with Python 3.9.6 and Node 26; a rebuild there is
 byte-identical to the committed `docs/index.html`, `vercel.json` and `docs/og.png`.
 
 Fastest path (about 1.4 MB, seconds). The extract of the cost reports is already committed, so only the hospital
@@ -86,9 +86,10 @@ cd web && npm test
 cd web && npm run e2e && npm run e2e:headers && npm run e2e:docs
 ```
 
-`npm run e2e` builds from a small fixture and stubs the fonts, so it works offline. `npm run e2e:docs` tests the
-committed page; `e2e:headers`, `e2e:docs` and `node og.mjs` load Google Fonts live. All of them drive the installed
-Google Chrome Stable (Playwright channel `chrome`), not a downloaded Chromium.
+All of them work offline. `npm run e2e` builds from a small fixture and stubs the font files, so the local fallback
+fonts set every width check; `npm run e2e:docs` tests the committed page; `e2e:headers` loads the real self-hosted
+fonts and fails on any request to another origin. All of them drive the installed Google Chrome Stable (Playwright
+channel `chrome`), not a downloaded Chromium.
 
 Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with some tests skipped (they need that file),
 including the one that checks the committed `ap.json` equals a fresh build. Fetch that file first for a real pass.

@@ -268,7 +268,7 @@ test('methods: about has the byline, LinkedIn and the repo, and only the Claude 
   assert.ok(text(about).includes(SITE.byline));
   assert.ok(linkTo(about, SITE.linkedin));
   assert.ok(linkTo(about, SITE.repo));
-  assert.ok(text(about).includes('The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'));
+  assert.ok(text(about).includes('The page loads everything it needs, fonts included, from this site. It has no analytics, no cookies, and sends nothing anywhere.'));
   assert.ok(text(about).replace(CUE, '').includes(`Built by ${SITE.byline}, using Claude Code.`));
   assert.doesNotMatch(text(el).replace(CREDIT, ''), /Claude|Anthropic|built with|AI[- ]generated|ChatGPT/i);
   // Byline, LinkedIn and repo only: no job title, named employer or location. "the author's employer" (unnamed) is allowed.
