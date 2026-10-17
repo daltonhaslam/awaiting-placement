@@ -1,6 +1,6 @@
 import { h } from '../dom.js';
-import { displayedGap, fmt2, fmtDays, fmtNum, fmtPct, fmtSigned, isNum } from '../format.js';
-import { encodeState, defaultInputs, inputsFromHospital } from '../model.js';
+import { fmt2, fmtDays, fmtNum, fmtPct, fmtSigned, isNum, plural, shownGap } from '../format.js';
+import { encodeState, defaultInputs, inputsFromHospital, hasExcess, ownGapOk } from '../model.js';
 import { link } from '../router.js';
 import { hcrisSource } from '../content.js';
 import { figure } from '../ui/figure.js';
@@ -41,18 +41,22 @@ export const rankSentence = (p) => (Math.round(p) < 1 ? 'This gap is smaller tha
   : Math.round(p) > 99 ? 'This gap is larger than at more than 99% of hospitals.'
     : `This gap is larger than at ${Math.round(p)}% of hospitals.`);
 
-// The calculator's hospital lens scales the national gap to this hospital's own, so it only means something above zero;
-// a hospital with no MA excess opens on the calculator's default lens instead.
-const hasExcess = (x) => isNum(x.gap) && x.gap > 0;
-// A gap the pipeline marks "check this hospital's data" (far outside the usual range) is not used for the hospital lens either.
-const ownGapLens = (x) => hasExcess(x) && !x.checkData;
 export const CHECK_DATA_NOTE = 'Check this hospital\'s data. The gap in its cost report is far outside the usual range, which often means '
   + 'days from another unit, such as swing beds, were reported on the acute line.';
 
 function calculatorHref(D, x) {
   const inputs = { ...defaultInputs(D, D.presets.find((p) => p.id === 'regional') ?? D.presets[0]), ...inputsFromHospital(D, x) };
-  if (ownGapLens(x)) inputs.lens = 'hospital';
+  // The hospital lens only for a gap above zero that is not marked "check this hospital's data"; else the default lens.
+  if (hasExcess(x) && ownGapOk(x)) inputs.lens = 'hospital';
   return `#calculator?${new URLSearchParams(encodeState(inputs, x.id))}`;
+}
+
+// Why the calculator does not open on this hospital's own gap, if it does not: the first that applies.
+function ctaNote(x) {
+  const note = x.checkData ? ' This hospital\'s gap is far outside the usual range, so the calculator opens with MedPAC\'s national averages instead.'
+    : !hasExcess(x) ? ' This hospital\'s cost report shows no longer MA stays. The calculator opens with MedPAC\'s national averages instead, which may not fit this hospital.'
+      : null;
+  return note && h('span', { class: 'card__note' }, note);
 }
 
 const notFound = (D) => renderNotFound(D, {
@@ -74,8 +78,8 @@ export function renderHospital(D, id) {
   const hasGap = isNum(x.gap);
   const pct = hasGap ? gapPercentile(D, x.gap) : null;
   // The line shows a gap computed from the displayed (rounded) stay lengths so it adds up; ranking and the model use the raw gap.
-  const shownGap = displayedGap(x.maAlos, x.ffsAlos) ?? x.gap;
-  const longer = hasGap && shownGap > 0;
+  const shown = shownGap(x);
+  const longer = hasGap && shown > 0;
 
   const header = h('header', { class: 'profile__head' },
     h('a', { class: 'profile__back', href: link('share') }, 'Back to the national picture'),
@@ -91,8 +95,9 @@ export function renderHospital(D, id) {
       // A no-break space before each "·" keeps it with the figure before it, so a wrapped line never starts with it.
       h('span', { class: 'nw' }, 'MA ', h('strong', null, fmtDays(x.maAlos))), '\u00a0· ',
       h('span', { class: 'nw' }, 'traditional ', h('strong', null, fmtDays(x.ffsAlos))), '\u00a0· ',
-      h('span', { class: 'nw' }, 'gap ', h('strong', null, days(shownGap)))),
-    hasGap && !(longer && x.checkData) ? h('p', { class: 'card__rank' }, longer
+      h('span', { class: 'nw' }, 'gap ', h('strong', null, days(shown)))),
+    // A flagged hospital's gap is not ranked: it is far outside the usual range.
+    hasGap && !x.checkData ? h('p', { class: 'card__rank' }, longer
       ? rankSentence(pct)
       : 'MA stays were not longer here. Traditional Medicare stays averaged the same or longer.') : null,
     h('dl', { class: 'stats' },
@@ -122,7 +127,7 @@ export function renderHospital(D, id) {
     }),
   });
   // Positioned by the raw gap; labeled with the card's rounded gap, so one page never shows two different numbers.
-  if (hist?.bins?.length) gapStrip(stripHost, { hist, value: x.gap, shown: shownGap });
+  if (hist?.bins?.length) gapStrip(stripHost, { hist, value: x.gap, shown });
 
   let trend = h('p', { class: 'profile__lead' }, 'This hospital has fewer than two years of cost reports that passed the data checks, so no trend is shown.');
   if (years.length >= 2) {
@@ -132,7 +137,7 @@ export function renderHospital(D, id) {
     const alosHost = h('div', { class: 'chart' });
     const rows = fys.map((fyr, i) => ({ fy: fyr, ma: x.trend?.[i]?.[0] ?? null, maAlos: x.trend?.[i]?.[1] ?? null, ffsAlos: x.trend?.[i]?.[2] ?? null }));
     const missing = fys.length - years.length;
-    const gapNote = missing ? `${missing} ${missing === 1 ? 'year' : 'years'} had no report that passed the data checks and ${missing === 1 ? 'is' : 'are'} left blank, not drawn as zero. ` : '';
+    const gapNote = missing ? `${missing} ${plural(missing, 'year')} had no report that passed the data checks and ${plural(missing, 'is', 'are')} left blank, not drawn as zero. ` : '';
     const shareFig = figure({
       title: 'MA share of Medicare discharges at this hospital',
       takeaway: `${gapNote}Shaded years were affected by COVID.`.trim(),
@@ -195,8 +200,7 @@ export function renderHospital(D, id) {
     cant,
     h('p', { class: 'profile__cta' },
       h('a', { class: 'btn', href: calculatorHref(D, x) }, 'Open in calculator'),
-      x.checkData ? h('span', { class: 'card__note' }, ' This hospital\'s gap is far outside the usual range, so the calculator opens with MedPAC\'s national averages instead.') : null,
-      hasExcess(x) || x.checkData ? null : h('span', { class: 'card__note' }, ' This hospital\'s cost report shows no longer MA stays. The calculator opens with MedPAC\'s national averages instead, which may not fit this hospital.'),
+      ctaNote(x),
       x.occFlag ? h('span', { class: 'card__note' }, ' The calculator uses a typical occupancy instead of this hospital\'s flagged figure.') : null),
     h('p', null, h('a', { href: link('share') }, 'Back to the national picture')));
 }

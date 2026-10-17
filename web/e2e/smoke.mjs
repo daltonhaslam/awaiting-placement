@@ -25,6 +25,17 @@ const POLL = { timeout: 6 * Math.max(HASH_DEBOUNCE_MS, LIVE_DEBOUNCE_MS) };
 const until = (page, what, fn, arg) => page.waitForFunction(fn, arg, POLL)
   .catch((e) => { if (e.name !== 'TimeoutError') throw e; check(false, `timed out waiting for ${what}`); });
 const frames = (page, n = 3) => page.evaluate((k) => new Promise((done) => { const f = (i) => (i ? requestAnimationFrame(() => f(i - 1)) : done()); f(k); }), n);
+// Section-nav links whose text the nav's box cuts off. The text, not the link box: a link's trailing padding may run past
+// the edge (the nav's scrollWidth then exceeds its width by a few px) without hiding anything.
+const navHidden = () => {
+  const nav = document.querySelector('.sections').getBoundingClientRect();
+  return [...document.querySelectorAll('.sections a')].filter((a) => {
+    const r = document.createRange();
+    r.selectNodeContents(a);
+    const t = r.getBoundingClientRect();
+    return t.left < nav.left - 0.5 || t.right > nav.right + 0.5;
+  }).map((a) => a.textContent);
+};
 const browser = await chromium.launch({ channel: 'chrome' });
 const stubFonts = (ctx) => ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 const newPage = async (opts) => {
@@ -400,6 +411,8 @@ const setRange = (page, sel, v) => page.$eval(sel, (el, x) => { el.value = x; el
         oneRow: R('#theme-slot').top < R('.wordmark').bottom, tap: Math.min(...links.map((b) => Math.min(b.width, b.height))) };
     });
     check(bar.fits && bar.oneRow, `queue: sits between the wordmark and the theme button without wrapping the bar ${at} (${JSON.stringify(bar)})`);
+    const hidden = await page.evaluate(navHidden);
+    check(!hidden.length, `section nav: no link cut off by its scroller ${at} (${hidden})`);
     check(bar.tap >= 44, `nav tap targets at least 44 px ${at} (${bar.tap.toFixed(1)})`);
     await scrollTo(page, 'gap');
     await until(page, 'the counter to step back down', (to) => Number(document.querySelector('#topbar .led__digits')?.getAttribute('data-value')) < Number(to), TO);
@@ -495,6 +508,16 @@ const TO_DIGITS = String(Math.round(data.content.medpac.t41.rows.find((r) => r.d
       await page.close();
     }
   }
+}
+// The section nav fits on one line on phones (components.css): no link hidden in its scroller. (The queue checks above
+// cover 1280, 414 and 360.)
+for (const width of [390]) {
+  const page = await newPage({ viewport: { width, height: 900 } });
+  await page.goto(PAGE);
+  await page.waitForSelector('.hero h1');
+  const hidden = await page.evaluate(navHidden);
+  check(!hidden.length, `section nav: no link cut off by its scroller @${width} (${hidden})`);
+  await page.close();
 }
 // Chart x labels never collide, at phone, tablet (where FY labels once overran: "FY201FY2017") and desktop widths.
 {

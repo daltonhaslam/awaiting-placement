@@ -6,6 +6,7 @@ export const pad2 = (x) => String(Math.round(x)).padStart(2, '0');
 // of the same width. LED glyphs show O for 0; the value itself stays numeric everywhere else (data-value, aria-label).
 export const ledGlyphs = (v) => String(v).replace(/0/g, 'O');
 const comma = (n) => n.toLocaleString('en-US');
+export const plural = (n, one, many = `${one}s`) => (n === 1 ? one : many);
 
 export const fmtNum = (x) => (isNum(x) ? comma(Math.round(x)) : DASH);
 export const fmtDays = (x) => {
@@ -42,6 +43,8 @@ export function fmtSigned(x, fmt) {
 // Integer tenths avoid float drift. Null unless both lengths are present.
 const tenths = (x) => Math.round(Number(x.toFixed(1)) * 10);
 export const displayedGap = (ma, ffs) => (isNum(ma) && isNum(ffs) ? (tenths(ma) - tenths(ffs)) / 10 : null);
+// A hospital's gap as its pages show it: from its displayed stay lengths, or the raw gap when one is missing.
+export const shownGap = (x) => displayedGap(x.maAlos, x.ffsAlos) ?? x.gap;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 // An ISO date at the precision it was given: '2024-01-01' -> 'Jan 1, 2024', '2026-06' -> 'Jun 2026', '2027' -> '2027'.

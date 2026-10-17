@@ -92,12 +92,8 @@ def occ_flag(d):
     return o is None or not OCC_PLAUSIBLE[0] <= o <= OCC_PLAUSIBLE[1]
 
 
-
-
 def check_data(d):
-    """True when the gap is far outside the usual range: |gap| above CHECK_GAP_DAYS, or one average stay more than
-    CHECK_ALOS_RATIO times the other. Both thresholds are strict (exactly 3.0 days or exactly twofold is not flagged).
-    A missing average stay is never flagged; a zero or negative one cannot form a ratio, so only the gap test applies."""
+    """True when the gap is far outside the usual range (see CHECK_GAP_DAYS and CHECK_ALOS_RATIO above)."""
     ma, ffs = d.get('ma_alos'), d.get('ffs_alos')
     if ma is None or ffs is None:
         return False

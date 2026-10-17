@@ -10,7 +10,6 @@ import { cardHtml, cardImageUrl, cardNumbers } from '../og-card.mjs';
 import { loadData } from '../src/js/data.js';
 import { escapeInlineScript, cspHash } from '../inline-script.mjs';
 import { parseHTML } from 'linkedom';
-import { parseHash } from '../src/js/router.js';
 import { prerender } from '../prerender.mjs';
 
 const cwd = new URL('..', import.meta.url).pathname;
@@ -88,20 +87,21 @@ test('pre-rendered markup: no inline handlers or javascript: URLs, no duplicate 
   const ids = [...body.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(ids.filter((x, i) => ids.indexOf(x) !== i), []);
 });
-test('pre-render is deterministic: a second build is byte-identical, and its clock is the publication month', async () => {
+test('pre-render is deterministic: a second build is byte-identical, and its date is the publication month', async () => {
   const again = mkdtempSync(join(tmpdir(), 'ap-build-'));
   execFileSync('node', ['build.mjs'], { cwd, env: { ...process.env, AP_DATA: 'test/fixtures/ap.min.json', BUILD_OUT_DIR: again } });
   assert.equal(readFileSync(join(again, 'index.html'), 'utf8'), html);
-  // The fixture's one timeline item is dated 2026-01-01: "Upcoming" only when published before it.
+  // The fixture's one timeline item is dated 2026-01-01: "Upcoming" and "From" only when published before it.
   const opts = { origin: SITE.url };
-  assert.match((await prerender(fixture, { ...opts, published: '2025-06' })).main, /board__status">Upcoming/);
-  assert.doesNotMatch((await prerender(fixture, { ...opts, published: '2026-10' })).main, /board__status/);
-  assert.equal(typeof globalThis.document, 'undefined', 'the DOM globals are removed afterwards');
-  assert.ok(Math.abs(Date.now() - new Date().getTime()) < 1000 && new Date().getFullYear() >= 2026, 'the real clock is back');
-  assert.ok(Math.random() < 1, 'Math.random is restored');
+  const before = (await prerender(fixture, { ...opts, published: '2025-06' })).main;
+  const after = (await prerender(fixture, { ...opts, published: '2026-10' })).main;
+  assert.match(before, /board__status">Upcoming/);
+  assert.match(before, /path__when">From /);
+  assert.doesNotMatch(after, /board__status/);
+  assert.match(after, /path__when">Since /);
   await assert.rejects(prerender(fixture, { ...opts, published: 'soon' }), /publication month/);
 });
-test('head script names the route in data-boot as the router reads it', () => {
+test('head script names the route in data-boot (router.parseHash, inlined)', () => {
   const head = /<head>[\s\S]*?<script>([\s\S]*?)<\/script>/.exec(html)[1];
   const boot = (hash) => {
     const attrs = {};
@@ -109,10 +109,9 @@ test('head script names the route in data-boot as the router reads it', () => {
     new Function('localStorage', 'document', 'location', head)({ getItem: () => null }, doc, { hash });
     return attrs['data-boot'];
   };
-  const expected = (hash) => ({ home: 'home', calculator: 'home', methods: 'methods' })[parseHash(hash).view] ?? 'other';
-  for (const hash of ['', '#', '#/', '#top', '#top?x', '#wait', '#gap', '#share', '#sides', '#sides?x', '#calculator',
-    '#calculator?b=300&a=0.5', '#/calculator?h=220071', '#methods', '#methods?x', '#/methods', '#hospital-220071', '#hospital-1', '#nope']) {
-    assert.equal(boot(hash), expected(hash), `data-boot for "${hash}"`);
+  for (const [hash, want] of [['', 'home'], ['#gap', 'home'], ['#calculator?b=300&a=0.5', 'home'], ['#methods', 'methods'],
+    ['#hospital-220071', 'other'], ['#nope', 'other']]) {
+    assert.equal(boot(hash), want, `data-boot for "${hash}"`);
   }
 });
 

@@ -1,7 +1,7 @@
 import { h } from '../dom.js';
 import { ltchShare } from '../content.js';
-import { compute, curve, decodeState, encodeState, autoFill, clamp, inputsFromHospital, hasBasic, BASICS, FILL_LO, FILL_HI, DESTS, PA_DESTS } from '../model.js';
-import { displayedGap, fmtBeds, fmtDays, fmtNum, fmtPct, fmtSigned, isNum } from '../format.js';
+import { compute, curve, decodeState, encodeState, autoFill, clamp, inputsFromHospital, hasBasic, hasExcess, ownGapOk, lensFor, BASICS, FILL_LO, FILL_HI, DESTS, PA_DESTS } from '../model.js';
+import { fmtBeds, fmtDays, fmtNum, fmtPct, fmtSigned, isNum, plural, shownGap } from '../format.js';
 import { section } from '../ui/ticket.js';
 import { nowServing, update } from '../ui/nowServing.js';
 import { figure } from '../ui/figure.js';
@@ -23,12 +23,9 @@ import { HASH_DEBOUNCE_MS, LIVE_DEBOUNCE_MS } from '../timing.js';
 
 const MEDPAC = ['placement', 'adjusted', 'unadjusted'];
 const HASH_KEY = { beds: 'b', occ: 'o', dis: 'd', mcr: 'm', ma: 'a' };
-// The own-gap lens needs a hospital, and not one whose gap is marked "check this hospital's data" (far outside the usual range).
-const ownGapOk = (x) => !!x && !x.checkData;
 
 const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : f());
 const flag = (el, attr, on) => (on ? el.setAttribute(attr, '') : el.removeAttribute(attr));
-const plural = (n, one, many = `${one}s`) => (n === 1 ? one : many);
 const pageUrl = () => {
   const loc = typeof window !== 'undefined' ? window.location : null;
   return loc?.href ? loc.href.split(/[?#]/)[0] : '';
@@ -75,7 +72,7 @@ export function renderCalculator(D, { query } = {}) {
       inp.hospitalGap = fromHospital.hospitalGap;
       for (const k of BASICS) if (!given.has(HASH_KEY[k])) inp[k] = fromHospital[k]; // values in the link win over the hospital's
     }
-    if (!ownGapOk(x) && inp.lens === 'hospital') inp.lens = D.model.defaults.lens;
+    inp.lens = lensFor(D, inp.lens, x);
     return { inp, x };
   }
   let { inp: inputs, x: hospital } = fromQuery(query);
@@ -151,13 +148,13 @@ export function renderCalculator(D, { query } = {}) {
     hospital = null;
     for (const k of BASICS) inputs[k] = fit(k, p[k]);
     inputs.hospitalGap = null;
-    if (inputs.lens === 'hospital') inputs.lens = D.model.defaults.lens;
+    inputs.lens = lensFor(D, inputs.lens, hospital);
     changed(null);
   }
   function useHospital(x) {
     hospital = x;
     Object.assign(inputs, inputsFromHospital(D, x));
-    if (!ownGapOk(x) && inputs.lens === 'hospital') inputs.lens = D.model.defaults.lens;
+    inputs.lens = lensFor(D, inputs.lens, x);
     changed(null);
   }
 
@@ -405,21 +402,21 @@ export function renderCalculator(D, { query } = {}) {
     // MA share and lens
     echo.replaceChildren(h('strong', null, shown), ' beds held on an average day. Details below.');
     const own = lens.inputsByValue.get('hospital');
-    flag(own, 'disabled', !ownGapOk(hospital));
-    own.closest('.seg__opt')?.classList.toggle('is-off', !ownGapOk(hospital));
+    const ownOk = ownGapOk(hospital);
+    flag(own, 'disabled', !ownOk);
+    own.closest('.seg__opt')?.classList.toggle('is-off', !ownOk);
     if (inputs.lens === 'hospital' && hospital) {
-      const g = hospital.gap; // the model's gap decides the branch; the text shows the displayed (rounded) one so it adds up
-      const shownGap = displayedGap(hospital.maAlos, hospital.ffsAlos) ?? g;
+      // The model's gap decides the branch; the text shows the displayed (rounded) one so it adds up.
+      const gap = fmtSigned(shownGap(hospital), fmtDays);
       const stays = isNum(hospital.maAlos) && isNum(hospital.ffsAlos)
         ? `MA stays averaged ${fmtDays(hospital.maAlos)} and traditional Medicare stays ${fmtDays(hospital.ffsAlos)}` : '';
-      lensNote.textContent = isNum(g) && g > 0
-        ? `${stays ? `${stays} in its FY${fy} cost report, a gap of ${fmtSigned(shownGap, fmtDays)}` : `Its FY${fy} cost-report gap is ${fmtSigned(shownGap, fmtDays)}`}. `
+      lensNote.textContent = hasExcess(hospital)
+        ? `${stays ? `${stays} in its FY${fy} cost report, a gap of ${gap}` : `Its FY${fy} cost-report gap is ${gap}`}. `
           + 'The gap is raw (not adjusted) and is spread across destinations in MedPAC\'s adjusted pattern.'
         : `This hospital's FY${fy} cost report shows no longer MA stays${stays ? ` (${stays})` : ''}, so nothing is counted under this lens. `
           + 'The other lenses use MedPAC\'s national averages, which may not fit this hospital.';
     } else if (hospital?.checkData) {
-      const shownGap = displayedGap(hospital.maAlos, hospital.ffsAlos) ?? hospital.gap;
-      lensNote.textContent = `${lensDef.explain} Its FY${fy} cost-report gap is ${fmtSigned(shownGap, fmtDays)}, `
+      lensNote.textContent = `${lensDef.explain} Its FY${fy} cost-report gap is ${fmtSigned(shownGap(hospital), fmtDays)}, `
         + 'far outside the usual range, so this estimate uses MedPAC\'s national averages instead.';
     } else lensNote.textContent = hospital ? lensDef.explain
       : `${lensDef.explain} Choose a hospital to use its own cost-report gap.`;

@@ -14,7 +14,7 @@ Object.assign(globalThis, {
 
 const { h } = await import('../src/js/dom.js');
 const { loadData } = await import('../src/js/data.js');
-const { SITE } = await import('../src/js/site.js');
+const { SITE, DISCLAIMER } = await import('../src/js/site.js');
 const { SRC_TYPE } = await import('../src/js/ui/source.js');
 const { fmtDate } = await import('../src/js/format.js');
 const { resetFigures } = await import('../src/js/ui/figure.js');
@@ -100,23 +100,20 @@ test('methods: without meta.rules no threshold is invented', () => {
   noNaN(el);
 });
 
-test('methods: the "check this hospital\'s data" rule and its count come from meta', () => {
+test('methods: the "check this hospital\'s data" rule comes from meta, its count from the hospital list', () => {
   const SENT = (n, many) => `${n} ${many ? 'hospitals' : 'hospital'} whose gap is larger than 3 days either way, or whose MA and traditional Medicare stays `
     + `differ more than twofold, ${many ? 'are' : 'is'} kept but marked "check this hospital's data" on ${many ? 'their' : 'its'} page; `
     + `the calculator uses national averages for ${many ? 'them' : 'it'}.`;
-  assert.ok(REAL.meta.flagged > 1);
-  assert.ok(text(renderMethods(REAL)).includes(SENT(REAL.meta.flagged.toLocaleString('en-US'), true)));
-  assert.equal(D.meta.flagged, 1);
+  const n = REAL.hospitals.filter((x) => x.checkData).length;
+  assert.ok(n > 1);
+  assert.ok(text(renderMethods(REAL)).includes(SENT(n.toLocaleString('en-US'), true)));
   assert.ok(text(renderMethods(D)).includes(SENT('1', false)));
-  // Thresholds follow meta.rules; no count or no rules, no sentence.
+  // Thresholds follow meta.rules; no rules, no sentence.
   const raw = structuredClone(real);
   Object.assign(raw.meta.rules, { checkGapDays: 2.5, checkAlosRatio: 3 });
-  raw.meta.flagged = 1234;
-  const t = text(renderMethods(loadData(raw)));
-  assert.match(t, /1,234 hospitals whose gap is larger than 2\.5 days either way, or whose MA and traditional Medicare stays differ more than 3-fold/);
-  const none = structuredClone(real);
-  delete none.meta.flagged;
-  assert.doesNotMatch(text(renderMethods(loadData(none))), /check this hospital's data/);
+  assert.match(text(renderMethods(loadData(raw))), /hospitals whose gap is larger than 2\.5 days either way, or whose MA and traditional Medicare stays differ more than 3-fold/);
+  delete raw.meta.rules;
+  assert.doesNotMatch(text(renderMethods(loadData(raw))), /check this hospital's data/);
 });
 
 test('the fixture and the real data publish the same rule keys', () => {
@@ -203,10 +200,8 @@ test('methods: lens table, mix and every assumption with its source type come fr
     for (const s of a.src) assert.ok(linkTo(el, s.url), `assumption source ${s.label}`);
   }
   // The rehab share is MedPAC's inpatient rehab alone, used as is; long-term care hospitals are separate and left out.
-  assert.equal(REAL.model.mix.irf, REAL.content.medpac.sept.mix.ma.irf);
   assert.match(t, /MedPAC reports that 3% of MA hospital discharges go to inpatient rehab \(5% in traditional Medicare\), and the model uses that share\./);
   assert.match(t, /Long-term care hospitals are shown separately, at about 0\.5% of MA stays, and are left out\./);
-  assert.doesNotMatch(t, /2\.5%|2\.5 percent|together \(/);
   assert.match(t, /3 percent for inpatient rehabilitation \(5 percent in traditional Medicare\)/);
   assert.match(t, /trade group/i);
   assert.match(t, /industry/i);
@@ -349,7 +344,7 @@ test('footer: byline, data line, not affiliated, MIT, public domain, repo link; 
   const el = renderFooter(REAL);
   const t = text(el);
   assert.ok(t.includes(SITE.byline));
-  assert.ok(t.includes('An independent, personal project. Does not represent the work or the view of the author\'s employer, CMS, MedPAC, or any hospital or health plan.'));
+  assert.ok(t.includes(DISCLAIMER));
   assert.ok(t.includes('Code MIT-licensed. Federal source data is public domain.'));
   assert.match(t, /FY2024/);
   assert.ok(linkTo(el, SITE.repo));

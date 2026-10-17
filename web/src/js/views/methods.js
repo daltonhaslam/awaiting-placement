@@ -1,6 +1,6 @@
 import { h } from '../dom.js';
-import { SITE } from '../site.js';
-import { fmt1, fmt2, fmtDate, fmtNum, fmtPct, fmtSigned, isNum } from '../format.js';
+import { SITE, DISCLAIMER } from '../site.js';
+import { fmt1, fmt2, fmtDate, fmtNum, fmtPct, fmtSigned, isNum, plural } from '../format.js';
 import { sourceLinks, assumptionList, keepIds, SRC_TYPE } from '../ui/source.js';
 import { DEST_LABEL } from '../ui/sign.js';
 import { ltchShare } from '../content.js';
@@ -54,17 +54,15 @@ function sourcesPart(D) {
       sources.map((x) => h('tr', null, h('th', { scope: 'row' }, sourceLinks(x)), h('td', { class: 'dtable__type' }, SRC_TYPE[x.type] ?? '—')))) : null);
 }
 
-// Included hospitals whose gap is far outside the usual range: kept, but marked on their page. Thresholds and count from the data.
-function checkDataSentence(m) {
-  const n = m.flagged;
-  const gap = m.rules?.checkGapDays;
-  const ratio = m.rules?.checkAlosRatio;
-  if (!isNum(n) || n < 1 || !isNum(gap) || !isNum(ratio)) return null;
-  const one = n === 1;
-  return h('p', null, `${fmtNum(n)} ${one ? 'hospital' : 'hospitals'} whose gap is larger than ${gap} days either way, `
+// Included hospitals whose gap is far outside the usual range: kept, but marked on their page. Thresholds from the
+// data's rules, the count from the hospital list.
+function checkDataSentence(m, n) {
+  const { checkGapDays: gap, checkAlosRatio: ratio } = m.rules ?? {};
+  if (n < 1 || !isNum(gap) || !isNum(ratio)) return null;
+  return h('p', null, `${fmtNum(n)} ${plural(n, 'hospital')} whose gap is larger than ${gap} days either way, `
     + `or whose MA and traditional Medicare stays differ more than ${ratio === 2 ? 'twofold' : `${ratio}-fold`}, `
-    + `${one ? 'is' : 'are'} kept but marked "check this hospital's data" on ${one ? 'its' : 'their'} page; `
-    + `the calculator uses national averages for ${one ? 'it' : 'them'}.`);
+    + `${plural(n, 'is', 'are')} kept but marked "check this hospital's data" on ${plural(n, 'its', 'their')} page; `
+    + `the calculator uses national averages for ${plural(n, 'it', 'them')}.`);
 }
 
 function costReportPart(D) {
@@ -77,6 +75,7 @@ function costReportPart(D) {
   const covid = list(m.covidFys);
   const { r, n: nPaired } = correlation(D.hospitals);
   const flagged = list(D.hospitals).filter((x) => x.occFlag).length;
+  const checkData = list(D.hospitals).filter((x) => x.checkData).length;
   const diff = cc?.hcris && cc?.medpac ? Math.max(Math.abs(cc.hcris.ma - cc.medpac.ma), Math.abs(cc.hcris.ffs - cc.medpac.ffs)) : null;
   const medpacSrc = D.content?.medpac?.t41?.src;
   const labels = ruleLabels(m.rules);
@@ -100,7 +99,7 @@ function costReportPart(D) {
         h('tr', null, h('th', { scope: 'row' }, 'Excluded'), h('td', { class: 'num' }, fmtNum(excluded))),
         h('tr', null, h('th', { scope: 'row' }, 'Included'), h('td', { class: 'num' }, fmtNum(m.nClean))),
       ]),
-    checkDataSentence(m),
+    checkDataSentence(m, checkData),
     fys.length > 1 ? h('p', null, `The national trend in No. 03 applies the same rules to each year from FY${fys[0]} to FY${fys.at(-1)}.`
       + (covid.length ? ` The COVID years, FY${covid[0]} to FY${covid.at(-1)}, are shaded.` : '')) : null,
     cc?.hcris && cc?.medpac ? [
@@ -115,7 +114,7 @@ function costReportPart(D) {
       h('li', null, 'The gap is raw. It is not adjusted for diagnosis or severity, and cost reports do not say where patients went after discharge.'),
       r != null ? h('li', null, `Across the ${fmtNum(nPaired)} hospitals with both figures, the gap does not rise with MA share (correlation of ${fmtSigned(r, fmt2)}). `
         + 'Where nearly all Medicare patients are in MA, the few left in traditional Medicare are a small, selected group, so their average is less stable.') : null,
-      h('li', null, `Hospitals file these reports themselves, and a few figures are implausible. Occupancy outside ${occ ?? 'its plausible range'} is flagged and not shown${flagged ? ` (${fmtNum(flagged)} ${flagged === 1 ? 'hospital' : 'hospitals'} in FY${fy})` : ''}.`)));
+      h('li', null, `Hospitals file these reports themselves, and a few figures are implausible. Occupancy outside ${occ ?? 'its plausible range'} is flagged and not shown${flagged ? ` (${fmtNum(flagged)} ${plural(flagged, 'hospital')} in FY${fy})` : ''}.`)));
 }
 
 function calculatorPart(D) {
@@ -127,7 +126,7 @@ function calculatorPart(D) {
   const sept = D.content?.medpac?.sept;
   const stays = sept?.staysPer1000?.ma;
   const ltch = ltchShare(D);
-  const irfMa = sept?.mix?.ma?.irf;
+  const irfMa = mix.irf;
   const irfFfs = sept?.mix?.ffs?.irf;
   const home = L.adjusted?.home;
   const assumptions = list(D.content?.assumptions);
@@ -224,7 +223,7 @@ function aboutPart(D) {
       '. Corrections are welcome there as issues.'),
     built ? h('p', null, `The cost-report data runs through report periods ending ${fmtDate(built)}.`) : null,
     h('p', null, 'The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'),
-    h('p', null, 'An independent, personal project. Does not represent the work or the view of the author\'s employer, CMS, MedPAC, or any hospital or health plan. Code MIT-licensed. Federal source data is public domain.'));
+    h('p', null, `${DISCLAIMER} Code MIT-licensed. Federal source data is public domain.`));
 }
 
 export function renderMethods(D) {

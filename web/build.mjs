@@ -8,7 +8,7 @@ import { escapeInlineScript, cspHash, withScriptHashes } from './inline-script.m
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { SITE, FONTS_HREF, THEME_KEY, PUBLISHED } from './src/js/site.js';
-import { SECTIONS } from './src/js/router.js';
+import { SECTIONS, parseHash } from './src/js/router.js';
 import { cardImageUrl, cardNumbers } from './og-card.mjs';
 import { prerender } from './prerender.mjs';
 
@@ -21,7 +21,8 @@ if (!existsSync(dataPath)) {
   process.exit(1);
 }
 const rawData = readFileSync(dataPath, 'utf8');
-const { latestFy, nClean } = JSON.parse(rawData).meta;
+const parsed = JSON.parse(rawData);
+const { latestFy, nClean } = parsed.meta;
 
 // The explicit night-mode toggle reuses the dark media block's tokens verbatim.
 const tokens = read('src/styles/tokens.css');
@@ -43,7 +44,7 @@ if (DESC.length > 160) throw new Error(`meta description is ${DESC.length} chara
 const FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
   // Non-blocking: the hashed head script appends the stylesheet link (no inline event handler, so no 'unsafe-inline').
   + `<noscript><link rel="stylesheet" href="${FONTS_HREF}"></noscript>`;
-const cardN = cardNumbers(JSON.parse(rawData));
+const cardN = cardNumbers(parsed);
 // The favicon is a tiny Now Serving LED: the housing (--led-bg) with the hero's number in the LED orange (--led).
 const ICON = `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="3" fill="#111513"/><text x="16" y="22" font-family="monospace" font-weight="700" font-size="16" text-anchor="middle" fill="#ff6a3d">${cardN.now}</text></svg>`)}">`;
 const OG_ALT = `Awaiting Placement: Ready to leave the hospital. Still waiting for the next bed. Now serving ${cardN.now}, your number ${cardN.you}: average days in hospital before inpatient rehab, traditional Medicare vs Medicare Advantage.`;
@@ -58,19 +59,20 @@ const THEME_COLOR = `<meta name="theme-color" content="${pageColor(tokens)}" med
 const title = `${SITE.name}: Medicare Advantage and hospital length of stay`;
 // Before first paint: apply a saved Day/Night choice (no flash), start the non-blocking font stylesheet, and name the
 // route in data-boot so the boot CSS shows the pre-rendered page the app will render ("home" for the story page and
-// its sections, "methods", else "other", which shows "Loading…"). build.test.mjs checks it against router.parseHash.
-// Inline scripts are allowed by their sha256 in the CSP (see below), not by 'unsafe-inline'.
+// its sections, "methods", else "other", which shows "Loading…"). The route comes from router.parseHash itself, inlined
+// with the one module binding it reads (SECTIONS). Inline scripts are allowed by their sha256 in the CSP (see below),
+// not by 'unsafe-inline'.
 const HEAD_JS = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});`
   + `if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
   + `var l=document.createElement('link');l.rel='stylesheet';l.href=${JSON.stringify(FONTS_HREF)};document.head.appendChild(l);`
-  + `var h=location.hash.replace(/^#\\/?/,''),q=h.indexOf('?'),p=q<0?h:h.slice(0,q);`
-  + `document.documentElement.setAttribute('data-boot',p==='calculator'||q<0&&${JSON.stringify(['', 'top', ...SECTIONS])}.indexOf(p)>=0?'home'`
-  + `:p==='methods'&&q<0?'methods':'other');`;
+  + `var SECTIONS=${JSON.stringify(SECTIONS)};var parseHash=${parseHash.toString()};`
+  + `var v=parseHash(location.hash).view;`
+  + `document.documentElement.setAttribute('data-boot',v==='home'||v==='calculator'?'home':v==='methods'?'methods':'other');`;
 const HEAD = `<script>${HEAD_JS}</script>`;
 const APP_JS = escapeInlineScript(js);
 
 // The story page and Methods, rendered from the same data, in place of the shell's placeholders.
-const pre = await prerender(JSON.parse(rawData), { published: PUBLISHED, origin: SITE.url });
+const pre = await prerender(parsed, { published: PUBLISHED, origin: SITE.url });
 const fill = (html, name, markup) => {
   const mark = `<!--prerender:${name}-->`;
   if (!html.includes(mark)) throw new Error(`shell.html: ${mark} not found`);

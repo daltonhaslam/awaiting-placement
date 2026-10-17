@@ -73,19 +73,17 @@ class T(unittest.TestCase):
         self.assertEqual((r['checkGapDays'], r['checkAlosRatio']), (3.0, 2.0))
         flag = lambda ma, ffs: clean.check_data({'ma_alos': ma, 'ffs_alos': ffs})
         self.assertFalse(flag(5.0, 4.5))
-        # Gap: strictly more than 3.0 days either way (values chosen to be exact in binary floating point).
+        # Gap: strictly more than 3.0 days (values chosen to be exact in binary floating point).
         self.assertFalse(flag(7.0, 4.0))
-        self.assertFalse(flag(4.0, 7.0))
         self.assertTrue(flag(7.25, 4.0))
-        self.assertTrue(flag(4.0, 7.25))
-        # Ratio: strictly more than twofold either way, with the gap under 3 days.
+        # Ratio: strictly more than twofold, with the gap under 3 days.
         self.assertFalse(flag(5.0, 2.5))
-        self.assertFalse(flag(2.5, 5.0))
         self.assertTrue(flag(5.0, 2.25))
-        self.assertTrue(flag(2.25, 5.0))
+        # Either way: swapping the two stays never changes the answer.
+        for ma, ffs in [(7.0, 4.0), (7.25, 4.0), (5.0, 2.5), (5.0, 2.25)]:
+            self.assertEqual(flag(ma, ffs), flag(ffs, ma), (ma, ffs))
         # Zero, negative or missing stays never divide or raise; a zero stay is judged on the gap alone.
         self.assertFalse(flag(0.0, 2.0))
-        self.assertFalse(flag(2.0, 0.0))
         self.assertFalse(flag(0.0, 0.0))
         self.assertTrue(flag(0.0, 3.5))
         self.assertFalse(flag(None, 4.0))

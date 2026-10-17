@@ -1,7 +1,7 @@
 import { h, s } from '../dom.js';
 import { scaleLinear } from 'd3-scale';
 import { tooltip } from '../ui/tooltip.js';
-import { fmtDays, fmtNum, fmtSigned, isNum } from '../format.js';
+import { fmtDays, fmtNum, fmtSigned, isNum, plural } from '../format.js';
 import { mount, bindTip, swapSvg, yAxis, r1 } from './shared.js';
 
 // The national spread of hospital stay gaps (MA minus traditional Medicare, FY latest) as a histogram,
@@ -93,7 +93,7 @@ function draw(el, c) {
     const r = s('rect', { class: `gs__bar${b.over ? ' gs__bar--over' : ''}${i === ownBin ? ' gs__bar--own' : ''}`, 'data-n': b.n,
       x: px(b.x0) + (b.over === 'high' ? 4 : 0), y: py(b.n), width: Math.max(0, px(b.x1) - px(b.x0) - (b.over ? 4 : gapPx)), height: Math.max(0, r1(ph - y(b.n))) });
     const tip = (e) => tooltip.show(e.clientX, e.clientY, [
-      h('b', null, b.label), `${fmtNum(b.n)} ${b.n === 1 ? 'hospital' : 'hospitals'}`]);
+      h('b', null, b.label), `${fmtNum(b.n)} ${plural(b.n, 'hospital')}`]);
     bindTip(r, tip);
     return r;
   });

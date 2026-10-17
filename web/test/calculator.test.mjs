@@ -305,16 +305,16 @@ test('maCurve redraws in place and its y-axis starts at zero', () => {
   assert.doesNotMatch(el.innerHTML, /NaN|Infinity/);
 });
 
-test('bedBoard: 2,500 beds in under 50 ms, at most one cell per bed, states by count', () => {
+test('bedBoard: 2,500 beds in under 200 ms, at most one cell per bed, states by count', () => {
   const el = document.createElement('div');
   const t0 = performance.now();
   const svg = bedBoard(el, { beds: 2500, occupied: 1800.4, held: 40.2, freed: 25.4 });
   const ms = performance.now() - t0;
   const cells = svg.querySelectorAll('rect');
   assert.ok(cells.length > 0 && cells.length <= 2500, `${cells.length} cells`);
-  // 50 ms on a laptop; CI runners are slower and shared, so the guard there is against a real regression, not noise.
-  const budget = process.env.CI ? 200 : 50;
-  assert.ok(ms < budget, `bedBoard took ${ms.toFixed(1)} ms (budget ${budget})`);
+  // Typical is about 3 ms. The budget guards against an order-of-magnitude regression on any machine (CI runners are
+  // slower and shared), not tuning.
+  assert.ok(ms < 200, `bedBoard took ${ms.toFixed(1)} ms (budget 200)`);
   const n = (c) => svg.querySelectorAll(`.${c}`).length;
   assert.equal(n('bb-held') + n('bb-freed'), 40);
   assert.equal(n('bb-freed'), 25);

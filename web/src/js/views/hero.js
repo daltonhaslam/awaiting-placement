@@ -14,12 +14,12 @@ const shortSrc = (src) => {
 };
 
 // The display unit: NOW SERVING (traditional Medicare) beside YOUR NUMBER (MA), mean days before inpatient rehab.
-function display(t41, irf) {
+function display(t41, irf, animate) {
   const now = pad2(irf.ffsLos);
   const led = nowServing({ label: 'Now serving', value: now, series: 'ffs',
     sublabel: 'Traditional Medicare\u00a0· avg. days in hospital before inpatient rehab', // the "·" never starts a line
     ariaLabel: (v) => `Now serving ${v}: traditional Medicare patients averaged ${irf.ffsLos.toFixed(1)} days in the hospital before inpatient rehab.` });
-  update(led, now, { from: 0, ms: 450 }); // counts up once on load; static under reduced motion
+  if (animate) update(led, now, { from: 0, ms: 450 }); // counts up once on load; static under reduced motion
   return h('figure', { class: 'hero__display' },
     h('div', { class: 'hero__panels' }, led,
       numberTicket({ label: 'Your number', value: pad2(irf.maLos), series: 'ma', sublabel: 'Medicare Advantage',
@@ -32,7 +32,8 @@ function display(t41, irf) {
 
 const fact = (figure, ...label) => h('li', { class: 'fact' }, h('p', { class: 'fact__fig' }, figure), h('p', { class: 'fact__label' }, label));
 
-export function renderHero(D) {
+// animate: false shows the LED at its number (main.js, over the pre-rendered hero the reader already sees).
+export function renderHero(D, { animate = true } = {}) {
   const t41 = D.content?.medpac?.t41;
   const irf = t41?.rows?.find((r) => r.dest === 'irf');
   const hasIrf = irf && isNum(irf.ffsLos) && isNum(irf.maLos) && isNum(irf.adj);
@@ -61,7 +62,7 @@ export function renderHero(D) {
             h('a', { class: 'go', href: '#calculator' }, 'Try the calculator',
               s('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' }, s('path', { d: ARROW }))),
             h('a', { class: 'go go--plain', href: '#methods' }, 'Methods and sources'))),
-        hasIrf ? display(t41, irf) : null),
+        hasIrf ? display(t41, irf, animate) : null),
       facts.length ? h('ul', { class: 'facts', 'aria-label': 'Key figures' }, facts) : null,
       dateline(D, 'hero__date')));
 }

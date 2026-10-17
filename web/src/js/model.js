@@ -99,6 +99,15 @@ export function decodeState(query, D, preset = D.presets.find((p) => p.id === 'r
 // Does this hospital have a usable value for a basic input? A flagged occupancy never is.
 export const hasBasic = (x, k) => Number.isFinite(x[k]) && !(k === 'occ' && x.occFlag);
 
+// The calculator's own-gap lens needs a hospital, and not one whose gap the pipeline marks "check this hospital's data"
+// (far outside the usual range). A hospital with no MA excess may still pick it; the lens then counts nothing.
+export const ownGapOk = (x) => !!x && !x.checkData;
+// The lens scales the national gap to the hospital's own, so it only means something above zero: a hospital profile
+// opens the calculator on it only for a hospital with MA excess.
+export const hasExcess = (x) => Number.isFinite(x.gap) && x.gap > 0;
+// The lens to use with hospital x (or null): the own-gap lens falls back to the default when x cannot drive it.
+export const lensFor = (D, lens, x) => (lens === 'hospital' && !ownGapOk(x) ? D.model.defaults.lens : lens);
+
 // The basic inputs a hospital sets in the calculator, plus its own gap: each its cost-report figure clamped to the
 // input's range, or the preset's value where it has none (a flagged occupancy counts as none). Callers apply
 // it over their own inputs; `base` defaults to the Regional preset, the calculator's starting point.

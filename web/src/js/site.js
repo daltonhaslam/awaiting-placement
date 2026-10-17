@@ -6,6 +6,10 @@ export const SITE = {
   linkedin: 'https://www.linkedin.com/in/dalton-haslam',
 };
 
+// The not-affiliated line, in the footer and on the methods page.
+export const DISCLAIMER = 'An independent, personal project. Does not represent the work or the view of the author\'s employer, CMS, MedPAC, '
+  + 'or any hospital or health plan.';
+
 // Publication month (ISO "YYYY-MM"), shown as "Published Oct 2026" in the hero and on the methods page.
 // Set by hand: bump on each release (README, "Yearly refresh").
 export const PUBLISHED = '2026-10';

@@ -90,8 +90,8 @@ cd web && npm run e2e && npm run e2e:headers && npm run e2e:docs
 committed page; `e2e:headers`, `e2e:docs` and `node og.mjs` load Google Fonts live. All of them drive the installed
 Google Chrome Stable (Playwright channel `chrome`), not a downloaded Chromium.
 
-Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with 13 tests skipped, including the one that
-checks the committed `ap.json` equals a fresh build. Fetch that file first for a real pass.
+Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with some tests skipped (they need that file),
+including the one that checks the committed `ap.json` equals a fresh build. Fetch that file first for a real pass.
 
 ## Yearly refresh
 
