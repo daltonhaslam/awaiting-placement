@@ -16,13 +16,18 @@ test('hospital ids are validated', () => {
   assert.equal(parseHash('#hospital-../x').view, 'notfound');
   assert.equal(parseHash('#<img src=x>').view, 'notfound');
 });
+test('a copied Methods contents link opens Methods at that part', () => {
+  assert.deepEqual(parseHash('#methods-sources'), { view: 'methods', section: 'methods-sources' });
+  assert.equal(parseHash('#methods-').view, 'notfound');
+  assert.equal(parseHash('#methods-sources?x=1').view, 'notfound');
+});
 test('link round-trips', () => {
   assert.deepEqual(parseHash(link('hospital', '220071')), { view: 'hospital', id: '220071' });
   assert.equal(link('methods'), '#methods');
 });
 test('bootPage: the story page for its sections and the calculator, Methods, else other', () => {
   for (const [hash, want] of [['', 'home'], ['#gap', 'home'], ['#calculator?b=1', 'home'], ['#methods', 'methods'],
-    ['#methods-sources', 'other'], ['#hospital-220071', 'other'], ['#nope', 'other']]) {
+    ['#methods-sources', 'methods'], ['#methods-x?q=1', 'other'], ['#hospital-220071', 'other'], ['#nope', 'other']]) {
     assert.equal(bootPage(parseHash(hash).view), want, hash);
   }
 });

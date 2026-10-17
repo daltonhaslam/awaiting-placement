@@ -19,6 +19,8 @@ export function parseHash(hash) {
   }
   if (!s || s === 'top') return query == null ? { view: 'home' } : { view: 'notfound' };
   if (s === 'methods' && query == null) return { view: 'methods' };
+  // A copied Methods contents link (#methods-sources): the Methods page, scrolled to that part.
+  if (/^methods-[a-z]+$/.test(s) && query == null) return { view: 'methods', section: s };
   if (s === 'calculator') return { view: 'calculator', section: 'calculator', query: query == null ? '' : query };
   if (SECTIONS.indexOf(s) >= 0 && query == null) return { view: 'home', section: s };
   var m = /^hospital-([0-9]{6})$/.exec(s);
