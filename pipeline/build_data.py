@@ -98,6 +98,18 @@ def load_names():
                      'then python3 -I pipeline/build_data.py --refresh-names')
 
 
+def check_names_table(table, ccns):
+    """With the raw file present, fail if the table lacks a CCN of the extract that the raw file lists (a new cost-report
+    year adds hospitals; the table must be refreshed with it). Without the raw file the committed table is trusted."""
+    if not (NAMES.exists() and HGI.exists()):
+        return
+    raw = read_raw_hgi()
+    missing = sorted(c for c in ccns if c in raw and c not in table)
+    if missing:
+        raise SystemExit(f'names table is stale: {len(missing)} hospital{"" if len(missing) == 1 else "s"} in the extract '
+                         f'and the raw file are missing from it (e.g. {missing[0]}); run python3 -I pipeline/build_data.py --refresh-names')
+
+
 def classify(rows):
     """Derive every row, attach its exclusion reason. Returns list of derived dicts."""
     out = []
@@ -130,7 +142,8 @@ def derive_medpac(medpac):
 
 def fmt_days(v):
     """2.5 -> '2.5 days', 1.0 -> '1.0 day': one decimal, as the assumptions table has always shown the waits."""
-    return f"{v:.1f} day{'' if v == 1 else 's'}"
+    r = round(v, 1)
+    return f"{r:.1f} day{'' if r == 1 else 's'}"
 
 
 def fmt_pct_number(share):
@@ -176,6 +189,7 @@ def _build():
     """(ap.json dict, per-year coverage), so the coverage table reuses the one classification pass."""
     rows = load_extract()
     hgi = load_names()
+    check_names_table(hgi, {r['ccn'] for r in rows})
     ds = classify(rows)
     content = content_mod.load_content(CONTENT_DIR)
     lenses, mix, medpac_all = derive_medpac(content['medpac'])

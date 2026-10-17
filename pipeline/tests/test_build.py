@@ -1,4 +1,4 @@
-import csv, os, statistics, sys, tempfile, unittest
+import csv, os, shutil, statistics, sys, tempfile, unittest
 from pathlib import Path
 from unittest import mock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -84,6 +84,7 @@ class NamesTableTest(unittest.TestCase):
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
         self.raw = self.tmp / 'hgi.csv'
         self.table = self.tmp / 'names.csv'
         self.raw.write_text(self.RAW, encoding='utf-8-sig')
@@ -112,6 +113,19 @@ class NamesTableTest(unittest.TestCase):
             build_data.load_names()
         self.assertIn('--refresh-names', str(e.exception))
 
+    def test_a_table_missing_hospitals_the_raw_file_lists_fails_when_the_raw_file_is_here(self):
+        self.table.write_text('ccn,name,city\n999999,ELSEWHERE,X\n', encoding='utf-8')
+        with self.patched(), self.assertRaises(SystemExit) as e:
+            build_data.check_names_table(build_data.load_names(), {'010001', '999999', '020002'})
+        self.assertIn('--refresh-names', str(e.exception))
+        self.assertIn('1 hospital', str(e.exception))
+
+    def test_without_the_raw_file_the_table_is_trusted(self):
+        self.table.write_text('ccn,name,city\n999999,ELSEWHERE,X\n', encoding='utf-8')
+        self.raw.unlink()
+        with self.patched():
+            build_data.check_names_table(build_data.load_names(), {'010001', '999999'})  # no error
+
     def test_write_then_load_round_trips(self):
         rows = [{'ccn': '010001', 'name': 'A "QUOTED", NAME', 'city': 'X'}]
         with self.patched():
@@ -132,6 +146,7 @@ class AssumptionFormatTest(unittest.TestCase):
         self.assertEqual(build_data.fmt_days(2.5), '2.5 days')
         self.assertEqual(build_data.fmt_days(1.0), '1.0 day')
         self.assertEqual(build_data.fmt_days(1.5), '1.5 days')
+        self.assertEqual(build_data.fmt_days(1.04), '1.0 day')  # the label follows the number shown
         self.assertEqual(build_data.fmt_pct_number(0.65), '65')
         self.assertEqual(build_data.fmt_pct_number(0.025), '2.5')
         self.assertEqual(build_data.fmt_pct_number(0.07), '7')

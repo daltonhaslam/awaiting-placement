@@ -4,6 +4,7 @@ import { readFileSync, mkdtempSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, normalize, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { cspHash, withScriptHashes } from '../inline-script.mjs';
 
 const root = new URL('../../', import.meta.url);
@@ -29,9 +30,11 @@ export function firstHospital(html) {
 
 // The static files beside the page (fonts, icons), served from the committed output directory as Vercel serves them.
 const STATIC_TYPES = { '.woff2': 'font/woff2', '.png': 'image/png', '.ico': 'image/x-icon' };
-const outDir = new URL(`${vercelConfig.outputDirectory}/`, root).pathname;
+const outDir = fileURLToPath(new URL(`${vercelConfig.outputDirectory}/`, root));
 function staticFile(url) {
-  const path = normalize(join(outDir, decodeURIComponent(new URL(url, 'http://x').pathname)));
+  let rel;
+  try { rel = decodeURIComponent(new URL(url, 'http://x').pathname); } catch { return null; }
+  const path = normalize(join(outDir, rel));
   const type = STATIC_TYPES[extname(path)];
   if (!type || !path.startsWith(outDir) || !existsSync(path) || !statSync(path).isFile()) return null;
   return { type, body: readFileSync(path) };
@@ -41,8 +44,8 @@ function staticFile(url) {
 // configures.
 export function serveWithHeaders(html) {
   // Each vercel.json rule applies to the paths its source pattern matches (path-to-regexp; these are plain regexes).
-  const headersFor = (path) => Object.fromEntries(vercelConfig.headers.filter((r) => new RegExp(`^${r.source}$`).test(path))
-    .flatMap((r) => r.headers.map((x) => [x.key, x.value])));
+  const rules = vercelConfig.headers.map((r) => ({ re: new RegExp(`^${r.source}$`), headers: r.headers }));
+  const headersFor = (path) => Object.fromEntries(rules.filter((r) => r.re.test(path)).flatMap((r) => r.headers.map((x) => [x.key, x.value])));
   const headers = headersFor('/');
   // A fixture build has different script bytes than the committed docs/, and test builds never write vercel.json:
   // re-pin script-src in memory to this page's own inline scripts (everything else in the header stays exactly as committed).
@@ -53,8 +56,7 @@ export function serveWithHeaders(html) {
   const server = createServer((req, res) => {
     const file = req.url === '/' ? { type: 'text/html; charset=utf-8', body: html } : staticFile(req.url);
     const path = new URL(req.url, 'http://x').pathname;
-    res.writeHead(file ? 200 : 404, { 'Content-Type': file?.type ?? 'text/html; charset=utf-8', ...headersFor(path),
-      ...(path === '/' ? headers : {}) });
+    res.writeHead(file ? 200 : 404, { 'Content-Type': file?.type ?? 'text/html; charset=utf-8', ...(path === '/' ? headers : headersFor(path)) });
     res.end(file?.body ?? '');
   }).listen(0);
   return { base: `http://localhost:${server.address().port}/`, close: () => server.close() };
