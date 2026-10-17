@@ -6,11 +6,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { SITE, FONTS_HREF } from '../src/js/site.js';
-import { cardHtml, cardImageUrl, cardNumbers, iconSvg } from '../og-card.mjs';
+import { cardHtml, cardImageUrl, cardNumbers, iconSvg, iconsStamp } from '../og-card.mjs';
 import { loadData } from '../src/js/data.js';
 import { escapeInlineScript, cspHash } from '../inline-script.mjs';
 import { parseHTML } from 'linkedom';
 import { prerender } from '../prerender.mjs';
+import { withTimeline } from './fixtures/edge.mjs';
 
 const cwd = new URL('..', import.meta.url).pathname;
 const vercelBefore = readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8');
@@ -18,6 +19,7 @@ const out = mkdtempSync(join(tmpdir(), 'ap-build-'));
 execFileSync('node', ['build.mjs'], { cwd, env: { ...process.env, AP_DATA: 'test/fixtures/ap.min.json', BUILD_OUT_DIR: out } });
 const html = readFileSync(join(out, 'index.html'), 'utf8');
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/ap.min.json', import.meta.url), 'utf8'));
+const FAMILIES = [...FONTS_HREF.matchAll(/family=([^:&]+)/g)].map((m) => m[1].replace(/\+/g, ' '));
 
 test('one data script, no raw closing tag inside it', () => {
   assert.equal(html.match(/<script id="ap-data" type="application\/json">/g).length, 1);
@@ -35,17 +37,20 @@ test('title and fonts', () => {
   assert.ok(desc.length > 50 && desc.length <= 160, `description ${desc.length} chars`);
 });
 test('fonts are self-hosted: an inline @font-face for every family in FONTS_HREF, each file a woff2 in docs/fonts/', () => {
-  const fams = [...FONTS_HREF.matchAll(/family=([^:&]+)/g)].map((m) => m[1].replace(/\+/g, ' '));
   const style = /<style>([\s\S]*?)<\/style>/.exec(html)[1];
   const faces = [...style.matchAll(/@font-face\{([^}]*)\}/g)].map((m) => m[1])
     .map((b) => ({ family: /font-family:"?([^";]+)"?/.exec(b)?.[1], src: /src:url\(([^)]+)\)/.exec(b)?.[1] }))
-    .filter((f) => fams.includes(f.family));
-  for (const f of fams) assert.ok(faces.some((x) => x.family === f), `${f}: @font-face in the page`);
+    .filter((f) => FAMILIES.includes(f.family));
+  for (const f of FAMILIES) assert.ok(faces.some((x) => x.family === f), `${f}: @font-face in the page`);
   for (const { family, src } of faces) {
-    assert.match(src, /^fonts\/[a-z-]+\.woff2$/, `${family}: same-origin relative url`);
+    assert.match(src, /^fonts\/[a-z-]+\.[0-9a-f]{10}\.woff2$/, `${family}: same-origin relative url with a content hash`);
     assert.equal(readFileSync(new URL(`../../docs/${src}`, import.meta.url)).subarray(0, 4).toString('latin1'), 'wOF2', `${src} is woff2`);
   }
   assert.ok(readFileSync(new URL('../../docs/fonts/OFL.txt', import.meta.url), 'utf8').includes('SIL Open Font License'));
+  // The headline and body faces are preloaded, from the same files the CSS names.
+  const preloads = [...html.matchAll(/<link rel="preload" href="([^"]+)" as="font" type="font\/woff2" crossorigin>/g)].map((m) => m[1]);
+  assert.equal(preloads.length, 2);
+  for (const p of preloads) assert.ok(faces.some((f) => f.src === p), `preload ${p} is a face the CSS uses`);
 });
 test('the page makes no third-party request: no external stylesheet, script, font, image or preconnect', () => {
   assert.doesNotMatch(html, /fonts\.googleapis|fonts\.gstatic|<link rel="preconnect"|<noscript><link/);
@@ -57,8 +62,7 @@ test('the page makes no third-party request: no external stylesheet, script, fon
 });
 test('type system: the four families, a metric-matched local fallback for each web face, none of the old faces', () => {
   const tokens = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
-  const fams = [...FONTS_HREF.matchAll(/family=([^:&]+)/g)].map((m) => m[1].replace(/\+/g, ' '));
-  assert.deepEqual(fams, ['Big Shoulders Display', 'Overpass', 'Overpass Mono', 'Doto']);
+  assert.deepEqual(FAMILIES, ['Big Shoulders Display', 'Overpass', 'Overpass Mono', 'Doto']);
   for (const f of ['Big Shoulders Fallback', 'Big Shoulders Fallback Wide', 'Overpass Fallback', 'Overpass Mono Fallback']) {
     const rules = [...tokens.matchAll(new RegExp(`@font-face \\{ font-family: '${f}';[^}]*\\}`, 'g'))].map((m) => m[0]);
     assert.ok(rules.length > 0, `${f}: @font-face`);
@@ -113,9 +117,7 @@ test('pre-render is deterministic: a second build is byte-identical, and its dat
   assert.equal(readFileSync(join(again, 'index.html'), 'utf8'), html);
   // With one timeline item dated 2026-01-01: "Upcoming" and "From" only when published before it.
   const opts = { origin: SITE.url };
-  const deadline = { date: '2026-01-01', title: 'CMS-0057-F decision deadlines take effect',
-    body: 'MA plans must decide standard requests within 7 days and urgent ones within 72 hours.' };
-  const one = { ...fixture, content: { ...fixture.content, timeline: [deadline] } };
+  const one = { ...fixture, content: withTimeline(fixture.content) };
   const before = (await prerender(one, { ...opts, published: '2025-06' })).main;
   const after = (await prerender(one, { ...opts, published: '2026-10' })).main;
   assert.match(before, /board__status">Upcoming/);
@@ -155,18 +157,15 @@ const vercelCsp = () => {
 };
 const inlineScripts = () => [...html.matchAll(/<script(?![^>]*\btype=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 
-test('CSP script-src has no unsafe-inline and pins exactly the two inline scripts (hash sync is checked against docs/ below)', () => {
-  const scriptSrc = /script-src([^;]*)/.exec(vercelCsp())[1];
-  assert.ok(!scriptSrc.includes('unsafe-inline'));
-  assert.equal(inlineScripts().length, 2, 'theme head script + app bundle');
-  assert.equal([...scriptSrc.matchAll(/'sha256-/g)].length, 2, 'no stale hashes');
-});
 test('no inline event handlers, so no unsafe-inline is needed', () => {
   assert.doesNotMatch(html, /<[a-z][^>]*\son[a-z]+\s*=/i);
 });
-test('CSP: hashes only for scripts, same-origin fonts, nothing else loadable or submittable, no third-party origin', () => {
+// Hash sync between the committed page and vercel.json is checked against docs/ below.
+test('CSP: exactly the two inline-script hashes, same-origin fonts, nothing else loadable or submittable, no third party', () => {
   const csp = vercelCsp();
   const dir = Object.fromEntries(csp.split(';').map((d) => d.trim().split(/\s+/)).map(([k, ...v]) => [k, v]));
+  assert.equal(inlineScripts().length, 2, 'theme head script + app bundle');
+  assert.equal(dir['script-src'].length, 2, 'no stale hashes');
   assert.ok(dir['script-src'].every((v) => /^'sha256-[A-Za-z0-9+/=]+'$/.test(v)), `script-src: ${dir['script-src']}`);
   assert.deepEqual(dir['font-src'], ["'self'"]);
   assert.deepEqual(dir['img-src'], ["'self'", 'data:']);
@@ -231,7 +230,7 @@ test('favicon.ico and apple-touch-icon.png exist beside the page, are linked, an
 });
 test('the icons are current: run `node icons.mjs` after the hero number or the mark changes', () => {
   const stamp = JSON.parse(readFileSync(new URL('../icons.stamp.json', import.meta.url), 'utf8'));
-  assert.equal(stamp.svgSha256, createHash('sha256').update(iconSvg(D, { square: true }) + iconSvg(D)).digest('hex'));
+  assert.equal(stamp.svgSha256, iconsStamp(D));
   assert.ok(iconSvg(D).includes(`>${cardNumbers(D).now}</text>`));
 });
 test('the card shows the hero numbers, with their unit and coverage beside them', () => {

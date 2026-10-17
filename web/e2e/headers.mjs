@@ -9,11 +9,15 @@ const { base, close } = serveWithHeaders(html);
 const { check, report } = makeCheck('headers check');
 const browser = await chromium.launch({ channel: 'chrome' });
 const id = firstHospital(html).id;
+const fontUrls = []; // each font file requested, checked for its long-lived cache header
 for (const hash of ['', '#methods', `#hospital-${id}`, `#calculator?h=${id}&l=hospital&p=diem`]) {
   const page = await browser.newPage();
   const errors = [];
   const foreign = [];
-  page.on('request', (r) => { if (!r.url().startsWith(base) && !r.url().startsWith('data:')) foreign.push(r.url()); });
+  page.on('request', (r) => {
+    if (!r.url().startsWith(base) && !r.url().startsWith('data:')) foreign.push(r.url());
+    else if (r.url().endsWith('.woff2')) fontUrls.push(r.url());
+  });
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(base + hash);
@@ -21,6 +25,10 @@ for (const hash of ['', '#methods', `#hospital-${id}`, `#calculator?h=${id}&l=ho
   await page.waitForLoadState('networkidle'); // fonts and any blocked request have settled
   check(!errors.length, `${hash || '#'}: ${errors.join(' | ')}`);
   check(!foreign.length, `${hash || '#'}: third-party requests ${foreign.join(' | ')}`);
+  for (const url of fontUrls.splice(0)) {
+    const res = await page.request.get(url);
+    check(/immutable/.test(res.headers()['cache-control'] ?? ''), `${url}: cache-control ${res.headers()['cache-control']}`);
+  }
   // fonts.check() is true even for faces that never loaded; require an actually loaded face.
   for (const fam of ['Big Shoulders Display', 'Overpass', 'Overpass Mono', 'Doto']) {
     const loaded = await page.evaluate(async (f) => {

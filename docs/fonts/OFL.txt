@@ -1,6 +1,6 @@
-The fonts in this folder are unmodified latin-subset files as served by Google Fonts:
-big-shoulders-display.woff2 (Big Shoulders Display), overpass.woff2 and overpass-italic.woff2 (Overpass),
-overpass-mono.woff2 (Overpass Mono), doto.woff2 (Doto). Each is licensed under the SIL Open Font License 1.1:
+The fonts in this folder are unmodified latin-subset files as served by Google Fonts (each file name ends in a
+content hash): big-shoulders-display (Big Shoulders Display), overpass and overpass-italic (Overpass), overpass-mono
+(Overpass Mono), doto (Doto). Each is licensed under the SIL Open Font License 1.1:
 
 Copyright 2019 The Big Shoulders Project Authors (https://github.com/xotypeco/big_shoulders)
 Copyright 2021 The Overpass Project Authors (https://github.com/RedHatOfficial/Overpass)

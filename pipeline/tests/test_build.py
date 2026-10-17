@@ -57,20 +57,12 @@ class T(unittest.TestCase):
         it = next(i for items in self.out['content']['sides'].values() for i in items if i['key'] == 'irf-use-narrower')
         self.assertNotIn('{', it['text'])
         self.assertIn(f"({rate['ma']['irf']} vs {rate['ffs']['irf']} stays per 1,000 in {sept['year']})", it['text'])
-    def test_assumption_values_come_from_the_model_and_medpac_json(self):
-        d = build_data.MODEL_STATIC['defaults']
+    def test_assumption_values_are_filled_from_the_model_and_medpac_json(self):
         a = {x['key']: x for x in self.out['content']['assumptions']}
-        self.assertEqual(a['t0']['value'], build_data.fmt_days(d['t0']))
-        self.assertEqual(a['t1']['value'], build_data.fmt_days(d['t1']))
-        for k in ('cvar', 'rate', 'cm'):
-            self.assertEqual(a[k]['value'], f"${d[k]:,}", k)
-        mix = self.out['model']['mix']
-        p = build_data.fmt_pct_number
-        self.assertEqual(a['mix']['value'], f"Home {p(mix['home'])}%, home health {p(mix['hha'])}%, "
-                                            f"skilled nursing {p(mix['snf'])}%, inpatient rehabilitation {p(mix['irf'])}%")
-        sept = self.out['content']['medpac']['sept']
-        self.assertIn(f"From MedPAC's {sept['year']} data: {p(mix['home'])}, {p(mix['hha'])} and {p(mix['snf'])} percent", a['mix']['why'])
-        self.assertIn(f"({p(sept['mix']['ffs']['irf'])} percent in traditional Medicare)", a['mix']['why'])
+        self.assertEqual([a[k]['value'] for k in ('t0', 't1', 'cvar', 'rate', 'cm')], ['2.5 days', '1.0 day', '$800', '$2,500', '$4,500'])
+        self.assertEqual(a['mix']['value'], 'Home 65%, home health 17%, skilled nursing 15%, inpatient rehabilitation 3%')
+        self.assertIn("From MedPAC's 2023 data: 65, 17 and 15 percent", a['mix']['why'])
+        self.assertIn('(5 percent in traditional Medicare)', a['mix']['why'])
         for x in a.values():
             self.assertNotIn('{', x['value'] + x['why'], x['key'])
 

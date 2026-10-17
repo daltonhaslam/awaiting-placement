@@ -474,24 +474,21 @@ const setRange = (page, sel, v) => page.$eval(sel, (el, x) => { el.value = x; el
 }
 const TO_DIGITS = String(Math.round(data.content.medpac.t41.rows.find((r) => r.dest === 'irf').maLos)).padStart(2, '0');
 // Deep link to the calculator: the reader did not wait, so the notice must never be called. Run on fresh pages, with the
-// first web font arriving late and the text shrinking as it lands (a layout shift under the reader, as a real font swap
-// is): the browser's scroll anchoring then fires a scroll event before the page has re-measured.
+// web fonts arriving late and the text shrinking as they land (a real font swap, made larger): the browser's scroll
+// anchoring then fires a scroll event before the page has re-measured.
 {
   for (let i = 0; i < 10; i++) {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     let page;
-    let shifted = false;
+    // The real font files, served late; the first one to land also shrinks the text, so the shift is never too small to see.
     await ctx.route(FONT_FILE, async (r) => {
       await new Promise((done) => setTimeout(done, 40 + (i % 5) * 50));
-      if (!shifted) {
-        shifted = true;
-        await page.addStyleTag({ content: '.late-font, p, h2, h3, li { font-size: .85em !important; }' });
-      }
-      await r.fulfill({ status: 200, contentType: 'font/woff2', body: '' });
+      await page.addStyleTag({ content: 'p, h2, h3, li { font-size: .85em !important; }' });
+      await r.continue();
     });
     page = await ctx.newPage();
     await page.goto(`${PAGE}#calculator`);
-    await until(page, 'the late font', () => [...document.styleSheets].some((x) => (x.ownerNode?.textContent || '').includes('.late-font')));
+    await until(page, 'the late fonts', () => document.fonts.status === 'loaded' && [...document.fonts].some((f) => f.status === 'loaded'));
     await frames(page, 30);
     const r = await page.evaluate(() => ({ on: !!document.querySelector('.called.is-on'), digits: document.querySelector('#topbar .led__digits')?.getAttribute('data-value') }));
     check(!r.on, `deep link #calculator (fresh load ${i + 1}): the notice was called`);

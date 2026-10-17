@@ -129,7 +129,7 @@ def derive_medpac(medpac):
 
 
 def fmt_days(v):
-    """2.5 -> '2.5 days', 1.0 -> '1.0 day' (the calculator's own one-decimal form)."""
+    """2.5 -> '2.5 days', 1.0 -> '1.0 day': one decimal, as the assumptions table has always shown the waits."""
     return f"{v:.1f} day{'' if v == 1 else 's'}"
 
 

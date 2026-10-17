@@ -28,8 +28,7 @@ export function firstHospital(html) {
 }
 
 // The static files beside the page (fonts, icons), served from the committed output directory as Vercel serves them.
-const STATIC_TYPES = { '.woff2': 'font/woff2', '.png': 'image/png', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8',
-  '.xml': 'application/xml' };
+const STATIC_TYPES = { '.woff2': 'font/woff2', '.png': 'image/png', '.ico': 'image/x-icon' };
 const outDir = new URL(`${vercelConfig.outputDirectory}/`, root).pathname;
 function staticFile(url) {
   const path = normalize(join(outDir, decodeURIComponent(new URL(url, 'http://x').pathname)));
@@ -41,7 +40,10 @@ function staticFile(url) {
 // Serve one HTML document at / (and the committed static files beside it) with the exact response headers vercel.json
 // configures.
 export function serveWithHeaders(html) {
-  const headers = Object.fromEntries(vercelConfig.headers.flatMap((r) => r.headers.map((x) => [x.key, x.value])));
+  // Each vercel.json rule applies to the paths its source pattern matches (path-to-regexp; these are plain regexes).
+  const headersFor = (path) => Object.fromEntries(vercelConfig.headers.filter((r) => new RegExp(`^${r.source}$`).test(path))
+    .flatMap((r) => r.headers.map((x) => [x.key, x.value])));
+  const headers = headersFor('/');
   // A fixture build has different script bytes than the committed docs/, and test builds never write vercel.json:
   // re-pin script-src in memory to this page's own inline scripts (everything else in the header stays exactly as committed).
   if (!process.env.E2E_DOCS) {
@@ -50,7 +52,9 @@ export function serveWithHeaders(html) {
   }
   const server = createServer((req, res) => {
     const file = req.url === '/' ? { type: 'text/html; charset=utf-8', body: html } : staticFile(req.url);
-    res.writeHead(file ? 200 : 404, { 'Content-Type': file?.type ?? 'text/html; charset=utf-8', ...headers });
+    const path = new URL(req.url, 'http://x').pathname;
+    res.writeHead(file ? 200 : 404, { 'Content-Type': file?.type ?? 'text/html; charset=utf-8', ...headersFor(path),
+      ...(path === '/' ? headers : {}) });
     res.end(file?.body ?? '');
   }).listen(0);
   return { base: `http://localhost:${server.address().port}/`, close: () => server.close() };

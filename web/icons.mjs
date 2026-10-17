@@ -2,10 +2,9 @@
 // ../docs/apple-touch-icon.png (180 px, full-bleed), and record a hash of the SVGs in icons.stamp.json (a test fails if
 // the icons go stale). Usage: node icons.mjs, after the hero number or the LED colours change; then node build.mjs.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 import { loadData } from './src/js/data.js';
-import { iconSvg } from './og-card.mjs';
+import { iconSvg, iconsStamp } from './og-card.mjs';
 
 const D = loadData(JSON.parse(readFileSync(new URL('src/data/ap.json', import.meta.url), 'utf8')));
 const docs = (f) => new URL(`../docs/${f}`, import.meta.url);
@@ -41,6 +40,5 @@ const entries = small.map((png) => {
 });
 writeFileSync(docs('favicon.ico'), Buffer.concat([header, ...entries, ...small]));
 writeFileSync(docs('apple-touch-icon.png'), touch);
-const svgSha256 = createHash('sha256').update(iconSvg(D, { square: true }) + iconSvg(D)).digest('hex');
-writeFileSync(new URL('icons.stamp.json', import.meta.url), `${JSON.stringify({ svgSha256 }, null, 2)}\n`);
+writeFileSync(new URL('icons.stamp.json', import.meta.url), `${JSON.stringify({ svgSha256: iconsStamp(D) }, null, 2)}\n`);
 console.log('wrote docs/favicon.ico, docs/apple-touch-icon.png and web/icons.stamp.json; now run node build.mjs');

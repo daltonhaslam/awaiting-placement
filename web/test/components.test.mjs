@@ -7,6 +7,7 @@ import { parseHTML } from 'linkedom';
 const dom = parseHTML('<!doctype html><html><head></head><body><main id="main"></main></body></html>');
 Object.assign(globalThis, { window: dom.window, document: dom.document, Node: dom.Node, HTMLElement: dom.HTMLElement });
 
+import { DEADLINE, withTimeline } from './fixtures/edge.mjs';
 const { h } = await import('../src/js/dom.js');
 const { PUBLISHED } = await import('../src/js/site.js');
 const { loadData } = await import('../src/js/data.js');
@@ -28,12 +29,7 @@ const { renderHome } = await import('../src/js/views/home.js');
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/ap.min.json', import.meta.url), 'utf8'));
 const withContent = (content) => loadData({ ...structuredClone(fixture), content });
 const D = withContent(fixture.content);
-// One timeline item, the CMS-0057-F deadline, so the pathway's deadline line and its Since/From switch are checked alone.
-const DEADLINE = { date: '2026-01-01', title: 'CMS-0057-F decision deadlines take effect',
-  body: 'MA plans must decide standard requests within 7 days and urgent ones within 72 hours.',
-  src: [{ label: 'CMS-0057-F, Federal Register, February 8, 2024', type: 'gov', verified: true,
-    url: 'https://www.federalregister.gov/documents/2024/02/08/2024-00895/medicare-and-medicaid-programs-patient-protection-and-affordable-care-act-advancing-interoperability-and-improving-prior-authorization' }] };
-const ONE_ITEM = withContent({ ...fixture.content, timeline: [DEADLINE] });
+const ONE_ITEM = withContent(withTimeline(fixture.content));
 const SRC = { label: 'MedPAC, June 2026, Table 4-1', url: 'https://www.medpac.gov/x.pdf', type: 'gov', verified: true };
 const text = (el) => el.textContent.replace(/\s+/g, ' ');
 

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseHTML } from 'linkedom';
+import { DEADLINE, withTimeline } from './fixtures/edge.mjs';
 
 const dom = parseHTML('<!doctype html><html><head></head><body><main id="main"></main></body></html>');
 // linkedom has no layout: a synchronous frame and an inert ResizeObserver let charts draw at their fallback width.
@@ -340,8 +341,7 @@ test('sides: the policy timeline is an ordered board, dated in order, with a sou
 
 test('sides: empty or missing content renders without empty columns or NaN', () => {
   // No sides items, one timeline row whose source is a single object (not a list).
-  const sparse = { ...structuredClone(fixture.content), sides: { hospitals: [], plans: [], unsettled: [] },
-    timeline: [{ date: '2026-01-01', title: 'A rule', body: 'Text.', src: { label: 'CMS', url: 'https://www.cms.gov/', type: 'gov', verified: true } }] };
+  const sparse = { ...withTimeline(fixture.content, [{ ...DEADLINE, src: DEADLINE.src[0] }]), sides: { hospitals: [], plans: [], unsettled: [] } };
   const el = renderSides(withContent(fixture, sparse), NOW);
   assert.equal(el.querySelectorAll('.sides__col').length, 0);
   assert.equal(el.querySelectorAll('ol.board > li').length, 1);
