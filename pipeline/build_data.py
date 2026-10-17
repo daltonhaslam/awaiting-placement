@@ -98,16 +98,24 @@ def load_names():
                      'then python3 -I pipeline/build_data.py --refresh-names')
 
 
+def stale_names(table, raw, ccns):
+    """How the committed table differs from what --refresh-names would write now: (missing, changed) CCN lists."""
+    want = {r['ccn']: r for r in names_rows(raw, ccns)}
+    missing = sorted(c for c in want if c not in table)
+    changed = sorted(c for c in want if c in table and table[c] != want[c])
+    return missing, changed
+
+
 def check_names_table(table, ccns):
-    """With the raw file present, fail if the table lacks a CCN of the extract that the raw file lists (a new cost-report
-    year adds hospitals; the table must be refreshed with it). Without the raw file the committed table is trusted."""
+    """With the raw file present, fail unless the table is exactly what --refresh-names would write (a new cost-report
+    year adds hospitals; a re-pinned raw file renames some). Without the raw file the committed table is trusted."""
     if not (NAMES.exists() and HGI.exists()):
         return
-    raw = read_raw_hgi()
-    missing = sorted(c for c in ccns if c in raw and c not in table)
-    if missing:
-        raise SystemExit(f'names table is stale: {len(missing)} hospital{"" if len(missing) == 1 else "s"} in the extract '
-                         f'and the raw file are missing from it (e.g. {missing[0]}); run python3 -I pipeline/build_data.py --refresh-names')
+    missing, changed = stale_names(table, read_raw_hgi(), ccns)
+    if missing or changed:
+        n = len(missing) + len(changed)
+        raise SystemExit(f'names table is stale: {n} hospital{"" if n == 1 else "s"} missing or renamed against the raw '
+                         f'file (e.g. {(missing or changed)[0]}); run python3 -I pipeline/build_data.py --refresh-names')
 
 
 def classify(rows):
@@ -185,11 +193,12 @@ def build():
     return _build()[0]
 
 
-def _build():
+def _build(names_checked=False):
     """(ap.json dict, per-year coverage), so the coverage table reuses the one classification pass."""
     rows = load_extract()
     hgi = load_names()
-    check_names_table(hgi, {r['ccn'] for r in rows})
+    if not names_checked:
+        check_names_table(hgi, {r['ccn'] for r in rows})
     ds = classify(rows)
     content = content_mod.load_content(CONTENT_DIR)
     lenses, mix, medpac_all = derive_medpac(content['medpac'])
@@ -324,7 +333,7 @@ def main():
         raise SystemExit('usage: python3 -I pipeline/build_data.py [--refresh-names]')
     if args:
         refresh_names()
-    out, cov = _build()
+    out, cov = _build(names_checked=bool(args))  # a table just written from the raw file needs no check against it
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(dump(out), encoding='utf-8')
     print_coverage(cov)

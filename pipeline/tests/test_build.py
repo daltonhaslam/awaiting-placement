@@ -120,6 +120,12 @@ class NamesTableTest(unittest.TestCase):
         self.assertIn('--refresh-names', str(e.exception))
         self.assertIn('1 hospital', str(e.exception))
 
+    def test_a_renamed_hospital_fails_too(self):
+        self.table.write_text('ccn,name,city\n010001,OLD NAME,DOTHAN\n', encoding='utf-8')
+        with self.patched(), self.assertRaises(SystemExit) as e:
+            build_data.check_names_table(build_data.load_names(), {'010001'})
+        self.assertIn('010001', str(e.exception))
+
     def test_without_the_raw_file_the_table_is_trusted(self):
         self.table.write_text('ccn,name,city\n999999,ELSEWHERE,X\n', encoding='utf-8')
         self.raw.unlink()
@@ -136,9 +142,11 @@ class NamesTableTest(unittest.TestCase):
 @unittest.skipUnless(build_data.NAMES.exists() and build_data.HGI.exists(), 'needs data/raw/hospital_general_info')
 class CommittedNamesTableTest(unittest.TestCase):
     def test_committed_table_matches_the_pinned_raw_file(self):
-        rows = build_data.names_rows(build_data.read_raw_hgi(), {r['ccn'] for r in build_data.load_extract()})
-        with open(build_data.NAMES, newline='', encoding='utf-8') as f:
-            self.assertEqual(list(csv.DictReader(f)), rows, 'stale: run python3 -I pipeline/build_data.py --refresh-names')
+        ccns = {r['ccn'] for r in build_data.load_extract()}
+        table = build_data.load_names()
+        self.assertEqual(build_data.stale_names(table, build_data.read_raw_hgi(), ccns), ([], []),
+                         'stale: run python3 -I pipeline/build_data.py --refresh-names')
+        self.assertEqual(len(table), len(build_data.names_rows(build_data.read_raw_hgi(), ccns)), 'no extra rows')
 
 
 class AssumptionFormatTest(unittest.TestCase):

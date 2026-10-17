@@ -54,8 +54,8 @@ export function serveWithHeaders(html) {
     headers['Content-Security-Policy'] = withScriptHashes(headers['Content-Security-Policy'], scripts);
   }
   const server = createServer((req, res) => {
-    const file = req.url === '/' ? { type: 'text/html; charset=utf-8', body: html } : staticFile(req.url);
     const path = new URL(req.url, 'http://x').pathname;
+    const file = path === '/' ? { type: 'text/html; charset=utf-8', body: html } : staticFile(req.url);
     res.writeHead(file ? 200 : 404, { 'Content-Type': file?.type ?? 'text/html; charset=utf-8', ...(path === '/' ? headers : headersFor(path)) });
     res.end(file?.body ?? '');
   }).listen(0);

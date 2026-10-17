@@ -481,19 +481,22 @@ const TO_DIGITS = String(Math.round(data.content.medpac.t41.rows.find((r) => r.d
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     let page;
     let shrunk = false;
-    // The real font files, served late; the first one to land also shrinks the text, so the shift is never too small to see.
+    // The real font files, served late; as the first one lands the text also shrinks, so the shift is never too small to see.
     await ctx.route(FONT_FILE, async (r) => {
       await new Promise((done) => setTimeout(done, 40 + (i % 5) * 50));
-      try {
-        if (!shrunk) { shrunk = true; await page.addStyleTag({ content: 'p, h2, h3, li { font-size: .85em !important; }' }); }
-      } finally {
-        await r.continue();
+      await r.continue();
+      if (!shrunk) {
+        shrunk = true;
+        await page.addStyleTag({ content: 'p, h2, h3, li { font-size: .85em !important; }' }).catch(() => {});
       }
     });
     page = await ctx.newPage();
     await page.goto(`${PAGE}#calculator`);
-    // The web face itself (not a local fallback face, which loads at once) has arrived and swapped in.
-    await until(page, 'the late web font', () => [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Overpass' && f.status === 'loaded'));
+    // Every pending face has settled, the web face itself among them (local fallback faces load at once), and the text
+    // has shrunk.
+    await until(page, 'the late web fonts', () => document.fonts.status === 'loaded'
+      && [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Overpass' && f.status === 'loaded')
+      && [...document.querySelectorAll('style')].some((x) => x.textContent.includes('.85em !important')));
     await frames(page, 30);
     const r = await page.evaluate(() => ({ on: !!document.querySelector('.called.is-on'), digits: document.querySelector('#topbar .led__digits')?.getAttribute('data-value') }));
     check(!r.on, `deep link #calculator (fresh load ${i + 1}): the notice was called`);
