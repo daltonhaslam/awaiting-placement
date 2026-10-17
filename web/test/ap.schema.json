@@ -1,0 +1,1402 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "ap.json (web/src/data/ap.json)",
+ "type": "object",
+ "properties": {
+  "meta": {
+   "type": "object",
+   "properties": {
+    "latestFy": {
+     "type": "number"
+    },
+    "trendFys": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     }
+    },
+    "covidFys": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     }
+    },
+    "rules": {
+     "type": "object",
+     "properties": {
+      "periodDays": {
+       "type": "number"
+      },
+      "maDischarges": {
+       "type": "number"
+      },
+      "ffsDischarges": {
+       "type": "number"
+      },
+      "alos": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "excludedStates": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "acuteSuffix": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "cahSuffix": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "occPlausible": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "checkGapDays": {
+       "type": "number"
+      },
+      "checkAlosRatio": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "periodDays",
+      "maDischarges",
+      "ffsDischarges",
+      "alos",
+      "excludedStates",
+      "acuteSuffix",
+      "cahSuffix",
+      "occPlausible",
+      "checkGapDays",
+      "checkAlosRatio"
+     ],
+     "additionalProperties": false
+    },
+    "builtOn": {
+     "type": "string"
+    },
+    "nClean": {
+     "type": "number"
+    },
+    "nAcute": {
+     "type": "number"
+    },
+    "exclusions": {
+     "type": "object",
+     "properties": {
+      "state": {
+       "type": "number"
+      },
+      "period": {
+       "type": "number"
+      },
+      "no_ma": {
+       "type": "number"
+      },
+      "ma_volume": {
+       "type": "number"
+      },
+      "ffs_volume": {
+       "type": "number"
+      },
+      "inconsistent": {
+       "type": "number"
+      },
+      "alos": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "state",
+      "period",
+      "no_ma",
+      "ma_volume",
+      "ffs_volume",
+      "inconsistent",
+      "alos"
+     ],
+     "additionalProperties": false
+    },
+    "crossCheck": {
+     "type": "object",
+     "properties": {
+      "hcris": {
+       "type": "object",
+       "properties": {
+        "ma": {
+         "type": "number"
+        },
+        "ffs": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "ma",
+        "ffs"
+       ],
+       "additionalProperties": false
+      },
+      "medpac": {
+       "type": "object",
+       "properties": {
+        "ma": {
+         "type": "number"
+        },
+        "ffs": {
+         "type": "number"
+        },
+        "fy": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "ma",
+        "ffs",
+        "fy"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "hcris",
+      "medpac"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "latestFy",
+    "trendFys",
+    "covidFys",
+    "rules",
+    "builtOn",
+    "nClean",
+    "nAcute",
+    "exclusions",
+    "crossCheck"
+   ],
+   "additionalProperties": false
+  },
+  "national": {
+   "type": "object",
+   "properties": {
+    "series": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "fy": {
+        "type": "number"
+       },
+       "n": {
+        "type": "number"
+       },
+       "maShare": {
+        "type": "number"
+       },
+       "maAlos": {
+        "type": "number"
+       },
+       "ffsAlos": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "fy",
+       "n",
+       "maShare",
+       "maAlos",
+       "ffsAlos"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "context": {
+     "type": "object",
+     "properties": {
+      "maStays2023": {
+       "type": "number"
+      },
+      "placement": {
+       "type": "object",
+       "properties": {
+        "bedDays": {
+         "type": "number"
+        },
+        "beds": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "bedDays",
+        "beds"
+       ],
+       "additionalProperties": false
+      },
+      "adjusted": {
+       "type": "object",
+       "properties": {
+        "bedDays": {
+         "type": "number"
+        },
+        "beds": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "bedDays",
+        "beds"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "maStays2023",
+      "placement",
+      "adjusted"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "series",
+    "context"
+   ],
+   "additionalProperties": false
+  },
+  "model": {
+   "type": "object",
+   "properties": {
+    "dests": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "lenses": {
+     "type": "object",
+     "properties": {
+      "unadjusted": {
+       "type": "object",
+       "properties": {
+        "home": {
+         "type": "number"
+        },
+        "hha": {
+         "type": "number"
+        },
+        "snf": {
+         "type": "number"
+        },
+        "irf": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "home",
+        "hha",
+        "snf",
+        "irf"
+       ],
+       "additionalProperties": false
+      },
+      "adjusted": {
+       "type": "object",
+       "properties": {
+        "home": {
+         "type": "number"
+        },
+        "hha": {
+         "type": "number"
+        },
+        "snf": {
+         "type": "number"
+        },
+        "irf": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "home",
+        "hha",
+        "snf",
+        "irf"
+       ],
+       "additionalProperties": false
+      },
+      "placement": {
+       "type": "object",
+       "properties": {
+        "home": {
+         "type": "number"
+        },
+        "hha": {
+         "type": "number"
+        },
+        "snf": {
+         "type": "number"
+        },
+        "irf": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "home",
+        "hha",
+        "snf",
+        "irf"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "unadjusted",
+      "adjusted",
+      "placement"
+     ],
+     "additionalProperties": false
+    },
+    "mix": {
+     "type": "object",
+     "properties": {
+      "home": {
+       "type": "number"
+      },
+      "hha": {
+       "type": "number"
+      },
+      "snf": {
+       "type": "number"
+      },
+      "irf": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "home",
+      "hha",
+      "snf",
+      "irf"
+     ],
+     "additionalProperties": false
+    },
+    "defaults": {
+     "type": "object",
+     "properties": {
+      "t0": {
+       "type": "number"
+      },
+      "t1": {
+       "type": "number"
+      },
+      "cvar": {
+       "type": "number"
+      },
+      "pay": {
+       "type": "string"
+      },
+      "rate": {
+       "type": "number"
+      },
+      "cm": {
+       "type": "number"
+      },
+      "lens": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "t0",
+      "t1",
+      "cvar",
+      "pay",
+      "rate",
+      "cm",
+      "lens"
+     ],
+     "additionalProperties": false
+    },
+    "ranges": {
+     "type": "object",
+     "properties": {
+      "beds": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "occ": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "dis": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "mcr": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "ma": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "t0": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "t1": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "cvar": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "rate": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "cm": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      },
+      "fill": {
+       "type": "array",
+       "items": {
+        "type": "number"
+       }
+      }
+     },
+     "required": [
+      "beds",
+      "occ",
+      "dis",
+      "mcr",
+      "ma",
+      "t0",
+      "t1",
+      "cvar",
+      "rate",
+      "cm",
+      "fill"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "dests",
+    "lenses",
+    "mix",
+    "defaults",
+    "ranges"
+   ],
+   "additionalProperties": false
+  },
+  "presets": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "label": {
+      "type": "string"
+     },
+     "note": {
+      "type": "string"
+     },
+     "n": {
+      "type": "number"
+     },
+     "beds": {
+      "type": "number"
+     },
+     "occ": {
+      "type": "number"
+     },
+     "dis": {
+      "type": "number"
+     },
+     "mcr": {
+      "type": "number"
+     },
+     "ma": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "label",
+     "note",
+     "n",
+     "beds",
+     "occ",
+     "dis",
+     "mcr",
+     "ma"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "hospitals": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "name": {
+      "type": "string"
+     },
+     "city": {
+      "type": "string"
+     },
+     "st": {
+      "type": "string"
+     },
+     "beds": {
+      "type": "number"
+     },
+     "occ": {
+      "type": "number"
+     },
+     "occFlag": {
+      "type": "boolean"
+     },
+     "dis": {
+      "type": "number"
+     },
+     "mcr": {
+      "type": "number"
+     },
+     "ma": {
+      "type": "number"
+     },
+     "maAlos": {
+      "type": "number"
+     },
+     "ffsAlos": {
+      "type": "number"
+     },
+     "gap": {
+      "type": "number"
+     },
+     "teach": {
+      "type": "boolean"
+     },
+     "trend": {
+      "type": "array",
+      "items": {
+       "type": [
+        "array",
+        "null"
+       ],
+       "items": {
+        "type": "number"
+       }
+      }
+     },
+     "checkData": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "city",
+     "st",
+     "beds",
+     "occ",
+     "occFlag",
+     "dis",
+     "mcr",
+     "ma",
+     "maAlos",
+     "ffsAlos",
+     "gap",
+     "teach",
+     "trend"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "gapHist": {
+   "type": "object",
+   "properties": {
+    "binWidth": {
+     "type": "number"
+    },
+    "bins": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "x0": {
+        "type": "number"
+       },
+       "x1": {
+        "type": "number"
+       },
+       "n": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "x0",
+       "x1",
+       "n"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "median": {
+     "type": "number"
+    },
+    "p10": {
+     "type": "number"
+    },
+    "p90": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "binWidth",
+    "bins",
+    "median",
+    "p10",
+    "p90"
+   ],
+   "additionalProperties": false
+  },
+  "content": {
+   "type": "object",
+   "properties": {
+    "medpac": {
+     "type": "object",
+     "properties": {
+      "t41": {
+       "type": "object",
+       "properties": {
+        "fy": {
+         "type": "number"
+        },
+        "src": {
+         "type": "object",
+         "properties": {
+          "label": {
+           "type": "string"
+          },
+          "url": {
+           "type": "string"
+          },
+          "type": {
+           "type": "string"
+          },
+          "verified": {
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "label",
+          "url",
+          "type",
+          "verified"
+         ],
+         "additionalProperties": false
+        },
+        "all": {
+         "type": "object",
+         "properties": {
+          "maLos": {
+           "type": "number"
+          },
+          "ffsLos": {
+           "type": "number"
+          },
+          "diff": {
+           "type": "number"
+          },
+          "diffPct": {
+           "type": "number"
+          },
+          "adj": {
+           "type": "number"
+          },
+          "adjPct": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "maLos",
+          "ffsLos",
+          "diff",
+          "diffPct",
+          "adj",
+          "adjPct"
+         ],
+         "additionalProperties": false
+        },
+        "rows": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "dest": {
+            "type": "string"
+           },
+           "label": {
+            "type": "string"
+           },
+           "maLos": {
+            "type": "number"
+           },
+           "ffsLos": {
+            "type": "number"
+           },
+           "diff": {
+            "type": "number"
+           },
+           "diffPct": {
+            "type": "number"
+           },
+           "adj": {
+            "type": "number"
+           },
+           "adjPct": {
+            "type": "number"
+           }
+          },
+          "required": [
+           "dest",
+           "label",
+           "maLos",
+           "ffsLos",
+           "diff",
+           "diffPct",
+           "adj",
+           "adjPct"
+          ],
+          "additionalProperties": false
+         }
+        }
+       },
+       "required": [
+        "fy",
+        "src",
+        "all",
+        "rows"
+       ],
+       "additionalProperties": false
+      },
+      "sept": {
+       "type": "object",
+       "properties": {
+        "year": {
+         "type": "number"
+        },
+        "src": {
+         "type": "object",
+         "properties": {
+          "label": {
+           "type": "string"
+          },
+          "url": {
+           "type": "string"
+          },
+          "type": {
+           "type": "string"
+          },
+          "verified": {
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "label",
+          "url",
+          "type",
+          "verified"
+         ],
+         "additionalProperties": false
+        },
+        "sampleMillions": {
+         "type": "object",
+         "properties": {
+          "ffs": {
+           "type": "number"
+          },
+          "ma": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "ffs",
+          "ma"
+         ],
+         "additionalProperties": false
+        },
+        "mix": {
+         "type": "object",
+         "properties": {
+          "ffs": {
+           "type": "object",
+           "properties": {
+            "none": {
+             "type": "number"
+            },
+            "hha": {
+             "type": "number"
+            },
+            "snf": {
+             "type": "number"
+            },
+            "irf": {
+             "type": "number"
+            }
+           },
+           "required": [
+            "none",
+            "hha",
+            "snf",
+            "irf"
+           ],
+           "additionalProperties": false
+          },
+          "ma": {
+           "type": "object",
+           "properties": {
+            "none": {
+             "type": "number"
+            },
+            "hha": {
+             "type": "number"
+            },
+            "snf": {
+             "type": "number"
+            },
+            "irf": {
+             "type": "number"
+            }
+           },
+           "required": [
+            "none",
+            "hha",
+            "snf",
+            "irf"
+           ],
+           "additionalProperties": false
+          }
+         },
+         "required": [
+          "ffs",
+          "ma"
+         ],
+         "additionalProperties": false
+        },
+        "medians": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "dest": {
+            "type": "string"
+           },
+           "ffs": {
+            "type": "number"
+           },
+           "ma": {
+            "type": "number"
+           }
+          },
+          "required": [
+           "dest",
+           "ffs",
+           "ma"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "staysPer1000": {
+         "type": "object",
+         "properties": {
+          "ffs": {
+           "type": "object",
+           "properties": {
+            "ach": {
+             "type": "number"
+            },
+            "hha": {
+             "type": "number"
+            },
+            "snf": {
+             "type": "number"
+            },
+            "irf": {
+             "type": "number"
+            },
+            "ltch": {
+             "type": "number"
+            }
+           },
+           "required": [
+            "ach",
+            "hha",
+            "snf",
+            "irf",
+            "ltch"
+           ],
+           "additionalProperties": false
+          },
+          "ma": {
+           "type": "object",
+           "properties": {
+            "ach": {
+             "type": "number"
+            },
+            "hha": {
+             "type": "number"
+            },
+            "snf": {
+             "type": "number"
+            },
+            "irf": {
+             "type": "number"
+            },
+            "ltch": {
+             "type": "number"
+            }
+           },
+           "required": [
+            "ach",
+            "hha",
+            "snf",
+            "irf",
+            "ltch"
+           ],
+           "additionalProperties": false
+          }
+         },
+         "required": [
+          "ffs",
+          "ma"
+         ],
+         "additionalProperties": false
+        }
+       },
+       "required": [
+        "year",
+        "src",
+        "sampleMillions",
+        "mix",
+        "medians",
+        "staysPer1000"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "t41",
+      "sept"
+     ],
+     "additionalProperties": false
+    },
+    "kff2026": {
+     "type": "object",
+     "properties": {
+      "share": {
+       "type": "number"
+      },
+      "ma": {
+       "type": "number"
+      },
+      "total": {
+       "type": "number"
+      },
+      "src": {
+       "type": "object",
+       "properties": {
+        "label": {
+         "type": "string"
+        },
+        "url": {
+         "type": "string"
+        },
+        "type": {
+         "type": "string"
+        },
+        "verified": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "label",
+        "url",
+        "type",
+        "verified"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "share",
+      "ma",
+      "total",
+      "src"
+     ],
+     "additionalProperties": false
+    },
+    "timeline": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "date": {
+        "type": "string"
+       },
+       "title": {
+        "type": "string"
+       },
+       "body": {
+        "type": "string"
+       },
+       "src": {
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "label": {
+           "type": "string"
+          },
+          "url": {
+           "type": "string"
+          },
+          "via": {
+           "type": "string"
+          },
+          "type": {
+           "type": "string"
+          },
+          "verified": {
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "label",
+          "url",
+          "type",
+          "verified"
+         ],
+         "additionalProperties": false
+        }
+       }
+      },
+      "required": [
+       "date",
+       "title",
+       "body",
+       "src"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "sides": {
+     "type": "object",
+     "properties": {
+      "hospitals": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "key": {
+          "type": "string"
+         },
+         "text": {
+          "type": "string"
+         },
+         "src": {
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "label": {
+             "type": "string"
+            },
+            "url": {
+             "type": "string"
+            },
+            "type": {
+             "type": "string"
+            },
+            "verified": {
+             "type": "boolean"
+            },
+            "via": {
+             "type": "string"
+            }
+           },
+           "required": [
+            "label",
+            "url",
+            "type",
+            "verified"
+           ],
+           "additionalProperties": false
+          }
+         }
+        },
+        "required": [
+         "key",
+         "text",
+         "src"
+        ],
+        "additionalProperties": false
+       }
+      },
+      "plans": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "key": {
+          "type": "string"
+         },
+         "text": {
+          "type": "string"
+         },
+         "short": {
+          "type": "string"
+         },
+         "src": {
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "label": {
+             "type": "string"
+            },
+            "url": {
+             "type": "string"
+            },
+            "type": {
+             "type": "string"
+            },
+            "verified": {
+             "type": "boolean"
+            }
+           },
+           "required": [
+            "label",
+            "url",
+            "type",
+            "verified"
+           ],
+           "additionalProperties": false
+          }
+         }
+        },
+        "required": [
+         "key",
+         "text",
+         "src"
+        ],
+        "additionalProperties": false
+       }
+      },
+      "unsettled": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "key": {
+          "type": "string"
+         },
+         "text": {
+          "type": "string"
+         },
+         "src": {
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "label": {
+             "type": "string"
+            },
+            "url": {
+             "type": "string"
+            },
+            "type": {
+             "type": "string"
+            },
+            "verified": {
+             "type": "boolean"
+            }
+           },
+           "required": [
+            "label",
+            "url",
+            "type",
+            "verified"
+           ],
+           "additionalProperties": false
+          }
+         }
+        },
+        "required": [
+         "key",
+         "text",
+         "src"
+        ],
+        "additionalProperties": false
+       }
+      }
+     },
+     "required": [
+      "hospitals",
+      "plans",
+      "unsettled"
+     ],
+     "additionalProperties": false
+    },
+    "assumptions": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "key": {
+        "type": "string"
+       },
+       "label": {
+        "type": "string"
+       },
+       "value": {
+        "type": "string"
+       },
+       "why": {
+        "type": "string"
+       },
+       "src": {
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "label": {
+           "type": "string"
+          },
+          "url": {
+           "type": "string"
+          },
+          "type": {
+           "type": "string"
+          },
+          "verified": {
+           "type": "boolean"
+          },
+          "via": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "label",
+          "url",
+          "type",
+          "verified"
+         ],
+         "additionalProperties": false
+        }
+       }
+      },
+      "required": [
+       "key",
+       "label",
+       "value",
+       "why",
+       "src"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "sources": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "label": {
+        "type": "string"
+       },
+       "url": {
+        "type": "string"
+       },
+       "type": {
+        "type": "string"
+       },
+       "verified": {
+        "type": "boolean"
+       },
+       "via": {
+        "type": "string"
+       }
+      },
+      "required": [
+       "label",
+       "url",
+       "type",
+       "verified"
+      ],
+      "additionalProperties": false
+     }
+    }
+   },
+   "required": [
+    "medpac",
+    "kff2026",
+    "timeline",
+    "sides",
+    "assumptions",
+    "sources"
+   ],
+   "additionalProperties": false
+  }
+ },
+ "required": [
+  "meta",
+  "national",
+  "model",
+  "presets",
+  "hospitals",
+  "gapHist",
+  "content"
+ ],
+ "additionalProperties": false
+}

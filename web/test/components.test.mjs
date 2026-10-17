@@ -28,6 +28,12 @@ const { renderHome } = await import('../src/js/views/home.js');
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/ap.min.json', import.meta.url), 'utf8'));
 const withContent = (content) => loadData({ ...structuredClone(fixture), content });
 const D = withContent(fixture.content);
+// One timeline item, the CMS-0057-F deadline, so the pathway's deadline line and its Since/From switch are checked alone.
+const DEADLINE = { date: '2026-01-01', title: 'CMS-0057-F decision deadlines take effect',
+  body: 'MA plans must decide standard requests within 7 days and urgent ones within 72 hours.',
+  src: [{ label: 'CMS-0057-F, Federal Register, February 8, 2024', type: 'gov', verified: true,
+    url: 'https://www.federalregister.gov/documents/2024/02/08/2024-00895/medicare-and-medicaid-programs-patient-protection-and-affordable-care-act-advancing-interoperability-and-improving-prior-authorization' }] };
+const ONE_ITEM = withContent({ ...fixture.content, timeline: [DEADLINE] });
 const SRC = { label: 'MedPAC, June 2026, Table 4-1', url: 'https://www.medpac.gov/x.pdf', type: 'gov', verified: true };
 const text = (el) => el.textContent.replace(/\s+/g, ' ');
 
@@ -221,14 +227,14 @@ test('pathway: definition, five steps, authorization marked, five signs', () => 
 
 test('pathway: the deadline line comes from the timeline, or is omitted', () => {
   const rule = (el) => el.querySelector('.path__rule');
-  const withItem = rule(renderPathway(D, new Date('2026-10-15')));
+  const withItem = rule(renderPathway(ONE_ITEM, new Date('2026-10-15')));
   assert.ok(withItem);
   assert.match(text(withItem), /Since Jan 2026/i);
   assert.match(text(withItem), /7 days.*72 hours/);
   assert.ok(withItem.querySelector('a[href^="https://www.federalregister.gov/"]'));
   const c = structuredClone(fixture.content);
-  c.timeline = [{ ...c.timeline[0], title: 'Insurer pledge', body: 'Something else.' },
-    { ...c.timeline[0], date: '2027-01-01', title: 'CMS-0057-F API requirements', body: 'Plans must offer prior authorization APIs.' }];
+  c.timeline = [{ ...DEADLINE, title: 'Insurer pledge', body: 'Something else.' },
+    { ...DEADLINE, date: '2027-01-01', title: 'CMS-0057-F API requirements', body: 'Plans must offer prior authorization APIs.' }];
   assert.equal(rule(renderPathway(withContent(c))), null);
   const p = renderPathway(withContent(null));
   assert.equal(rule(p), null);
@@ -237,7 +243,7 @@ test('pathway: the deadline line comes from the timeline, or is omitted', () => 
 });
 
 test('pathway: Since/From follows the reader\'s date, not the cost-report date', () => {
-  const when = (now) => text(renderPathway(D, new Date(now)).querySelector('.path__when'));
+  const when = (now) => text(renderPathway(ONE_ITEM, new Date(now)).querySelector('.path__when'));
   assert.equal(when('2026-10-15'), 'Since Jan 2026');
   assert.equal(when('2025-06-01'), 'From Jan 2026');
   assert.equal(when('2026-01-15'), 'Since Jan 2026');

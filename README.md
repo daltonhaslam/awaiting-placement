@@ -108,6 +108,7 @@ fresh build, runs from committed files.
 - [ ] Review any change in exclusion counts before accepting the new data, and the hospitals marked "check this hospital's data" (`build_data.py` prints them; the thresholds are in `pipeline/ap/clean.py`).
 - [ ] Bump `PUBLISHED` in `web/src/js/site.js` to the release month (the dateline reads it; nothing sets it automatically). Update the MedPAC values pinned in `pipeline/tests/test_content.py`.
 - [ ] `cd web && node og.mjs` to regenerate the share card (and `og.stamp.json`, the hash of the card's HTML that `npm test` checks), and `node icons.mjs` if the hero number changed (the favicon shows it; `icons.stamp.json` is checked the same way), then `node build.mjs` so the image URL (`?v=` content hash) and CSP hashes are current.
+- [ ] `cd web && node test/fixtures/refresh.mjs` so the test fixture carries the new content and model (`npm test` fails until it does). If the pipeline added, renamed or dropped a field in `ap.json`, add `--schema` and review the `test/ap.schema.json` diff: it is the list of what the page reads.
 - [ ] `npm test` and all three e2e commands.
 - [ ] Commit `docs/index.html`, `docs/og.png`, the icons and `vercel.json` together.
 - [ ] Push and check the `check` workflow (`.github/workflows/check.yml`, on every push to `main` and every pull request) is green: it runs the Python and unit tests, rebuilds `docs/index.html` from the committed `ap.json` and fails unless it is byte-identical, then runs `npm run e2e:docs` against the committed page. A red rebuild step means the committed page is stale: rebuild locally and commit it with `vercel.json`.
@@ -133,7 +134,8 @@ web/
     data/             built data contract (ap.json)
     js/               page code: views, charts, ui, model
     styles/           tokens and stylesheets
-  test/               unit tests and the fixture
+  test/               unit tests, the fixture (fixtures/refresh.mjs keeps it current) and ap.schema.json, the
+                      shape of ap.json that contract.test.mjs checks
   e2e/                browser checks
   build.mjs           bundles everything into docs/index.html
   prerender.mjs       renders the story page and Methods into that HTML at build time

@@ -111,10 +111,13 @@ test('pre-render is deterministic: a second build is byte-identical, and its dat
   const again = mkdtempSync(join(tmpdir(), 'ap-build-'));
   execFileSync('node', ['build.mjs'], { cwd, env: { ...process.env, AP_DATA: 'test/fixtures/ap.min.json', BUILD_OUT_DIR: again } });
   assert.equal(readFileSync(join(again, 'index.html'), 'utf8'), html);
-  // The fixture's one timeline item is dated 2026-01-01: "Upcoming" and "From" only when published before it.
+  // With one timeline item dated 2026-01-01: "Upcoming" and "From" only when published before it.
   const opts = { origin: SITE.url };
-  const before = (await prerender(fixture, { ...opts, published: '2025-06' })).main;
-  const after = (await prerender(fixture, { ...opts, published: '2026-10' })).main;
+  const deadline = { date: '2026-01-01', title: 'CMS-0057-F decision deadlines take effect',
+    body: 'MA plans must decide standard requests within 7 days and urgent ones within 72 hours.' };
+  const one = { ...fixture, content: { ...fixture.content, timeline: [deadline] } };
+  const before = (await prerender(one, { ...opts, published: '2025-06' })).main;
+  const after = (await prerender(one, { ...opts, published: '2026-10' })).main;
   assert.match(before, /board__status">Upcoming/);
   assert.match(before, /path__when">From /);
   assert.doesNotMatch(after, /board__status/);

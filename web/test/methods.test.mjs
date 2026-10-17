@@ -339,7 +339,10 @@ test('sides: the policy timeline is an ordered board, dated in order, with a sou
 });
 
 test('sides: empty or missing content renders without empty columns or NaN', () => {
-  const el = renderSides(D, NOW); // fixture: no sides items, one timeline row with an object source
+  // No sides items, one timeline row whose source is a single object (not a list).
+  const sparse = { ...structuredClone(fixture.content), sides: { hospitals: [], plans: [], unsettled: [] },
+    timeline: [{ date: '2026-01-01', title: 'A rule', body: 'Text.', src: { label: 'CMS', url: 'https://www.cms.gov/', type: 'gov', verified: true } }] };
+  const el = renderSides(withContent(fixture, sparse), NOW);
   assert.equal(el.querySelectorAll('.sides__col').length, 0);
   assert.equal(el.querySelectorAll('ol.board > li').length, 1);
   noNaN(el);
