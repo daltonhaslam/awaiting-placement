@@ -275,6 +275,12 @@ test('methods: about has the byline, LinkedIn and the repo, and only the Claude 
   assert.doesNotMatch(text(about).replace("author's employer", ''), /advisor|employ|based in|works at|hospital in/i);
 });
 
+test('methods: names and cities say they come from a pinned, committed copy of Hospital General Information', () => {
+  const t = text(renderMethods(REAL));
+  assert.ok(t.includes('Names and cities'));
+  assert.ok(t.includes('read from a pinned copy committed with the code (pipeline/derived/hgi_names.csv)'), 'pinned names table');
+});
+
 test('methods: sparse or missing content renders cleanly', () => {
   noNaN(renderMethods(D));
   noNaN(renderMethods(withContent(fixture, null)));

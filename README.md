@@ -32,7 +32,7 @@ An independent, personal project. Does not represent the work or the view of the
 | Source | Used for |
 |---|---|
 | CMS HCRIS hospital cost reports, form CMS-2552-10 (one pinned file per fiscal year) | Hospital-level discharges, days, beds and occupancy; MA share and length-of-stay trends; which hospitals are acute care (from the CCN) |
-| CMS Hospital General Information | Display names and cities |
+| CMS Hospital General Information (pinned; the two columns used are committed as `pipeline/derived/hgi_names.csv`) | Display names and cities |
 | MedPAC, Report to the Congress, June 2026, Ch. 4 (Table 4-1) | Mean days before post-acute care by destination, and the adjusted gap |
 | MedPAC, September 2026 staff slides (preliminary) | Discharge-destination mix, median hospital stays by destination (including long-term care hospitals), and sample differences such as the dual-eligible and low-income share |
 | KFF, Medicare Advantage in 2026 | MA share of beneficiaries; prior-authorization context |
@@ -54,13 +54,18 @@ card (`node og.mjs`) and the font download (`node fonts.mjs`) also need network 
 itself needs no browser, including its pre-render step. Tested on macOS with Python 3.9.6 and Node 26; a rebuild there is
 byte-identical to the committed `docs/index.html`, `vercel.json` and `docs/og.png`.
 
-Fastest path (about 1.4 MB, seconds). The extract of the cost reports is already committed, so only the hospital
-names file is needed:
+Fastest path (no download, seconds). The extract of the cost reports and the hospital names table are both committed:
 
 ```sh
-python3 -I pipeline/fetch.py --only hospital_general_info   # -> data/raw/ (gitignored)
 python3 -I pipeline/build_data.py                            # -> web/src/data/ap.json (git should show no change)
 cd web && npm ci && node build.mjs                           # -> docs/index.html, vercel.json (git should show no change)
+```
+
+To re-derive the names table from CMS (about 1.4 MB):
+
+```sh
+python3 -I pipeline/fetch.py --only hospital_general_info   # -> data/raw/ (gitignored), checked against its sha256 pin
+python3 -I pipeline/build_data.py --refresh-names            # -> pipeline/derived/hgi_names.csv, then ap.json
 ```
 
 Full path, to re-derive the committed extract from CMS (nine zips, about 1.2 GB; allow a few minutes):
@@ -91,12 +96,13 @@ fonts set every width check; `npm run e2e:docs` tests the committed page; `e2e:h
 fonts and fails on any request to another origin. All of them drive the installed Google Chrome Stable (Playwright
 channel `chrome`), not a downloaded Chromium.
 
-Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with some tests skipped (they need that file),
-including the one that checks the committed `ap.json` equals a fresh build. Fetch that file first for a real pass.
+Without `data/raw/hospital_general_info`, `run_tests.py` reports OK with one test skipped: the check that the committed
+names table matches the pinned raw file. Everything else, including the check that the committed `ap.json` equals a
+fresh build, runs from committed files.
 
 ## Yearly refresh
 
-- [ ] Add the new HCRIS fiscal year to `pipeline/sources.json`: copy the previous year's entry, change `name` (`hcris_fyYYYY`), `file` (`HOSP10FYYYYY.ZIP`) and `url`, then pin it with `python3 -I pipeline/fetch.py --only hcris_fyYYYY --refresh-hashes`. The extract step reads its years from there. Do not run `--refresh-hashes` without `--only` unless you mean to re-pin every year (CMS refreshes older files quarterly, so earlier years' numbers would change too). Re-pin `hospital_general_info` the same way when CMS releases a new file.
+- [ ] Add the new HCRIS fiscal year to `pipeline/sources.json`: copy the previous year's entry, change `name` (`hcris_fyYYYY`), `file` (`HOSP10FYYYYY.ZIP`) and `url`, then pin it with `python3 -I pipeline/fetch.py --only hcris_fyYYYY --refresh-hashes`. The extract step reads its years from there. Do not run `--refresh-hashes` without `--only` unless you mean to re-pin every year (CMS refreshes older files quarterly, so earlier years' numbers would change too). Re-pin `hospital_general_info` the same way when CMS releases a new file, then run `build_data.py --refresh-names`.
 - [ ] Update the MedPAC, KFF and policy figures in `pipeline/content/`. Every `src` URL must also appear in `pipeline/content/sources.json` with `"verified": true` (set it only after opening the link; the build fails otherwise). Re-check every link (some move to new slugs each year). Search `web/src/js/views/` for the old year ("in 2026", "September 2026") and for the year-named keys `kff2026` and `maStays2023`.
 - [ ] Run `fetch.py`, `extract_hcris.py` and `build_data.py`, then `python3 -I pipeline/run_tests.py`.
 - [ ] Review any change in exclusion counts before accepting the new data, and the hospitals marked "check this hospital's data" (`build_data.py` prints them; the thresholds are in `pipeline/ap/clean.py`).
@@ -120,7 +126,7 @@ pipeline/
   run_tests.py        runs pipeline/tests under python3 -I
   ap/                 cleaning, cost-report parsing and content loading
   content/            sourced figures and copy as JSON
-  derived/            extracted cost-report table (committed)
+  derived/            extracted cost-report table and hospital names table (committed)
   tests/              Python tests
 web/
   src/

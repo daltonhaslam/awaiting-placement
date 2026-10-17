@@ -20,8 +20,8 @@ jobs:
           node-version: 26 # match local; the build's output is pinned by package-lock.json (esbuild, linkedom)
           cache: npm
           cache-dependency-path: web/package-lock.json
-      # Without the gitignored raw hospital-names file, some pipeline tests skip, including the ap.json rebuild check;
-      # CMS re-publishes that file, so CI does not fetch it.
+      # The names table is committed, so the ap.json rebuild check runs here. Only the check that the table matches the
+      # gitignored raw Hospital General Information file skips (CMS re-publishes that file, so CI does not fetch it).
       - name: Python tests
         run: python3 -I pipeline/run_tests.py
       - name: Install web deps

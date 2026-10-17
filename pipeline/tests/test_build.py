@@ -1,11 +1,13 @@
-import os, statistics, sys, unittest
+import csv, os, statistics, sys, tempfile, unittest
+from pathlib import Path
+from unittest import mock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import build_data
 
-HINT = 'missing Hospital General Information: run python3 -I pipeline/fetch.py --only hospital_general_info'
+HINT = 'missing the names table and Hospital General Information'
 TOP = ['meta', 'national', 'model', 'presets', 'hospitals', 'gapHist', 'content']
 
-@unittest.skipUnless(build_data.HGI.exists(), HINT)
+@unittest.skipUnless(build_data.NAMES.exists() or build_data.HGI.exists(), HINT)
 class T(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -67,6 +69,54 @@ class T(unittest.TestCase):
     def test_exclusions_sum(self):
         m = self.out['meta']
         self.assertEqual(sum(m['exclusions'].values()) + m['nClean'], m['nAcute'])
+
+class NamesTableTest(unittest.TestCase):
+    RAW = 'Facility ID,Facility Name,City/Town,State\n010001,SOUTHEAST HEALTH MEDICAL CENTER,DOTHAN,AL\n999999,ELSEWHERE,X,AL\n'
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.raw = self.tmp / 'hgi.csv'
+        self.table = self.tmp / 'names.csv'
+        self.raw.write_text(self.RAW, encoding='utf-8-sig')
+
+    def patched(self):
+        return mock.patch.multiple(build_data, HGI=self.raw, NAMES=self.table)
+
+    def test_table_is_the_raw_names_for_extract_ccns_only(self):
+        with self.patched():
+            rows = build_data.names_rows(build_data.read_raw_hgi(), {'010001', '020002'})
+        self.assertEqual(rows, [{'ccn': '010001', 'name': 'SOUTHEAST HEALTH MEDICAL CENTER', 'city': 'DOTHAN'}])
+
+    def test_committed_table_is_preferred_over_the_raw_file(self):
+        self.table.write_text('ccn,name,city\n010001,PINNED NAME,PINNED CITY\n', encoding='utf-8')
+        with self.patched():
+            self.assertEqual(build_data.load_names()['010001']['name'], 'PINNED NAME')
+
+    def test_raw_file_is_the_fallback_when_the_table_is_missing(self):
+        with self.patched():
+            got = build_data.load_names()
+        self.assertEqual(got['010001'], {'ccn': '010001', 'name': 'SOUTHEAST HEALTH MEDICAL CENTER', 'city': 'DOTHAN'})
+
+    def test_neither_present_fails_with_a_hint(self):
+        self.raw.unlink()
+        with self.patched(), self.assertRaises(SystemExit) as e:
+            build_data.load_names()
+        self.assertIn('--refresh-names', str(e.exception))
+
+    def test_write_then_load_round_trips(self):
+        rows = [{'ccn': '010001', 'name': 'A "QUOTED", NAME', 'city': 'X'}]
+        with self.patched():
+            build_data.write_names(rows)
+            self.assertEqual(build_data.load_names(), {'010001': rows[0]})
+
+
+@unittest.skipUnless(build_data.NAMES.exists() and build_data.HGI.exists(), 'needs data/raw/hospital_general_info')
+class CommittedNamesTableTest(unittest.TestCase):
+    def test_committed_table_matches_the_pinned_raw_file(self):
+        rows = build_data.names_rows(build_data.read_raw_hgi(), {r['ccn'] for r in build_data.load_extract()})
+        with open(build_data.NAMES, newline='', encoding='utf-8') as f:
+            self.assertEqual(list(csv.DictReader(f)), rows, 'stale: run python3 -I pipeline/build_data.py --refresh-names')
+
 
 class DeriveMaStaysTest(unittest.TestCase):
     def test_follows_the_cited_numbers(self):

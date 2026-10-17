@@ -47,8 +47,9 @@ export function definitions(r) {
     ['Beds and occupancy', 'Beds and available bed-days from line 14, columns 2 and 3. Occupancy is inpatient days (line 14, column 8, '
       + `minus nursery days on line 13) divided by available bed-days. ${occ}`],
     ['Teaching hospital', 'Reports interns and residents (line 14, column 9). Used for the Academic preset.'],
-    ['Names and cities', 'CMS Hospital General Information, matched by CMS certification number (CCN). '
-      + 'The cost-report name is used when there is no match.'],
+    ['Names and cities', 'CMS Hospital General Information ("Facility Name", "City/Town"), matched by CMS certification number (CCN), '
+      + 'read from a pinned copy committed with the code (pipeline/derived/hgi_names.csv), so a rebuild gives the same names '
+      + 'whatever CMS has since released. The cost-report name is used when there is no match.'],
   ];
 }
 
