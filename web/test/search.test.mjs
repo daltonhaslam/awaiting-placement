@@ -77,3 +77,22 @@ test('limit caps the result count; labels are returned as given (rendered as tex
   assert.ok(searchIndex(index, 'hospital').length > 2);
   assert.equal(searchIndex(index, 'a&m')[0].label, 'TEXAS A&M HEALTH');
 });
+
+// Real names, as the site has them (the audit's sweep found these typed forms returned nothing).
+const realIndex = buildIndex(JSON.parse(readFileSync(new URL('../src/data/ap.json', import.meta.url), 'utf8')));
+const realNames = (q) => searchIndex(realIndex, q).map((x) => x.label);
+
+test('an apostrophe typed as a space still matches: "king s daughters", "women s hospital", "o bleness"', () => {
+  const kings = realNames('king s daughters');
+  assert.ok(kings.length >= 2 && kings.every((n) => /king'?s daughters/i.test(n)), kings.join(' | '));
+  assert.ok(realNames('women s hospital').some((n) => /women'?s hospital/i.test(n)));
+  assert.ok(realNames('o bleness').some((n) => /o'?bleness/i.test(n)));
+  assert.deepEqual(keys('king s daughters'), keys('kings daughters'));
+});
+
+test('initials find a hospital: "MGH" is Massachusetts General Hospital, first', () => {
+  assert.equal(searchIndex(realIndex, 'MGH')[0].label, 'Massachusetts General Hospital');
+  assert.equal(searchIndex(realIndex, 'mgh')[0].key, '220071');
+  // Initials skip small words: "Hospital of Univ of Pennsylvania" is HUP.
+  assert.equal(realNames('hup')[0], 'Hospital of Univ of Pennsylvania');
+});
