@@ -57,6 +57,23 @@ class T(unittest.TestCase):
         it = next(i for items in self.out['content']['sides'].values() for i in items if i['key'] == 'irf-use-narrower')
         self.assertNotIn('{', it['text'])
         self.assertIn(f"({rate['ma']['irf']} vs {rate['ffs']['irf']} stays per 1,000 in {sept['year']})", it['text'])
+    def test_assumption_values_come_from_the_model_and_medpac_json(self):
+        d = build_data.MODEL_STATIC['defaults']
+        a = {x['key']: x for x in self.out['content']['assumptions']}
+        self.assertEqual(a['t0']['value'], build_data.fmt_days(d['t0']))
+        self.assertEqual(a['t1']['value'], build_data.fmt_days(d['t1']))
+        for k in ('cvar', 'rate', 'cm'):
+            self.assertEqual(a[k]['value'], f"${d[k]:,}", k)
+        mix = self.out['model']['mix']
+        p = build_data.fmt_pct_number
+        self.assertEqual(a['mix']['value'], f"Home {p(mix['home'])}%, home health {p(mix['hha'])}%, "
+                                            f"skilled nursing {p(mix['snf'])}%, inpatient rehabilitation {p(mix['irf'])}%")
+        sept = self.out['content']['medpac']['sept']
+        self.assertIn(f"From MedPAC's {sept['year']} data: {p(mix['home'])}, {p(mix['hha'])} and {p(mix['snf'])} percent", a['mix']['why'])
+        self.assertIn(f"({p(sept['mix']['ffs']['irf'])} percent in traditional Medicare)", a['mix']['why'])
+        for x in a.values():
+            self.assertNotIn('{', x['value'] + x['why'], x['key'])
+
     def test_presets(self):
         self.assertEqual([p['id'] for p in self.out['presets']], ['community', 'regional', 'academic'])
     def test_national_series(self):
@@ -116,6 +133,25 @@ class CommittedNamesTableTest(unittest.TestCase):
         rows = build_data.names_rows(build_data.read_raw_hgi(), {r['ccn'] for r in build_data.load_extract()})
         with open(build_data.NAMES, newline='', encoding='utf-8') as f:
             self.assertEqual(list(csv.DictReader(f)), rows, 'stale: run python3 -I pipeline/build_data.py --refresh-names')
+
+
+class AssumptionFormatTest(unittest.TestCase):
+    def test_days_and_percents(self):
+        self.assertEqual(build_data.fmt_days(2.5), '2.5 days')
+        self.assertEqual(build_data.fmt_days(1.0), '1.0 day')
+        self.assertEqual(build_data.fmt_days(1.5), '1.5 days')
+        self.assertEqual(build_data.fmt_pct_number(0.65), '65')
+        self.assertEqual(build_data.fmt_pct_number(0.025), '2.5')
+        self.assertEqual(build_data.fmt_pct_number(0.07), '7')
+
+    def test_the_content_file_types_no_number_the_build_computes(self):
+        import json
+        raw = {a['key']: a for a in json.loads((build_data.CONTENT_DIR / 'assumptions.json').read_text(encoding='utf-8'))}
+        self.assertEqual(raw['t0']['value'], '{t0Days}')
+        self.assertEqual(raw['t1']['value'], '{t1Days}')
+        for k in ('cvar', 'rate', 'cm'):
+            self.assertEqual(raw[k]['value'], '{%s}' % k)
+        self.assertNotRegex(raw['mix']['value'], r'\d')
 
 
 class DeriveMaStaysTest(unittest.TestCase):

@@ -153,3 +153,11 @@ test('inputsFromHospital: a flagged occupancy and missing figures fall back to t
   assert.equal(M.hasBasic({ occ: 0.8, occFlag: true }, 'beds'), false);
   assert.equal(M.hasBasic({ beds: 5 }, 'beds'), true);
 });
+
+test('the refill assumption in the content states the same ramp as FILL_LO and FILL_HI', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { fmtPct } = await import('../src/js/format.js');
+  const real = JSON.parse(readFileSync(new URL('../src/data/ap.json', import.meta.url), 'utf8'));
+  const fill = real.content.assumptions.find((a) => a.key === 'fill');
+  assert.ok(fill.why.includes(`from 0% at ${fmtPct(M.FILL_LO)} occupancy to 100% at ${fmtPct(M.FILL_HI)}`), fill.why);
+});

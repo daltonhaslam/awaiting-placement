@@ -128,6 +128,16 @@ def derive_medpac(medpac):
     return lenses, mix, {'ma': all_['maLos'], 'ffs': all_['ffsLos'], 'fy': medpac['t41']['fy']}
 
 
+def fmt_days(v):
+    """2.5 -> '2.5 days', 1.0 -> '1.0 day' (the calculator's own one-decimal form)."""
+    return f"{v:.1f} day{'' if v == 1 else 's'}"
+
+
+def fmt_pct_number(share):
+    """0.65 -> '65', 0.025 -> '2.5': a share as a percent number, at most one decimal, no trailing zero."""
+    return f'{round(share * 100, 1):g}'
+
+
 def derive_ma_stays(medpac):
     """MA inpatient stays in the MedPAC sample year: ACH stays per 1,000 enrollees x enrollees (millions)."""
     sept = medpac['sept']
@@ -217,10 +227,17 @@ def _build():
 
     # Prose in content/*.json that quotes a figure from this data or from medpac.json carries a {placeholder}, filled here
     # so it cannot go stale. An unknown placeholder fails the build.
+    # The assumption values quote the model's defaults and its discharge mix, so they cannot disagree with the calculator.
     sept = content['medpac']['sept']
+    dflt = MODEL_STATIC['defaults']
     fills = {'medianOcc': f"{statistics.median(h['occ'] for h in hospitals) * 100:.1f}%", 'latestFy': str(latest),
              'pacYear': str(sept['year']), 'irfStaysMa': str(sept['staysPer1000']['ma']['irf']),
-             'irfStaysFfs': str(sept['staysPer1000']['ffs']['irf'])}
+             'irfStaysFfs': str(sept['staysPer1000']['ffs']['irf']),
+             't0Days': fmt_days(dflt['t0']), 't1Days': fmt_days(dflt['t1']),
+             'cvar': f"${dflt['cvar']:,}", 'rate': f"${dflt['rate']:,}", 'cm': f"${dflt['cm']:,}",
+             'mixHome': fmt_pct_number(mix['home']), 'mixHha': fmt_pct_number(mix['hha']),
+             'mixSnf': fmt_pct_number(mix['snf']), 'mixIrf': fmt_pct_number(mix['irf']),
+             'mixIrfFfs': fmt_pct_number(sept['mix']['ffs']['irf'])}
 
     def fill(text, where):
         out = re.sub(r'\{(\w+)\}', lambda m: fills.get(m[1], m[0]), text)
@@ -228,6 +245,7 @@ def _build():
             raise SystemExit(f'content: {where}: unknown placeholder {left}')
         return out
     for a in content['assumptions']:
+        a['value'] = fill(a['value'], f"assumptions.{a['key']}")
         a['why'] = fill(a['why'], f"assumptions.{a['key']}")
     for k, items in content['sides'].items():
         for it in items:
