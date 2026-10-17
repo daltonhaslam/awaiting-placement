@@ -88,6 +88,17 @@ test('lineSeries: one path per series, shaded COVID years, label', () => {
   noNaN(el);
 });
 
+test('lineSeries: the shade label moves to the bottom when the line runs along the top in the shaded years', () => {
+  const xs = SERIES.map((r) => r.fy);
+  const opts = (v) => ({ x: xs, yMax: 1, yLabel: 'Share', shade: { xs: D.meta.covidFys, label: 'COVID years' },
+    series: [{ key: 'share', label: 'MA share', tone: 'ma', values: xs.map(() => v) }] });
+  const labelY = (v) => Number(lineSeries(sized(360), opts(v)).querySelector('.ls__shade-label').getAttribute('y'));
+  const plotH = (svg) => Number(svg.getAttribute('height')) - 34 - 34;
+  const top = lineSeries(sized(360), opts(0.97));
+  assert.ok(labelY(0.97) > plotH(top) / 2, `near the top (0.97): label at y=${labelY(0.97)}`);
+  assert.ok(labelY(0.3) < 20, `mid-chart (0.3): label stays at the top, y=${labelY(0.3)}`);
+});
+
 test('lineSeries: a raised baseline shows an axis break and says so in the label', () => {
   const el = h('div');
   const svg = lineSeries(el, lineOpts({ yMin: 4 }));

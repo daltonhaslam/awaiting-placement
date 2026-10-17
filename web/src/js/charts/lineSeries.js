@@ -57,6 +57,14 @@ function draw(el, c) {
   const sx = (shade?.xs ?? []).filter(isNum);
   const shadeBox = sx.length ? [Math.max(x.domain()[0], Math.min(...sx) - step / 2), Math.min(x.domain()[1], Math.max(...sx) + step / 2)] : null;
 
+  // The shade label sits at the top of the band unless a line runs through the top 20 px in the shaded years (an MA share
+  // near 100%), then at the bottom.
+  const shadeLabelY = (() => {
+    if (!shadeBox) return 12;
+    const inBand = series.flatMap((sr) => sr.values.filter((v, i) => isNum(v) && xs[i] >= shadeBox[0] && xs[i] <= shadeBox[1]));
+    return inBand.some((v) => py(v) < 20) && !inBand.some((v) => py(v) > ph - 20) ? ph - 6 : 12;
+  })();
+
   const endY = series.map((sr) => {
     const i = sr.values.findLastIndex(isNum);
     return i < 0 ? null : { sr, i, v: sr.values[i] };
@@ -81,7 +89,7 @@ function draw(el, c) {
   const svg = s('svg', { class: 'ls__svg', width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', focusable: 'false', 'aria-label': aria },
     s('g', { transform: `translate(${M.left},${M.top})` },
       shadeBox && s('rect', { class: 'ls__shade', x: px(shadeBox[0]), y: 0, width: Math.max(0, px(shadeBox[1]) - px(shadeBox[0])), height: ph, 'aria-hidden': 'true' }),
-      shadeBox && s('text', { class: 'ls__shade-label', x: px(shadeBox[0]) + 6, y: 12, 'aria-hidden': 'true' }, shade.label),
+      shadeBox && s('text', { class: 'ls__shade-label', x: px(shadeBox[0]) + 6, y: shadeLabelY, 'aria-hidden': 'true' }, shade.label),
       yAxis(y, ticks, { group: 'ls__yticks', line: 'ls__', w: pw, fmt: tickFmt, base: lo }),
       s('text', { class: 'ls__axis-title', x: -M.left, y: -18, 'aria-hidden': 'true' }, raised ? `${yLabel} (axis starts at ${tickFmt(lo)}, not 0)` : yLabel),
       raised && s('g', { class: 'ls__break', 'aria-hidden': 'true' },
