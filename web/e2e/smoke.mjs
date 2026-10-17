@@ -511,7 +511,7 @@ const TO_DIGITS = String(Math.round(data.content.medpac.t41.rows.find((r) => r.d
 }
 // The section nav fits on one line on phones (components.css): no link hidden in its scroller. (The queue checks above
 // cover 1280, 414 and 360.)
-for (const width of [390]) {
+for (const width of [340, 350, 390]) {
   const page = await newPage({ viewport: { width, height: 900 } });
   await page.goto(PAGE);
   await page.waitForSelector('.hero h1');
