@@ -104,9 +104,14 @@ test('methods: the "check this hospital\'s data" rule comes from meta, its count
   const SENT = (n, many) => `${n} ${many ? 'hospitals' : 'hospital'} whose gap is larger than 3 days either way, or whose MA and traditional Medicare stays `
     + `differ more than twofold, ${many ? 'are' : 'is'} kept but marked "check this hospital's data" on ${many ? 'their' : 'its'} page; `
     + `the calculator uses national averages for ${many ? 'them' : 'it'}.`;
+  // Real data: whatever this year's count, the sentence states the hospital list's (none flagged: no sentence).
   const n = REAL.hospitals.filter((x) => x.checkData).length;
-  assert.ok(n > 1);
-  assert.ok(text(renderMethods(REAL)).includes(SENT(n.toLocaleString('en-US'), true)));
+  const el = renderMethods(REAL);
+  if (n > 0) assert.ok(text(el).includes(SENT(n.toLocaleString('en-US'), n > 1)));
+  const p = [...el.querySelectorAll('p')].map(text).find((x) => /hospitals? whose gap is larger than/.test(x));
+  assert.equal(p ? Number(/^\s*([\d,]+) /.exec(p)[1].replace(/,/g, '')) : 0, n);
+  // The fixture has exactly one flagged hospital: singular wording.
+  assert.equal(D.hospitals.filter((x) => x.checkData).length, 1);
   assert.ok(text(renderMethods(D)).includes(SENT('1', false)));
   // Thresholds follow meta.rules; no rules, no sentence.
   const raw = structuredClone(real);
@@ -114,6 +119,14 @@ test('methods: the "check this hospital\'s data" rule comes from meta, its count
   assert.match(text(renderMethods(loadData(raw))), /hospitals whose gap is larger than 2\.5 days either way, or whose MA and traditional Medicare stays differ more than 3-fold/);
   delete raw.meta.rules;
   assert.doesNotMatch(text(renderMethods(loadData(raw))), /check this hospital's data/);
+});
+
+test('methods: each "On this page" link points at its part\'s heading id, so it works without JavaScript', () => {
+  const el = renderMethods(D);
+  const hrefs = [...el.querySelectorAll('.methods__toc a')].map((a) => a.getAttribute('href'));
+  const ids = [...el.querySelectorAll('section.mpart > h2')].map((x) => `#${x.id}`);
+  assert.ok(ids.length > 0 && ids.every((x) => x !== '#'));
+  assert.deepEqual(hrefs, ids);
 });
 
 test('the fixture and the real data publish the same rule keys', () => {

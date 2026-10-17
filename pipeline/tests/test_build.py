@@ -49,14 +49,19 @@ class T(unittest.TestCase):
         med = statistics.median(h['occ'] for h in self.out['hospitals'])
         self.assertNotIn('{', fill['why'])
         self.assertIn(f'is {med * 100:.1f}%', fill['why'])
+    def test_side_quotes_irf_use_from_medpac_json(self):
+        sept = self.out['content']['medpac']['sept']
+        rate = sept['staysPer1000']
+        it = next(i for items in self.out['content']['sides'].values() for i in items if i['key'] == 'irf-use-narrower')
+        self.assertNotIn('{', it['text'])
+        self.assertIn(f"({rate['ma']['irf']} vs {rate['ffs']['irf']} stays per 1,000 in {sept['year']})", it['text'])
     def test_presets(self):
         self.assertEqual([p['id'] for p in self.out['presets']], ['community', 'regional', 'academic'])
     def test_national_series(self):
         self.assertEqual([s['fy'] for s in self.out['national']['series']], self.out['meta']['trendFys'])
     def test_check_data_flag_marks_but_keeps(self):
         hs = self.out['hospitals']
-        flagged = [h for h in hs if 'checkData' in h]
-        self.assertTrue(flagged)
+        flagged = [h for h in hs if 'checkData' in h]  # any count, including none, after a refresh
         self.assertTrue(all(h['checkData'] is True for h in flagged))  # omitted, never false
         self.assertEqual(self.out['meta']['nClean'], len(hs))  # flagged hospitals stay in the list and the count
     def test_exclusions_sum(self):

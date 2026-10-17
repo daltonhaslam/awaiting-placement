@@ -25,7 +25,7 @@ const POLL = { timeout: 6 * Math.max(HASH_DEBOUNCE_MS, LIVE_DEBOUNCE_MS) };
 const until = (page, what, fn, arg) => page.waitForFunction(fn, arg, POLL)
   .catch((e) => { if (e.name !== 'TimeoutError') throw e; check(false, `timed out waiting for ${what}`); });
 const frames = (page, n = 3) => page.evaluate((k) => new Promise((done) => { const f = (i) => (i ? requestAnimationFrame(() => f(i - 1)) : done()); f(k); }), n);
-// Section-nav links whose text the nav's box cuts off. The text, not the link box: a link's trailing padding may run past
+// Section-nav links whose text the nav's box or the viewport cuts off. The text, not the link box: a link's trailing padding may run past
 // the edge (the nav's scrollWidth then exceeds its width by a few px) without hiding anything.
 const navHidden = () => {
   const nav = document.querySelector('.sections').getBoundingClientRect();
@@ -33,7 +33,8 @@ const navHidden = () => {
     const r = document.createRange();
     r.selectNodeContents(a);
     const t = r.getBoundingClientRect();
-    return t.left < nav.left - 0.5 || t.right > nav.right + 0.5;
+    // Cut off by the nav's box, or off the side of the viewport.
+    return t.left < nav.left - 0.5 || t.right > nav.right + 0.5 || t.left < -0.5 || t.right > innerWidth + 0.5;
   }).map((a) => a.textContent);
 };
 const browser = await chromium.launch({ channel: 'chrome' });
@@ -159,6 +160,7 @@ for (const motion of ['no-preference', 'reduce']) {
 // Pre-rendered page. Without JavaScript: the story page, Methods and the footer read; "Loading…" never shows.
 {
   const ctx = await browser.newContext({ javaScriptEnabled: false });
+  await stubFonts(ctx);
   const page = await ctx.newPage();
   await page.goto(PAGE);
   const s = await page.evaluate(() => ({
@@ -166,9 +168,13 @@ for (const motion of ['no-preference', 'reduce']) {
     shown: [...document.querySelectorAll('[data-prerender]')].filter((e) => e.checkVisibility()).map((e) => e.dataset.prerender),
     loading: document.querySelector('.loading')?.checkVisibility(),
     footer: document.querySelector('#footer a[href^="https://github.com/"]') !== null,
+    // Methods' "On this page" links are plain anchors to its parts.
+    toc: [...document.querySelectorAll('.methods__toc a')].map((a) => a.getAttribute('href'))
+      .filter((x) => !(x.length > 1 && document.getElementById(x.slice(1))?.matches('section.mpart > h2'))),
   }));
   check(s.h1 === 'Ready to leave the hospital. Still waiting for the next bed.' && s.shown.join() === 'home,methods' && !s.loading && s.footer,
     `no JavaScript: story page, Methods and footer show, "Loading…" does not (${JSON.stringify(s)})`);
+  check(!s.toc.length, `no JavaScript: every Methods contents link reaches its part (${s.toc})`);
   await ctx.close();
 }
 // Before the bundle runs (head script only): the route's pre-rendered page shows, or "Loading…" for one not pre-rendered.
@@ -412,7 +418,7 @@ const setRange = (page, sel, v) => page.$eval(sel, (el, x) => { el.value = x; el
     });
     check(bar.fits && bar.oneRow, `queue: sits between the wordmark and the theme button without wrapping the bar ${at} (${JSON.stringify(bar)})`);
     const hidden = await page.evaluate(navHidden);
-    check(!hidden.length, `section nav: no link cut off by its scroller ${at} (${hidden})`);
+    check(!hidden.length, `section nav: no link cut off by its box or the viewport ${at} (${hidden})`);
     check(bar.tap >= 44, `nav tap targets at least 44 px ${at} (${bar.tap.toFixed(1)})`);
     await scrollTo(page, 'gap');
     await until(page, 'the counter to step back down', (to) => Number(document.querySelector('#topbar .led__digits')?.getAttribute('data-value')) < Number(to), TO);
@@ -509,14 +515,14 @@ const TO_DIGITS = String(Math.round(data.content.medpac.t41.rows.find((r) => r.d
     }
   }
 }
-// The section nav fits on one line on phones (components.css): no link hidden in its scroller. (The queue checks above
-// cover 1280, 414 and 360.)
+// The section nav on phones (components.css): smaller links that may wrap, none cut off by its box or the viewport.
+// (The queue checks above cover 1280, 414 and 360.)
 for (const width of [340, 350, 390]) {
   const page = await newPage({ viewport: { width, height: 900 } });
   await page.goto(PAGE);
   await page.waitForSelector('.hero h1');
   const hidden = await page.evaluate(navHidden);
-  check(!hidden.length, `section nav: no link cut off by its scroller @${width} (${hidden})`);
+  check(!hidden.length, `section nav: no link cut off by its box or the viewport @${width} (${hidden})`);
   await page.close();
 }
 // Chart x labels never collide, at phone, tablet (where FY labels once overran: "FY201FY2017") and desktop widths.

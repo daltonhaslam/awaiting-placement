@@ -115,7 +115,7 @@
   },
   {
    "key": "irf-use-narrower",
-   "text": "MA enrollees used inpatient rehabilitation at about a third of the traditional Medicare rate (5 vs 14 stays per 1,000 in 2023). The MA patients who do go to rehab are a narrower group, so part of their longer hospital stay may reflect who they are, which adjustment for diagnosis group cannot fully remove.",
+   "text": "MA enrollees used inpatient rehabilitation at about a third of the traditional Medicare rate ({irfStaysMa} vs {irfStaysFfs} stays per 1,000 in {pacYear}). The MA patients who do go to rehab are a narrower group, so part of their longer hospital stay may reflect who they are, which adjustment for diagnosis group cannot fully remove.",
    "src": [
     {
      "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",

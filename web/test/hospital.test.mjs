@@ -95,9 +95,8 @@ test('"check this hospital\'s data": the card note, no rank sentence, and the ca
   // An unflagged hospital has neither.
   const ok = text(render(D, '220071'));
   assert.ok(!ok.includes(CHECK_DATA_NOTE));
-  // Real data: every flagged hospital renders the note and no rank sentence.
+  // Real data: every flagged hospital renders the note and no rank sentence (a refresh may flag none).
   const flagged = REAL.hospitals.filter((y) => y.checkData);
-  assert.ok(flagged.length > 0);
   for (const y of flagged) {
     const ry = render(REAL, y.id);
     assert.ok(text(ry).includes(CHECK_DATA_NOTE), y.id);

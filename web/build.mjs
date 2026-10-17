@@ -8,7 +8,7 @@ import { escapeInlineScript, cspHash, withScriptHashes } from './inline-script.m
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { SITE, FONTS_HREF, THEME_KEY, PUBLISHED } from './src/js/site.js';
-import { SECTIONS, parseHash } from './src/js/router.js';
+import { SECTIONS, parseHash, bootPage } from './src/js/router.js';
 import { cardImageUrl, cardNumbers } from './og-card.mjs';
 import { prerender } from './prerender.mjs';
 
@@ -59,15 +59,15 @@ const THEME_COLOR = `<meta name="theme-color" content="${pageColor(tokens)}" med
 const title = `${SITE.name}: Medicare Advantage and hospital length of stay`;
 // Before first paint: apply a saved Day/Night choice (no flash), start the non-blocking font stylesheet, and name the
 // route in data-boot so the boot CSS shows the pre-rendered page the app will render ("home" for the story page and
-// its sections, "methods", else "other", which shows "Loading…"). The route comes from router.parseHash itself, inlined
-// with the one module binding it reads (SECTIONS). Inline scripts are allowed by their sha256 in the CSP (see below),
-// not by 'unsafe-inline'.
+// its sections, "methods", else "other", which shows "Loading…"). The route comes from router.parseHash and bootPage
+// themselves, inlined with the one module binding they read (SECTIONS); router.js keeps them ES5. Each part has its own
+// try/catch, so a failure in the route code cannot take the theme or the fonts with it. Inline scripts are allowed by
+// their sha256 in the CSP (see below), not by 'unsafe-inline'.
 const HEAD_JS = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});`
   + `if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
   + `var l=document.createElement('link');l.rel='stylesheet';l.href=${JSON.stringify(FONTS_HREF)};document.head.appendChild(l);`
-  + `var SECTIONS=${JSON.stringify(SECTIONS)};var parseHash=${parseHash.toString()};`
-  + `var v=parseHash(location.hash).view;`
-  + `document.documentElement.setAttribute('data-boot',v==='home'||v==='calculator'?'home':v==='methods'?'methods':'other');`;
+  + `try{var SECTIONS=${JSON.stringify(SECTIONS)};var parseHash=${parseHash.toString()};var bootPage=${bootPage.toString()};`
+  + `document.documentElement.setAttribute('data-boot',bootPage(parseHash(location.hash).view))}catch(e){}`;
 const HEAD = `<script>${HEAD_JS}</script>`;
 const APP_JS = escapeInlineScript(js);
 

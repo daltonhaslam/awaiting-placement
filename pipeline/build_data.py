@@ -7,6 +7,7 @@ lenses, the discharge mix and the cross-check are all derived from it.
 """
 import csv
 import json
+import re
 import statistics
 import sys
 from collections import Counter, defaultdict
@@ -184,10 +185,25 @@ def _build():
             **({'checkData': True} if clean.check_data(d) else {}),  # omitted when false, to keep the file small
         })
 
-    # Prose in content/*.json that quotes a figure from this data carries a {placeholder}, filled here so it cannot go stale.
-    med_occ = f"{statistics.median(h['occ'] for h in hospitals) * 100:.1f}%"
+    # Prose in content/*.json that quotes a figure from this data or from medpac.json carries a {placeholder}, filled here
+    # so it cannot go stale. An unknown placeholder fails the build.
+    sept = content['medpac']['sept']
+    fills = {'medianOcc': f"{statistics.median(h['occ'] for h in hospitals) * 100:.1f}%", 'latestFy': str(latest),
+             'pacYear': str(sept['year']), 'irfStaysMa': str(sept['staysPer1000']['ma']['irf']),
+             'irfStaysFfs': str(sept['staysPer1000']['ffs']['irf'])}
+
+    def fill(text, where):
+        out = re.sub(r'\{(\w+)\}', lambda m: fills.get(m[1], m[0]), text)
+        if left := re.findall(r'\{\w+\}', out):
+            raise SystemExit(f'content: {where}: unknown placeholder {left}')
+        return out
     for a in content['assumptions']:
-        a['why'] = a['why'].replace('{medianOcc}', med_occ).replace('{latestFy}', str(latest))
+        a['why'] = fill(a['why'], f"assumptions.{a['key']}")
+    for k, items in content['sides'].items():
+        for it in items:
+            for f in ('text', 'short'):
+                if f in it:
+                    it[f] = fill(it[f], f"sides.{k}.{it['key']}")
 
     presets = []
     for pid, label, note, pred in PRESETS:

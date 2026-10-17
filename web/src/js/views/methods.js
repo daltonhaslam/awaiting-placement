@@ -228,6 +228,8 @@ function aboutPart(D) {
 
 export function renderMethods(D) {
   const parts = [sourcesPart(D), costReportPart(D), calculatorPart(D), limitsPart(), aboutPart(D)];
+  // Without JavaScript (the pre-rendered page) each link is a plain anchor to its part. With it, the click scrolls
+  // instead, so the route stays #methods (the router reads #methods-sources as an unknown page).
   const jump = (target) => (e) => {
     e.preventDefault();
     target.scrollIntoView();
@@ -239,7 +241,7 @@ export function renderMethods(D) {
     h('nav', { class: 'methods__toc', 'aria-label': 'On this page' },
       h('ul', null, parts.map((p) => {
         const h2 = p.querySelector('h2');
-        return h('li', null, h('a', { href: '#methods', onclick: jump(h2) }, h2.textContent));
+        return h('li', null, h('a', { href: `#${h2.id}`, onclick: jump(h2) }, h2.textContent));
       }))),
     parts);
 }

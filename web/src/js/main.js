@@ -1,6 +1,6 @@
 import { clear, flushDraws } from './dom.js';
 import { SITE } from './site.js';
-import { onRoute } from './router.js';
+import { onRoute, bootPage } from './router.js';
 import { loadData } from './data.js';
 import { themeButton } from './ui/theme.js';
 import { tooltip } from './ui/tooltip.js';
@@ -52,7 +52,8 @@ let unbindQueue = null;
 // hero LED the reader is already looking at keeps its number instead of resetting to 00 to count up.
 onRoute((r) => {
   tooltip.hide();
-  const key = r.view === 'home' || r.view === 'calculator' ? 'home' : `${r.view}:${r.id ?? ''}`;
+  const page = bootPage(r.view);
+  const key = page === 'other' ? `${r.view}:${r.id ?? ''}` : page; // each hospital is its own page
   if (key !== current) {
     const first = current === null;
     unbindQueue?.();

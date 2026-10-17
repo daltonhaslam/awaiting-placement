@@ -114,6 +114,19 @@ test('head script names the route in data-boot (router.parseHash, inlined)', () 
     assert.equal(boot(hash), want, `data-boot for "${hash}"`);
   }
 });
+test('head script stays ES5 syntax, and a failing route part leaves the theme and fonts alone', () => {
+  const head = /<head>[\s\S]*?<script>([\s\S]*?)<\/script>/.exec(html)[1];
+  // One newer construct is a parse error in an old browser, which drops the whole script (theme and fonts too).
+  assert.doesNotMatch(head, /\?\?|\?\.[^\d]|catch\s*\{|=>|`|\b(let|const|class)\s/);
+  const attrs = {};
+  let linked = false;
+  const doc = { documentElement: { setAttribute: (k, v) => { attrs[k] = v; } }, createElement: () => ({}), head: { appendChild() { linked = true; } } };
+  const location = { get hash() { throw new Error('no hash'); } };
+  new Function('localStorage', 'document', 'location', head)({ getItem: () => 'dark' }, doc, location);
+  assert.equal(attrs['data-theme'], 'dark');
+  assert.ok(linked, 'font stylesheet still started');
+  assert.equal(attrs['data-boot'], undefined);
+});
 
 const vercelCsp = () => {
   const cfg = JSON.parse(readFileSync(new URL('../vercel.json', new URL('..', import.meta.url)), 'utf8'));
