@@ -14,10 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: '3.12' }
+        with: { python-version: '3.12' } # the pipeline is stdlib-only and supports 3.9+ (README); local is 3.9
       - uses: actions/setup-node@v4
         with:
-          node-version: 26 # match local; the build's output is pinned by package-lock.json (esbuild, linkedom)
+          node-version-file: web/.nvmrc # match local; the build's output is pinned by package-lock.json (esbuild, linkedom)
           cache: npm
           cache-dependency-path: web/package-lock.json
       # The names table is committed, so the ap.json rebuild check runs here. Only the check that the table matches the

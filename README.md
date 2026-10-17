@@ -48,7 +48,8 @@ Each hospital-year comes from one cost report: duplicates are resolved by taking
 
 ## Rebuilding
 
-Requirements: Python 3.9+ (standard library only; always run it isolated with `-I`), Node 18+ with npm, and, for the
+Requirements: Python 3.9+ (standard library only; always run it isolated with `-I`; tested on 3.9 locally and 3.12 in
+CI), Node with npm (the version in `web/.nvmrc`, which CI also reads), and, for the
 browser checks, Google Chrome Stable (Playwright drives the installed Chrome; `npm ci` downloads no browsers). The share
 card (`node og.mjs`) and the font download (`node fonts.mjs`) also need network access to Google Fonts. `node build.mjs`
 itself needs no browser, including its pre-render step. Tested on macOS with Python 3.9.6 and Node 26; a rebuild there is
