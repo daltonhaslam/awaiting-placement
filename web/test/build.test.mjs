@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { SITE, FONTS_HREF } from '../src/js/site.js';
-import { cardHtml, cardImageUrl, cardNumbers } from '../og-card.mjs';
+import { cardHtml, cardImageUrl, cardNumbers, iconSvg } from '../og-card.mjs';
 import { loadData } from '../src/js/data.js';
 import { escapeInlineScript, cspHash } from '../inline-script.mjs';
 import { parseHTML } from 'linkedom';
@@ -204,6 +204,32 @@ test('share card: 1200x630 PNG, absolute versioned og:image, size, alt and large
 test('the share card is current: run `node og.mjs` after the data, tokens, or card text change', () => {
   const stamp = JSON.parse(readFileSync(new URL('../og.stamp.json', import.meta.url), 'utf8'));
   assert.equal(stamp.htmlSha256, createHash('sha256').update(cardHtml(D)).digest('hex'));
+});
+test('favicon.ico and apple-touch-icon.png exist beside the page, are linked, and show the LED mark', () => {
+  assert.match(html, /<link rel="icon" href="favicon\.ico" sizes="32x32">/);
+  assert.match(html, /<link rel="icon" type="image\/svg\+xml" href="data:image\/svg\+xml,/);
+  assert.match(html, /<link rel="apple-touch-icon" href="apple-touch-icon\.png">/);
+  const png = readFileSync(docs('apple-touch-icon.png'));
+  assert.equal(png.subarray(1, 4).toString(), 'PNG');
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [180, 180]);
+  // ICO: reserved 0, type 1, then one 16-byte directory entry per image (width/height bytes), each image a PNG.
+  const ico = readFileSync(docs('favicon.ico'));
+  assert.deepEqual([ico.readUInt16LE(0), ico.readUInt16LE(2)], [0, 1]);
+  const n = ico.readUInt16LE(4);
+  const sizes = [];
+  for (let i = 0; i < n; i++) {
+    const e = 6 + 16 * i;
+    sizes.push(ico[e]);
+    const off = ico.readUInt32LE(e + 12);
+    assert.equal(ico.subarray(off + 1, off + 4).toString(), 'PNG', `image ${i} is a PNG`);
+    assert.ok(off + ico.readUInt32LE(e + 8) <= ico.length, `image ${i} inside the file`);
+  }
+  assert.deepEqual(sizes.sort((a, b) => a - b), [16, 32]);
+});
+test('the icons are current: run `node icons.mjs` after the hero number or the mark changes', () => {
+  const stamp = JSON.parse(readFileSync(new URL('../icons.stamp.json', import.meta.url), 'utf8'));
+  assert.equal(stamp.svgSha256, createHash('sha256').update(iconSvg(D, { square: true }) + iconSvg(D)).digest('hex'));
+  assert.ok(iconSvg(D).includes(`>${cardNumbers(D).now}</text>`));
 });
 test('the card shows the hero numbers, with their unit and coverage beside them', () => {
   const c = cardHtml(D);

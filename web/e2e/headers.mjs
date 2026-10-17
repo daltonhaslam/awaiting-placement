@@ -31,6 +31,18 @@ for (const hash of ['', '#methods', `#hospital-${id}`, `#calculator?h=${id}&l=ho
   }
   await page.close();
 }
+// Every icon the page links (and the /favicon.ico browsers ask for unprompted) is served: 200, an image type.
+{
+  const page = await browser.newPage();
+  await page.goto(base);
+  const hrefs = await page.$$eval('link[rel~="icon"], link[rel="apple-touch-icon"]', (ls) => ls.map((l) => l.href).filter((h) => !h.startsWith('data:')));
+  check(hrefs.length >= 2, `icon links: ${hrefs.length}`);
+  for (const url of new Set([...hrefs, `${base}favicon.ico`])) {
+    const res = await page.request.get(url);
+    check(res.status() === 200 && /^image\//.test(res.headers()['content-type'] ?? ''), `${url}: ${res.status()} ${res.headers()['content-type']}`);
+  }
+  await page.close();
+}
 // The CSP's require-trusted-types-for is in force: an HTML string sink throws (the app has none; this proves the header).
 {
   const page = await browser.newPage();

@@ -101,16 +101,17 @@ including the one that checks the committed `ap.json` equals a fresh build. Fetc
 - [ ] Run `fetch.py`, `extract_hcris.py` and `build_data.py`, then `python3 -I pipeline/run_tests.py`.
 - [ ] Review any change in exclusion counts before accepting the new data, and the hospitals marked "check this hospital's data" (`build_data.py` prints them; the thresholds are in `pipeline/ap/clean.py`).
 - [ ] Bump `PUBLISHED` in `web/src/js/site.js` to the release month (the dateline reads it; nothing sets it automatically). Update the MedPAC values pinned in `pipeline/tests/test_content.py`.
-- [ ] `cd web && node og.mjs` to regenerate the share card (and `og.stamp.json`, the hash of the card's HTML that `npm test` checks), then `node build.mjs` so the image URL (`?v=` content hash) and CSP hashes are current.
+- [ ] `cd web && node og.mjs` to regenerate the share card (and `og.stamp.json`, the hash of the card's HTML that `npm test` checks), and `node icons.mjs` if the hero number changed (the favicon shows it; `icons.stamp.json` is checked the same way), then `node build.mjs` so the image URL (`?v=` content hash) and CSP hashes are current.
 - [ ] `npm test` and all three e2e commands.
-- [ ] Commit `docs/index.html`, `docs/og.png` and `vercel.json` together.
+- [ ] Commit `docs/index.html`, `docs/og.png`, the icons and `vercel.json` together.
 - [ ] Push and check the `check` workflow (`.github/workflows/check.yml`, on every push to `main` and every pull request) is green: it runs the Python and unit tests, rebuilds `docs/index.html` from the committed `ap.json` and fails unless it is byte-identical, then runs `npm run e2e:docs` against the committed page. A red rebuild step means the committed page is stale: rebuild locally and commit it with `vercel.json`.
 
 ## Layout
 
 ```
 .github/workflows/    check.yml: tests, byte-identical rebuild and e2e on every push to main and every pull request
-docs/                 published page (index.html), share card (og.png), and hand-written 404.html, robots.txt, sitemap.xml
+docs/                 published page (index.html), share card (og.png), icons, self-hosted fonts (fonts/), and
+                      hand-written 404.html, robots.txt, sitemap.xml
 pipeline/
   fetch.py            download + sha256-verify raw files into data/raw/ (gitignored)
   sources.json        the raw-file pins (not the site's citation list, which is content/sources.json)
@@ -133,6 +134,8 @@ web/
   og.mjs              renders the share card
   og-card.mjs         the card's HTML and its versioned image URL
   og.stamp.json       hash of the card HTML; npm test fails if the card is stale
+  icons.mjs           renders favicon.ico and apple-touch-icon.png (icons.stamp.json, as for the card)
+  fonts.mjs           downloads the web fonts into docs/fonts/ and writes src/styles/fonts.css
   inline-script.mjs   escapes inline JS and computes its CSP hash
 vercel.json           headers, including the content security policy, and the /index.html redirect
 ```

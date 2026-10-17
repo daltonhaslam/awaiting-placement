@@ -24,6 +24,18 @@ export function cardNumbers(D) {
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const token = (css, name) => new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{3,8})\\b`).exec(css)?.[1]
+  ?? (() => { throw new Error(`tokens.css: --${name} not found`); })();
+
+// The site's icon: a tiny Now Serving LED, the housing (--led-bg) with the hero's number in the LED orange (--led).
+// Inlined as the SVG favicon by build.mjs and rendered to favicon.ico and apple-touch-icon.png by icons.mjs. square:
+// full-bleed, for the Apple touch icon (iOS rounds the corners itself and shows transparency as black).
+export function iconSvg(D, { square = false } = {}) {
+  const tokens = readFileSync(new URL('src/styles/tokens.css', import.meta.url), 'utf8');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32"${square ? '' : ' rx="3"'} `
+    + `fill="${token(tokens, 'led-bg')}"/><text x="16" y="22" font-family="monospace" font-weight="700" font-size="16" `
+    + `text-anchor="middle" fill="${token(tokens, 'led')}">${cardNumbers(D).now}</text></svg>`;
+}
 
 export function cardHtml(D) {
   const { now, you, fy, src } = cardNumbers(D);

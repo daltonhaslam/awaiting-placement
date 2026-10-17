@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { SITE, THEME_KEY, PUBLISHED } from './src/js/site.js';
 import { SECTIONS, parseHash, bootPage } from './src/js/router.js';
-import { cardImageUrl, cardNumbers } from './og-card.mjs';
+import { cardImageUrl, cardNumbers, iconSvg } from './og-card.mjs';
 import { prerender } from './prerender.mjs';
 
 const here = (p) => new URL(p, import.meta.url);
@@ -44,8 +44,10 @@ const DESC = `Medicare Advantage patients stay longer in the hospital before pos
   + `Profiles of ${nClean.toLocaleString('en-US')} hospitals, FY${latestFy} cost reports.`;
 if (DESC.length > 160) throw new Error(`meta description is ${DESC.length} characters; keep it under 160`);
 const cardN = cardNumbers(parsed);
-// The favicon is a tiny Now Serving LED: the housing (--led-bg) with the hero's number in the LED orange (--led).
-const ICON = `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="3" fill="#111513"/><text x="16" y="22" font-family="monospace" font-weight="700" font-size="16" text-anchor="middle" fill="#ff6a3d">${cardN.now}</text></svg>`)}">`;
+// The SVG icon for browsers that take one; favicon.ico (Safari, and the browser's own /favicon.ico request) and the
+// Apple touch icon are the same mark rendered by icons.mjs.
+const ICON = `<link rel="icon" href="favicon.ico" sizes="32x32"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(iconSvg(parsed))}">`
+  + '<link rel="apple-touch-icon" href="apple-touch-icon.png">';
 const OG_ALT = `Awaiting Placement: Ready to leave the hospital. Still waiting for the next bed. Now serving ${cardN.now}, your number ${cardN.you}: average days in hospital before inpatient rehab, traditional Medicare vs Medicare Advantage.`;
 const OG = `<meta property="og:image" content="${cardImageUrl(readFileSync(here('../docs/og.png')))}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`
   + `<meta property="og:image:alt" content="${attr(OG_ALT)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image:alt" content="${attr(OG_ALT)}">`;
