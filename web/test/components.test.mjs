@@ -331,3 +331,13 @@ test('trackTopbar writes the measured bar height to --topbar-h and follows resiz
     globalThis.ResizeObserver = had;
   }
 });
+
+test('pathway: the real timeline\'s CMS-0057-F deadline item gives the deadline line (it went missing after a title edit)', () => {
+  const real = loadData(JSON.parse(readFileSync(new URL('../src/data/ap.json', import.meta.url), 'utf8')));
+  const el = renderPathway(real, new Date('2026-10-15')).querySelector('.path__rule');
+  assert.ok(el, 'deadline line shown');
+  assert.match(text(el), /^Since Jan 2026 /);
+  assert.match(text(el), /seven calendar days/);
+  // Only the decision-deadline item: never the 2027 API item or the MedPAC items, which mention days but not decisions.
+  assert.doesNotMatch(text(el), /API|MedPAC/);
+});

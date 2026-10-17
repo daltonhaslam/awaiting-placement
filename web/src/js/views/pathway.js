@@ -12,9 +12,10 @@ const STEPS = [
   { title: 'Transport home or to facility', note: 'The hospital bed opens for the next patient.' },
 ];
 
-// The decision-deadline item: its title names decisions, and it states a deadline or time frame. CMS-0057-F's
-// other item (the 2027 API requirements) does not name decisions, so it never matches.
-const isDeadlines = (t) => /decision/i.test(t.title || '') && /deadline|time ?frame|hours|days/i.test(`${t.title} ${t.body}`);
+// The decision-deadline item: it names decisions and states a deadline or time frame (title or body; the title alone
+// once stopped matching after an edit, and the line silently went missing). CMS-0057-F's other item (the 2027 API
+// requirements) and the MedPAC items do not name decisions, so they never match.
+const isDeadlines = (t) => { const s = `${t.title || ''} ${t.body || ''}`; return /decision/i.test(s) && /deadline|time ?frame|hours|days/i.test(s); };
 
 // The decision-deadline rule, only as the cited timeline states it (the pipeline admits verified items only).
 function deadlineLine(D, now) {
