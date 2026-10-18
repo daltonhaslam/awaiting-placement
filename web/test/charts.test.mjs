@@ -300,6 +300,43 @@ test('bindTip: move and press show, leaving hides', () => {
   assert.deepEqual(calls, ['show', 'show', 'leave']);
 });
 
+// A pointer event of a given type and pointerType at (x, y), dispatched on a node (linkedom has no PointerEvent).
+const ptr = (node, type, pointerType, x = 10, y = 10) => {
+  const e = new dom.window.Event(type, { bubbles: true });
+  Object.assign(e, { pointerType, clientX: x, clientY: y });
+  node.dispatchEvent(e);
+};
+
+test('bindTip on touch: a tap shows and stays (no hide on the pointerleave that follows), a second tap closes', () => {
+  document.body.append(document.createElement('div'));
+  const node = document.createElement('div');
+  document.body.append(node);
+  const calls = [];
+  bindTip(node, () => calls.push('show'), () => calls.push('leave'));
+  ptr(node, 'pointerdown', 'touch');
+  ptr(node, 'pointerleave', 'touch'); // touch fires this right after pointerup
+  ptr(node, 'pointermove', 'touch');
+  assert.deepEqual(calls, ['show']);
+  ptr(node, 'pointerdown', 'touch'); // the same spot again
+  assert.deepEqual(calls, ['show', 'leave']);
+  ptr(node, 'pointerdown', 'touch');
+  ptr(node, 'pointerdown', 'touch', 200, 10); // elsewhere on the same chart: moves, does not close
+  assert.deepEqual(calls, ['show', 'leave', 'show', 'show']);
+});
+
+test('bindTip on touch: a tap outside the chart closes the tooltip', () => {
+  const node = document.createElement('div');
+  const other = document.createElement('p');
+  document.body.append(node, other);
+  const calls = [];
+  bindTip(node, () => calls.push('show'), () => calls.push('leave'));
+  ptr(node, 'pointerdown', 'touch');
+  ptr(other, 'pointerdown', 'touch');
+  assert.deepEqual(calls, ['show', 'leave']);
+  ptr(other, 'pointerdown', 'touch'); // nothing open: nothing to close
+  assert.deepEqual(calls, ['show', 'leave']);
+});
+
 test('maCurve: moving only the current share keeps the lines and moves the marker; new points redraw', () => {
   const el = document.createElement('div');
   const pts = (k) => Array.from({ length: 21 }, (_, i) => ({ ma: i / 20, beds: i * k, bedsFaster: i * k / 2 }));

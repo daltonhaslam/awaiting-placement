@@ -55,10 +55,43 @@ export const lineKey = (cls) => s('svg', { class: 'linekey', viewBox: '0 0 24 8'
   s('line', { class: cls, x1: 1, y1: 4, x2: 23, y2: 4 }));
 
 // Pointer wiring for a hover target: move or press shows (fn gets the event); leaving hides the tooltip and runs `onLeave`.
+// On touch there is no hover: a tap shows the tooltip and it stays (the pointerleave touch fires right after the tap is
+// ignored); a second tap on the same spot, a tap outside the chart, or a scroll closes it. One open at a time.
+let touchTip = null; // { node, x, y, leave } of the tooltip a tap opened
+const TAP_SLOP = 24; // px: a tap this close to the last one is "the same spot"
+// The closing listeners exist only while a tapped tooltip is open, so nothing is left attached otherwise.
+const outside = (e) => { if (touchTip && !touchTip.node.contains(e.target)) closeTouchTip(); };
+function closeTouchTip() {
+  const t = touchTip;
+  touchTip = null;
+  document.removeEventListener('pointerdown', outside, true);
+  window.removeEventListener('scroll', closeTouchTip);
+  t?.leave();
+}
+function openTouchTip(t) {
+  if (!touchTip) {
+    // Capture phase, so it runs before a chart's own handler (which may open a new tooltip).
+    document.addEventListener('pointerdown', outside, true);
+    window.addEventListener('scroll', closeTouchTip, { passive: true });
+  }
+  touchTip = t;
+}
+
 export function bindTip(node, fn, onLeave) {
-  node.addEventListener('pointermove', fn);
-  node.addEventListener('pointerdown', fn);
-  node.addEventListener('pointerleave', () => { onLeave?.(); tooltip.hide(); });
+  const leave = () => { onLeave?.(); tooltip.hide(); };
+  node.addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') fn(e); });
+  node.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') {
+      const t = touchTip;
+      if (t?.node === node && Math.hypot(e.clientX - t.x, e.clientY - t.y) < TAP_SLOP) {
+        closeTouchTip();
+        return;
+      }
+      openTouchTip({ node, x: e.clientX, y: e.clientY, leave });
+    }
+    fn(e);
+  });
+  node.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') leave(); });
 }
 
 // Put a freshly drawn chart svg in its host, replacing the previous drawing (`cls` is the svg's class).

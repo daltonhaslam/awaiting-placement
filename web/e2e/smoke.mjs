@@ -542,6 +542,26 @@ for (const width of [340, 350, 390]) {
     }
   }
 }
+// Touch (phone emulation): a tap on a chart mark shows its tooltip and it stays; the same tap again closes it, and so does
+// a tap beside the chart.
+{
+  const page = await newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  await page.goto(`${PAGE}#gap`);
+  const seg = page.locator('.mix__seg').first();
+  await seg.scrollIntoViewIfNeeded();
+  await frames(page);
+  const tipOn = () => page.evaluate(() => { const t = document.querySelector('.tip'); return !!t && !t.hidden && t.textContent.length > 0; });
+  await seg.tap();
+  await page.waitForTimeout(300);
+  check(await tipOn(), 'touch: a tap shows the tooltip and it stays');
+  await seg.tap();
+  check(!(await tipOn()), 'touch: tapping the same mark again closes it');
+  await seg.tap();
+  const box = await seg.boundingBox();
+  await page.touchscreen.tap(4, box.y + box.height / 2); // the page gutter, beside the chart
+  check(!(await tipOn()), 'touch: a tap beside the chart closes it');
+  await page.close();
+}
 // Home renders (hero h1 and the LED panel) in under 2.5 s on a cold load with the font stylesheet stubbed.
 {
   const page = await newPage({ viewport: { width: 1280, height: 900 } });
