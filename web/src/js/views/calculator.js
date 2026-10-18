@@ -22,6 +22,8 @@ import { HASH_DEBOUNCE_MS, LIVE_DEBOUNCE_MS } from '../timing.js';
 // in place, so compute() only ever sees finite, in-range inputs and NaN never reaches the page.
 
 const MEDPAC = ['placement', 'adjusted', 'unadjusted'];
+// An all-payer average stay outside this range (days) cannot be a real hospital's: the basics are shown with a warning.
+const STAY_PLAUSIBLE = [1.5, 30];
 const HASH_KEY = { beds: 'b', occ: 'o', dis: 'd', mcr: 'm', ma: 'a' };
 
 const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : f());
@@ -210,6 +212,8 @@ export function renderCalculator(D, { query } = {}) {
   led.classList.add('calc__led');
   const sub = h('p', { class: 'calc__sub' });
   const cap = h('p', { class: 'calc__flag', role: 'status', hidden: true }, 'Capped at the hospital\'s occupied beds; check inputs.');
+  // Each basic is clamped on its own; together they can still describe no real hospital. Warn, never block.
+  const warn = h('p', { class: 'calc__flag calc__warn', role: 'status', hidden: true });
   const live = h('p', { class: 'visually-hidden', 'aria-live': 'polite' });
 
   const boardEl = h('div', { class: 'bb' });
@@ -334,7 +338,8 @@ export function renderCalculator(D, { query } = {}) {
             numField('occ', 'Occupancy', { pct: true, unit: '%', step: 0.1 }),
             numField('dis', 'Discharges a year, all payers', { step: 10 }),
             numField('mcr', 'Medicare share of discharges', { pct: true, unit: '%', step: 0.1 })),
-          h('p', { class: 'fld__hint-line' }, 'Cost reports count available beds, which can exceed staffed beds. Enter your staffed count if you know it.')),
+          h('p', { class: 'fld__hint-line' }, 'Cost reports count available beds, which can exceed staffed beds. Enter your staffed count if you know it.'),
+          warn),
         h('div', { class: 'ctl__group' }, lens.fs, lensNote),
         h('div', { class: 'ctl__group' },
           h('p', { class: 'ctl__head' }, 'Faster authorization'),
@@ -446,6 +451,16 @@ export function renderCalculator(D, { query } = {}) {
       + (fmtBeds(lo) === fmtBeds(hi) ? `The three measures all give ${fmtBeds(lo)}.`
         : `The three measures give ${fmtBeds(lo)} to ${fmtBeds(hi)} beds.`);
     flag(cap, 'hidden', !r.capped);
+    const odd = isNum(r.alos) && r.alos > 0 && (r.alos < STAY_PLAUSIBLE[0] || r.alos > STAY_PLAUSIBLE[1]);
+    if (odd) {
+      const stay = `an average stay of ${r.alos >= 100 ? `${fmtNum(Math.round(r.alos))} days` : fmtDays(r.alos)} for all patients `
+        + '(occupied beds × 365 ÷ discharges), which no acute hospital has.';
+      const fromReport = hospital && !BASICS.some((k) => hasBasic(hospital, k) && Math.abs(fit(k, hospital[k]) - inputs[k]) > 1e-9);
+      warn.textContent = fromReport
+        ? `The beds, occupancy and discharges figures in this hospital's cost report imply ${stay} One of them is likely misreported, so treat this estimate with caution.`
+        : `These inputs imply ${stay} Check beds, occupancy and discharges.`;
+    }
+    flag(warn, 'hidden', !odd);
 
     // Bed board
     const state = { beds: inputs.beds, occupied: inputs.occ * inputs.beds, held, freed: r.bedsFreed };

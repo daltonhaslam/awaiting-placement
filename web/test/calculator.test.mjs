@@ -234,6 +234,33 @@ test('capped inputs say so in plain text', () => {
   clean(el);
 });
 
+test('inputs that imply an impossible average stay show a warning, and the inputs stay as typed', () => {
+  // One calculator is live at a time (a new render disposes the last), so each case finishes before the next renders.
+  const warn = (el) => el.querySelector('.calc__warn');
+  // 10 beds at 90% for 5,000 discharges: 0.66 days a stay.
+  const short = renderCalculator(D, { query: 'b=10&o=0.9&d=5000&m=0.6&a=0.8' });
+  assert.ok(!warn(short).hidden, 'shown');
+  assert.equal(warn(short).getAttribute('role'), 'status');
+  assert.match(text(warn(short)), /These inputs imply an average stay of 0\.7 days for all patients/);
+  assert.equal(short.querySelector('input[name="beds"]').value, '10', 'not changed');
+  set(field(short, 'beds'), '300'); // typing back to sensible values hides it
+  assert.ok(warn(short).hidden);
+  clean(short);
+  // 2,500 beds at 95% for 150 discharges: years a stay, written as a whole number.
+  const long = renderCalculator(D, { query: 'b=2500&o=0.95&d=150' });
+  assert.match(text(warn(long)), /average stay of [\d,]+ days/);
+  clean(long);
+  const ok = renderCalculator(D); // a preset is plausible
+  assert.ok(warn(ok).hidden);
+  clean(ok);
+  // A hospital whose own cost-report figures imply it: the warning names the report, not the reader's typing.
+  const real = loadData(JSON.parse(readFileSync(new URL('../src/data/ap.json', import.meta.url), 'utf8')));
+  const odd = real.hospitals.find((x) => !x.occFlag && (x.occ * x.beds * 365) / x.dis < 1.5);
+  const own = renderCalculator(real, { query: `h=${odd.id}` });
+  assert.match(text(warn(own)), /figures in this hospital's cost report imply an average stay of/);
+  clean(own);
+});
+
 test('fill: auto by default with its computed value; the override checkbox sets it', () => {
   const el = renderCalculator(D, { query: 'o=0.8' });
   assert.match(text(el.querySelector('.calc__fill')), /Auto: 50%/);
