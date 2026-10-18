@@ -62,8 +62,9 @@ export function definitions(r, m = {}, nScaled = 0) {
       + `include swing-bed days (lines 5 and 6), so their occupancy can read high. ${occ}`],
     ['Teaching hospital', `${r?.teachFte ? `At least ${r.teachFte} full-time-equivalent` : 'Reports'} interns and residents (line 14, column 9), `
       + 'shown as a badge on hospital pages. The Academic preset counts any reported resident.'],
-    ['Names and cities', 'CMS Hospital General Information, matched by CMS certification number (CCN). '
-      + 'The cost-report name is used when there is no match.'],
+    ['Names and cities', 'CMS Hospital General Information ("Facility Name", "City/Town"), matched by CMS certification number (CCN), '
+      + 'read from a pinned copy committed with the code (pipeline/derived/hgi_names.csv), so a rebuild gives the same names '
+      + 'whatever CMS has since released. The cost-report name is used when there is no match.'],
   ];
 }
 

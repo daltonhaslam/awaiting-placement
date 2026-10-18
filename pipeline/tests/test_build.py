@@ -1,11 +1,13 @@
-import os, statistics, sys, unittest
+import csv, os, shutil, statistics, sys, tempfile, unittest
+from pathlib import Path
+from unittest import mock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import build_data
 
-HINT = 'missing Hospital General Information: run python3 -I pipeline/fetch.py --only hospital_general_info'
+HINT = 'missing the names table and Hospital General Information'
 TOP = ['meta', 'national', 'model', 'presets', 'hospitals', 'gapHist', 'content']
 
-@unittest.skipUnless(build_data.HGI.exists(), HINT)
+@unittest.skipUnless(build_data.NAMES.exists() or build_data.HGI.exists(), HINT)
 class T(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -76,6 +78,15 @@ class T(unittest.TestCase):
             self.assertEqual(h['teach'], float(rows[h['id']]['resid_fte'] or 0) >= t, h['id'])
         academic = next(p for p in self.out['presets'] if p['id'] == 'academic')
         self.assertEqual(academic['note'], '600 or more beds with residents')
+    def test_assumption_values_are_filled_from_the_model_and_medpac_json(self):
+        a = {x['key']: x for x in self.out['content']['assumptions']}
+        self.assertEqual([a[k]['value'] for k in ('t0', 't1', 'cvar', 'rate', 'cm')], ['2.5 days', '1.0 day', '$800', '$2,500', '$4,500'])
+        self.assertEqual(a['mix']['value'], 'Home 65%, home health 17%, skilled nursing 15%, inpatient rehabilitation 3%')
+        self.assertIn("From MedPAC's 2023 data: 65, 17 and 15 percent", a['mix']['why'])
+        self.assertIn('(5 percent in traditional Medicare)', a['mix']['why'])
+        for x in a.values():
+            self.assertNotIn('{', x['value'] + x['why'], x['key'])
+
     def test_presets(self):
         self.assertEqual([p['id'] for p in self.out['presets']], ['community', 'regional', 'academic'])
     def test_national_series(self):
@@ -88,6 +99,96 @@ class T(unittest.TestCase):
     def test_exclusions_sum(self):
         m = self.out['meta']
         self.assertEqual(sum(m['exclusions'].values()) + m['nClean'], m['nAcute'])
+
+class NamesTableTest(unittest.TestCase):
+    RAW = 'Facility ID,Facility Name,City/Town,State\n010001,SOUTHEAST HEALTH MEDICAL CENTER,DOTHAN,AL\n999999,ELSEWHERE,X,AL\n'
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.raw = self.tmp / 'hgi.csv'
+        self.table = self.tmp / 'names.csv'
+        self.raw.write_text(self.RAW, encoding='utf-8-sig')
+
+    def patched(self):
+        return mock.patch.multiple(build_data, HGI=self.raw, NAMES=self.table)
+
+    def test_table_is_the_raw_names_for_extract_ccns_only(self):
+        with self.patched():
+            rows = build_data.names_rows(build_data.read_raw_hgi(), {'010001', '020002'})
+        self.assertEqual(rows, [{'ccn': '010001', 'name': 'SOUTHEAST HEALTH MEDICAL CENTER', 'city': 'DOTHAN'}])
+
+    def test_committed_table_is_preferred_over_the_raw_file(self):
+        self.table.write_text('ccn,name,city\n010001,PINNED NAME,PINNED CITY\n', encoding='utf-8')
+        with self.patched():
+            self.assertEqual(build_data.load_names()['010001']['name'], 'PINNED NAME')
+
+    def test_raw_file_is_the_fallback_when_the_table_is_missing(self):
+        with self.patched():
+            got = build_data.load_names()
+        self.assertEqual(got['010001'], {'ccn': '010001', 'name': 'SOUTHEAST HEALTH MEDICAL CENTER', 'city': 'DOTHAN'})
+
+    def test_neither_present_fails_with_a_hint(self):
+        self.raw.unlink()
+        with self.patched(), self.assertRaises(SystemExit) as e:
+            build_data.load_names()
+        self.assertIn('--refresh-names', str(e.exception))
+
+    def test_a_table_missing_hospitals_the_raw_file_lists_fails_when_the_raw_file_is_here(self):
+        self.table.write_text('ccn,name,city\n999999,ELSEWHERE,X\n', encoding='utf-8')
+        with self.patched(), self.assertRaises(SystemExit) as e:
+            build_data.check_names_table(build_data.load_names(), {'010001', '999999', '020002'})
+        self.assertIn('--refresh-names', str(e.exception))
+        self.assertIn('1 hospital', str(e.exception))
+
+    def test_a_renamed_hospital_fails_too(self):
+        self.table.write_text('ccn,name,city\n010001,OLD NAME,DOTHAN\n', encoding='utf-8')
+        with self.patched(), self.assertRaises(SystemExit) as e:
+            build_data.check_names_table(build_data.load_names(), {'010001'})
+        self.assertIn('010001', str(e.exception))
+
+    def test_without_the_raw_file_the_table_is_trusted(self):
+        self.table.write_text('ccn,name,city\n999999,ELSEWHERE,X\n', encoding='utf-8')
+        self.raw.unlink()
+        with self.patched():
+            build_data.check_names_table(build_data.load_names(), {'010001', '999999'})  # no error
+
+    def test_write_then_load_round_trips(self):
+        rows = [{'ccn': '010001', 'name': 'A "QUOTED", NAME', 'city': 'X'}]
+        with self.patched():
+            build_data.write_names(rows)
+            self.assertEqual(build_data.load_names(), {'010001': rows[0]})
+
+
+@unittest.skipUnless(build_data.NAMES.exists() and build_data.HGI.exists(), 'needs data/raw/hospital_general_info')
+class CommittedNamesTableTest(unittest.TestCase):
+    def test_committed_table_matches_the_pinned_raw_file(self):
+        ccns = {r['ccn'] for r in build_data.load_extract()}
+        table = build_data.load_names()
+        self.assertEqual(build_data.stale_names(table, build_data.read_raw_hgi(), ccns), ([], []),
+                         'stale: run python3 -I pipeline/build_data.py --refresh-names')
+        self.assertEqual(len(table), len(build_data.names_rows(build_data.read_raw_hgi(), ccns)), 'no extra rows')
+
+
+class AssumptionFormatTest(unittest.TestCase):
+    def test_days_and_percents(self):
+        self.assertEqual(build_data.fmt_days(2.5), '2.5 days')
+        self.assertEqual(build_data.fmt_days(1.0), '1.0 day')
+        self.assertEqual(build_data.fmt_days(1.5), '1.5 days')
+        self.assertEqual(build_data.fmt_days(1.04), '1.0 day')  # the label follows the number shown
+        self.assertEqual(build_data.fmt_pct_number(0.65), '65')
+        self.assertEqual(build_data.fmt_pct_number(0.025), '2.5')
+        self.assertEqual(build_data.fmt_pct_number(0.07), '7')
+
+    def test_the_content_file_types_no_number_the_build_computes(self):
+        import json
+        raw = {a['key']: a for a in json.loads((build_data.CONTENT_DIR / 'assumptions.json').read_text(encoding='utf-8'))}
+        self.assertEqual(raw['t0']['value'], '{t0Days}')
+        self.assertEqual(raw['t1']['value'], '{t1Days}')
+        for k in ('cvar', 'rate', 'cm'):
+            self.assertEqual(raw[k]['value'], '{%s}' % k)
+        self.assertNotRegex(raw['mix']['value'], r'\d')
+
 
 class DeriveMaStaysTest(unittest.TestCase):
     def test_follows_the_cited_numbers(self):

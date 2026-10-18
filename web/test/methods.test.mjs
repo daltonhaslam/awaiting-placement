@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseHTML } from 'linkedom';
+import { DEADLINE, withTimeline } from './fixtures/edge.mjs';
 
 const dom = parseHTML('<!doctype html><html><head></head><body><main id="main"></main></body></html>');
 // linkedom has no layout: a synchronous frame and an inert ResizeObserver let charts draw at their fallback width.
@@ -268,11 +269,17 @@ test('methods: about has the byline, LinkedIn and the repo, and only the Claude 
   assert.ok(text(about).includes(SITE.byline));
   assert.ok(linkTo(about, SITE.linkedin));
   assert.ok(linkTo(about, SITE.repo));
-  assert.ok(text(about).includes('The page loads fonts from Google Fonts. It has no analytics, no cookies, and sends nothing else anywhere.'));
+  assert.ok(text(about).includes('The page loads everything it needs, fonts included, from this site. It has no analytics, no cookies, and sends nothing anywhere.'));
   assert.ok(text(about).replace(CUE, '').includes(`Built by ${SITE.byline}, using Claude Code.`));
   assert.doesNotMatch(text(el).replace(CREDIT, ''), /Claude|Anthropic|built with|AI[- ]generated|ChatGPT/i);
   // Byline, LinkedIn and repo only: no job title, named employer or location. "the author's employer" (unnamed) is allowed.
   assert.doesNotMatch(text(about).replace("author's employer", ''), /advisor|employ|based in|works at|hospital in/i);
+});
+
+test('methods: names and cities say they come from a pinned, committed copy of Hospital General Information', () => {
+  const t = text(renderMethods(REAL));
+  assert.ok(t.includes('Names and cities'));
+  assert.ok(t.includes('read from a pinned copy committed with the code (pipeline/derived/hgi_names.csv)'), 'pinned names table');
 });
 
 test('methods: sparse or missing content renders cleanly', () => {
@@ -333,7 +340,9 @@ test('sides: the policy timeline is an ordered board, dated in order, with a sou
 });
 
 test('sides: empty or missing content renders without empty columns or NaN', () => {
-  const el = renderSides(D, NOW); // fixture: no sides items, one timeline row with an object source
+  // No sides items, one timeline row whose source is a single object (not a list).
+  const sparse = { ...withTimeline(fixture.content, [{ ...DEADLINE, src: DEADLINE.src[0] }]), sides: { hospitals: [], plans: [], unsettled: [] } };
+  const el = renderSides(withContent(fixture, sparse), NOW);
   assert.equal(el.querySelectorAll('.sides__col').length, 0);
   assert.equal(el.querySelectorAll('ol.board > li').length, 1);
   noNaN(el);

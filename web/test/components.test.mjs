@@ -7,6 +7,7 @@ import { parseHTML } from 'linkedom';
 const dom = parseHTML('<!doctype html><html><head></head><body><main id="main"></main></body></html>');
 Object.assign(globalThis, { window: dom.window, document: dom.document, Node: dom.Node, HTMLElement: dom.HTMLElement });
 
+import { DEADLINE, withTimeline } from './fixtures/edge.mjs';
 const { h } = await import('../src/js/dom.js');
 const { PUBLISHED } = await import('../src/js/site.js');
 const { loadData } = await import('../src/js/data.js');
@@ -28,6 +29,7 @@ const { renderHome } = await import('../src/js/views/home.js');
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/ap.min.json', import.meta.url), 'utf8'));
 const withContent = (content) => loadData({ ...structuredClone(fixture), content });
 const D = withContent(fixture.content);
+const ONE_ITEM = withContent(withTimeline(fixture.content));
 const SRC = { label: 'MedPAC, June 2026, Table 4-1', url: 'https://www.medpac.gov/x.pdf', type: 'gov', verified: true };
 const text = (el) => el.textContent.replace(/\s+/g, ' ');
 
@@ -209,7 +211,8 @@ test('pathway: definition, five steps, authorization marked, five signs', () => 
   assert.ok(auth.classList.contains('path__step--ma'));
   assert.match(text(auth), /MA plans can require it\. Traditional Medicare does not for these stays\./);
   assert.equal(el.querySelectorAll('.sign').length, 5);
-  const words = [...el.querySelectorAll('.sec__body > p')].map((p) => p.textContent).join(' ').split(/\s+/).filter(Boolean);
+  // The section's own copy; the cited decision-deadline rule (.path__rule) is the timeline's text, tested on its own.
+  const words = [...el.querySelectorAll('.sec__body > p:not(.path__rule)')].map((p) => p.textContent).join(' ').split(/\s+/).filter(Boolean);
   assert.ok(words.length > 40 && words.length <= 250, `copy is ${words.length} words`);
   // Coverage shapes two steps: MA network and prior authorization; traditional Medicare's three-midnight rule.
   const t = text(el);
@@ -221,14 +224,14 @@ test('pathway: definition, five steps, authorization marked, five signs', () => 
 
 test('pathway: the deadline line comes from the timeline, or is omitted', () => {
   const rule = (el) => el.querySelector('.path__rule');
-  const withItem = rule(renderPathway(D, new Date('2026-10-15')));
+  const withItem = rule(renderPathway(ONE_ITEM, new Date('2026-10-15')));
   assert.ok(withItem);
   assert.match(text(withItem), /Since Jan 2026/i);
   assert.match(text(withItem), /7 days.*72 hours/);
   assert.ok(withItem.querySelector('a[href^="https://www.federalregister.gov/"]'));
   const c = structuredClone(fixture.content);
-  c.timeline = [{ ...c.timeline[0], title: 'Insurer pledge', body: 'Something else.' },
-    { ...c.timeline[0], date: '2027-01-01', title: 'CMS-0057-F API requirements', body: 'Plans must offer prior authorization APIs.' }];
+  c.timeline = [{ ...DEADLINE, title: 'Insurer pledge', body: 'Something else.' },
+    { ...DEADLINE, date: '2027-01-01', title: 'CMS-0057-F API requirements', body: 'Plans must offer prior authorization APIs.' }];
   assert.equal(rule(renderPathway(withContent(c))), null);
   const p = renderPathway(withContent(null));
   assert.equal(rule(p), null);
@@ -237,7 +240,7 @@ test('pathway: the deadline line comes from the timeline, or is omitted', () => 
 });
 
 test('pathway: Since/From follows the reader\'s date, not the cost-report date', () => {
-  const when = (now) => text(renderPathway(D, new Date(now)).querySelector('.path__when'));
+  const when = (now) => text(renderPathway(ONE_ITEM, new Date(now)).querySelector('.path__when'));
   assert.equal(when('2026-10-15'), 'Since Jan 2026');
   assert.equal(when('2025-06-01'), 'From Jan 2026');
   assert.equal(when('2026-01-15'), 'Since Jan 2026');

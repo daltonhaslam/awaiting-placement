@@ -1,9 +1,10 @@
 // Shared helpers for the e2e scripts.
 import { createServer } from 'node:http';
-import { readFileSync, mkdtempSync } from 'node:fs';
+import { readFileSync, mkdtempSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, normalize, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { cspHash, withScriptHashes } from '../inline-script.mjs';
 
 const root = new URL('../../', import.meta.url);
@@ -27,9 +28,25 @@ export function firstHospital(html) {
   return JSON.parse(m[1]).hospitals[0];
 }
 
-// Serve one HTML document at / with the exact response headers vercel.json configures.
+// The static files beside the page (fonts, icons), served from the committed output directory as Vercel serves them.
+const STATIC_TYPES = { '.woff2': 'font/woff2', '.png': 'image/png', '.ico': 'image/x-icon' };
+const outDir = fileURLToPath(new URL(`${vercelConfig.outputDirectory}/`, root));
+function staticFile(url) {
+  let rel;
+  try { rel = decodeURIComponent(new URL(url, 'http://x').pathname); } catch { return null; }
+  const path = normalize(join(outDir, rel));
+  const type = STATIC_TYPES[extname(path)];
+  if (!type || !path.startsWith(outDir) || !existsSync(path) || !statSync(path).isFile()) return null;
+  return { type, body: readFileSync(path) };
+}
+
+// Serve one HTML document at / (and the committed static files beside it) with the exact response headers vercel.json
+// configures.
 export function serveWithHeaders(html) {
-  const headers = Object.fromEntries(vercelConfig.headers.flatMap((r) => r.headers.map((x) => [x.key, x.value])));
+  // Each vercel.json rule applies to the paths its source pattern matches (path-to-regexp; these are plain regexes).
+  const rules = vercelConfig.headers.map((r) => ({ re: new RegExp(`^${r.source}$`), headers: r.headers }));
+  const headersFor = (path) => Object.fromEntries(rules.filter((r) => r.re.test(path)).flatMap((r) => r.headers.map((x) => [x.key, x.value])));
+  const headers = headersFor('/');
   // A fixture build has different script bytes than the committed docs/, and test builds never write vercel.json:
   // re-pin script-src in memory to this page's own inline scripts (everything else in the header stays exactly as committed).
   if (!process.env.E2E_DOCS) {
@@ -37,9 +54,10 @@ export function serveWithHeaders(html) {
     headers['Content-Security-Policy'] = withScriptHashes(headers['Content-Security-Policy'], scripts);
   }
   const server = createServer((req, res) => {
-    const ok = req.url === '/';
-    res.writeHead(ok ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', ...headers });
-    res.end(ok ? html : '');
+    const path = new URL(req.url, 'http://x').pathname;
+    const file = path === '/' ? { type: 'text/html; charset=utf-8', body: html } : staticFile(req.url);
+    res.writeHead(file ? 200 : 404, { 'Content-Type': file?.type ?? 'text/html; charset=utf-8', ...(path === '/' ? headers : headersFor(path)) });
+    res.end(file?.body ?? '');
   }).listen(0);
   return { base: `http://localhost:${server.address().port}/`, close: () => server.close() };
 }

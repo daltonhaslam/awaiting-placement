@@ -1,6 +1,11 @@
 """Build web/src/data/ap.json (the site's single data contract) from the committed HCRIS extract.
 
     python3 -I pipeline/build_data.py
+    python3 -I pipeline/build_data.py --refresh-names   # rewrite derived/hgi_names.csv from the pinned raw file first
+
+Display names and cities come from derived/hgi_names.csv, a committed copy of the Hospital General Information columns
+the site uses, so a rebuild does not depend on fetching that file (CMS rotates its download URL with each release).
+Without the table, the raw file in data/raw/ is read instead.
 
 Cited content (pipeline/content/*.json) is required and is the single source of the MedPAC numbers: the model
 lenses, the discharge mix and the cross-check are all derived from it.
@@ -21,6 +26,8 @@ from ap.hcris import COLUMNS  # noqa: E402
 ROOT = PIPELINE_DIR.parent
 EXTRACT = PIPELINE_DIR / 'derived' / 'hcris_extract.csv'
 HGI = ROOT / 'data' / 'raw' / 'hospital_general_info' / 'Hospital_General_Information.csv'
+NAMES = PIPELINE_DIR / 'derived' / 'hgi_names.csv'
+NAME_COLUMNS = ['ccn', 'name', 'city']
 CONTENT_DIR = PIPELINE_DIR / 'content'
 OUT_PATH = ROOT / 'web' / 'src' / 'data' / 'ap.json'
 
@@ -61,11 +68,54 @@ def load_extract():
     return rows
 
 
-def load_hgi():
-    if not HGI.exists():
-        raise SystemExit('missing Hospital General Information: run python3 -I pipeline/fetch.py --only hospital_general_info')
+def read_raw_hgi():
     with open(HGI, newline='', encoding='utf-8-sig') as f:
         return {r['Facility ID']: r for r in csv.DictReader(f)}
+
+
+def names_rows(raw, ccns):
+    """The names table: Hospital General Information's name and city for each CCN in the extract that it lists."""
+    return [{'ccn': c, 'name': raw[c]['Facility Name'], 'city': raw[c]['City/Town']} for c in sorted(ccns) if c in raw]
+
+
+def write_names(rows):
+    NAMES.parent.mkdir(exist_ok=True)
+    with open(NAMES, 'w', newline='', encoding='utf-8') as f:
+        w = csv.DictWriter(f, fieldnames=NAME_COLUMNS)
+        w.writeheader()
+        w.writerows(rows)
+
+
+def load_names():
+    """{ccn: {'ccn', 'name', 'city'}} from the committed table, else from the raw file the table is derived from."""
+    if NAMES.exists():
+        with open(NAMES, newline='', encoding='utf-8') as f:
+            return {r['ccn']: r for r in csv.DictReader(f)}
+    if HGI.exists():
+        raw = read_raw_hgi()
+        return {r['ccn']: r for r in names_rows(raw, raw)}
+    raise SystemExit('missing pipeline/derived/hgi_names.csv: run python3 -I pipeline/fetch.py --only hospital_general_info, '
+                     'then python3 -I pipeline/build_data.py --refresh-names')
+
+
+def stale_names(table, raw, ccns):
+    """How the committed table differs from what --refresh-names would write now: (missing, changed) CCN lists."""
+    want = {r['ccn']: r for r in names_rows(raw, ccns)}
+    missing = sorted(c for c in want if c not in table)
+    changed = sorted(c for c in want if c in table and table[c] != want[c])
+    return missing, changed
+
+
+def check_names_table(table, ccns):
+    """With the raw file present, fail unless the table is exactly what --refresh-names would write (a new cost-report
+    year adds hospitals; a re-pinned raw file renames some). Without the raw file the committed table is trusted."""
+    if not (NAMES.exists() and HGI.exists()):
+        return
+    missing, changed = stale_names(table, read_raw_hgi(), ccns)
+    if missing or changed:
+        n = len(missing) + len(changed)
+        raise SystemExit(f'names table is stale: {n} hospital{"" if n == 1 else "s"} missing or renamed against the raw '
+                         f'file (e.g. {(missing or changed)[0]}); run python3 -I pipeline/build_data.py --refresh-names')
 
 
 def classify(rows):
@@ -96,6 +146,17 @@ def derive_medpac(medpac):
     mix = {'home': ma['none'], 'hha': ma['hha'], 'snf': ma['snf'], 'irf': ma['irf']}
     all_ = medpac['t41']['all']
     return lenses, mix, {'ma': all_['maLos'], 'ffs': all_['ffsLos'], 'fy': medpac['t41']['fy']}
+
+
+def fmt_days(v):
+    """2.5 -> '2.5 days', 1.0 -> '1.0 day': one decimal, as the assumptions table has always shown the waits."""
+    r = round(v, 1)
+    return f"{r:.1f} day{'' if r == 1 else 's'}"
+
+
+def fmt_pct_number(share):
+    """0.65 -> '65', 0.025 -> '2.5': a share as a percent number, at most one decimal, no trailing zero."""
+    return f'{round(share * 100, 1):g}'
 
 
 def derive_ma_stays(medpac):
@@ -132,10 +193,12 @@ def build():
     return _build()[0]
 
 
-def _build():
+def _build(names_checked=False):
     """(ap.json dict, per-year coverage), so the coverage table reuses the one classification pass."""
     rows = load_extract()
-    hgi = load_hgi()
+    hgi = load_names()
+    if not names_checked:
+        check_names_table(hgi, {r['ccn'] for r in rows})
     ds = classify(rows)
     content = content_mod.load_content(CONTENT_DIR)
     lenses, mix, medpac_all = derive_medpac(content['medpac'])
@@ -173,10 +236,10 @@ def _build():
     hospitals = []
     for d in sorted(by_fy[latest], key=lambda d: d['ccn']):
         g = hgi.get(d['ccn'], {})
-        city = g.get('City/Town') or d['city']
+        city = g.get('city') or d['city']
         hospitals.append({
             'id': d['ccn'],
-            'name': names.display_name(g.get('Facility Name'), d['name']),
+            'name': names.display_name(g.get('name'), d['name']),
             'city': names.smart_title(' '.join(city.split())),
             'st': d['state'], 'beds': int(d['beds']), 'occ': round(d['occ'], 3), 'occFlag': clean.occ_flag(d),
             # Counts are annual: a report that is not a year long is scaled to 365 days (periodDays says so).
@@ -190,10 +253,17 @@ def _build():
 
     # Prose in content/*.json that quotes a figure from this data or from medpac.json carries a {placeholder}, filled here
     # so it cannot go stale. An unknown placeholder fails the build.
+    # The assumption values quote the model's defaults and its discharge mix, so they cannot disagree with the calculator.
     sept = content['medpac']['sept']
+    dflt = MODEL_STATIC['defaults']
     fills = {'medianOcc': f"{statistics.median(h['occ'] for h in hospitals) * 100:.1f}%", 'latestFy': str(latest),
              'pacYear': str(sept['year']), 'irfStaysMa': str(sept['staysPer1000']['ma']['irf']),
-             'irfStaysFfs': str(sept['staysPer1000']['ffs']['irf'])}
+             'irfStaysFfs': str(sept['staysPer1000']['ffs']['irf']),
+             't0Days': fmt_days(dflt['t0']), 't1Days': fmt_days(dflt['t1']),
+             'cvar': f"${dflt['cvar']:,}", 'rate': f"${dflt['rate']:,}", 'cm': f"${dflt['cm']:,}",
+             'mixHome': fmt_pct_number(mix['home']), 'mixHha': fmt_pct_number(mix['hha']),
+             'mixSnf': fmt_pct_number(mix['snf']), 'mixIrf': fmt_pct_number(mix['irf']),
+             'mixIrfFfs': fmt_pct_number(sept['mix']['ffs']['irf'])}
 
     def fill(text, where):
         out = re.sub(r'\{(\w+)\}', lambda m: fills.get(m[1], m[0]), text)
@@ -201,6 +271,7 @@ def _build():
             raise SystemExit(f'content: {where}: unknown placeholder {left}')
         return out
     for a in content['assumptions']:
+        a['value'] = fill(a['value'], f"assumptions.{a['key']}")
         a['why'] = fill(a['why'], f"assumptions.{a['key']}")
     for k, items in content['sides'].items():
         for it in items:
@@ -251,8 +322,21 @@ def print_coverage(cov):
         print(f'{fy}  ' + ''.join(f'{cov[fy][c]:>13}' for c in cols))
 
 
+def refresh_names():
+    if not HGI.exists():
+        raise SystemExit('--refresh-names needs the raw file: run python3 -I pipeline/fetch.py --only hospital_general_info')
+    rows = names_rows(read_raw_hgi(), {r['ccn'] for r in load_extract()})
+    write_names(rows)
+    print(f'wrote {NAMES} ({len(rows):,} hospitals)')
+
+
 def main():
-    out, cov = _build()
+    args = sys.argv[1:]
+    if args not in ([], ['--refresh-names']):
+        raise SystemExit('usage: python3 -I pipeline/build_data.py [--refresh-names]')
+    if args:
+        refresh_names()
+    out, cov = _build(names_checked=bool(args))  # a table just written from the raw file needs no check against it
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(dump(out), encoding='utf-8')
     print_coverage(cov)

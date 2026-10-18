@@ -10,5 +10,6 @@ export function escapeInlineScript(js) {
 
 export const cspHash = (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`;
 
-// Replace the script-src directive of a CSP value with 'self' plus the given hashes (no 'unsafe-inline').
-export const withScriptHashes = (csp, hashes) => csp.replace(/script-src[^;]*/, `script-src 'self' ${hashes.join(' ')}`);
+// Replace the script-src directive of a CSP value with exactly the given hashes: every script on the page is inline,
+// so neither 'self' nor 'unsafe-inline' is allowed.
+export const withScriptHashes = (csp, hashes) => csp.replace(/script-src[^;]*/, `script-src ${hashes.join(' ')}`);

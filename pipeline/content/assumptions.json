@@ -2,7 +2,7 @@
  {
   "key": "t0",
   "label": "Current authorization wait",
-  "value": "2.5 days",
+  "value": "{t0Days}",
   "why": "Set from the AMRPA survey average of just over 2.5 days for inpatient rehabilitation decisions. The survey did not measure skilled nursing facilities. The model applies the same wait to both, which is an assumption.",
   "src": [
    {
@@ -16,7 +16,7 @@
  {
   "key": "t1",
   "label": "Faster authorization wait",
-  "value": "1.0 day",
+  "value": "{t1Days}",
   "why": "An illustrative scenario, not a forecast. Rules allow up to 72 hours for expedited and seven calendar days for standard MA decisions. The AHIP pledge aims for real-time answers to most electronic approvals in 2027.",
   "src": [
    {
@@ -44,7 +44,7 @@
  {
   "key": "cvar",
   "label": "Variable cost of one extra day",
-  "value": "$800",
+  "value": "{cvar}",
   "why": "About a quarter of KFF's $3,297 expense per adjusted inpatient day (2024, from the AHA Annual Survey), on the reasoning that most staffing, overhead and capital costs do not change with one more low-acuity day. One academic center study found the last full day of a stay cost $420 in 1990s dollars, or 2.4 percent of total stay cost. MedPAC says some hospital costs are fixed and do not rise with a longer stay.",
   "src": [
    {
@@ -71,7 +71,7 @@
  {
   "key": "rate",
   "label": "Per-diem rate (per-diem payment only)",
-  "value": "$2,500",
+  "value": "{rate}",
   "why": "Illustrative. No source gives a typical rate. MedPAC reports that MA plans commonly pay critical access hospitals a per diem.",
   "src": [
    {
@@ -85,7 +85,7 @@
  {
   "key": "cm",
   "label": "Contribution margin per added admission",
-  "value": "$4,500",
+  "value": "{cm}",
   "why": "Illustrative. A single figure from a Kaufman Hall example reported by Becker's: an average $4,500 margin per admission for a 425-bed hospital. It is not a national benchmark.",
   "src": [
    {
@@ -126,8 +126,8 @@
  {
   "key": "mix",
   "label": "Where MA patients go after discharge",
-  "value": "Home 65%, home health 17%, skilled nursing 15%, inpatient rehabilitation 3%",
-  "why": "From MedPAC's 2023 data: 65, 17 and 15 percent for home, home health and skilled nursing, and 3 percent for inpatient rehabilitation (5 percent in traditional Medicare). MedPAC shows long-term care hospitals separately, at under 1 percent of MA discharges, and the model leaves them out.",
+  "value": "Home {mixHome}%, home health {mixHha}%, skilled nursing {mixSnf}%, inpatient rehabilitation {mixIrf}%",
+  "why": "From MedPAC's {pacYear} data: {mixHome}, {mixHha} and {mixSnf} percent for home, home health and skilled nursing, and {mixIrf} percent for inpatient rehabilitation ({mixIrfFfs} percent in traditional Medicare). MedPAC shows long-term care hospitals separately, at under 1 percent of MA discharges, and the model leaves them out.",
   "src": [
    {
     "label": "MedPAC, post-acute care use in traditional Medicare and MA, staff slides, Sept. 4, 2026 (preliminary)",

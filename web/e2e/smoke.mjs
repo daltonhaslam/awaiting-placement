@@ -1,5 +1,6 @@
 // Smoke test of the built page in installed Chrome. Builds from the fixture (see _lib.mjs); E2E_DOCS=1 tests docs/.
-// The page is served with the production headers; the font stylesheet is stubbed (empty CSS), so any console error is real.
+// The page is served with the production headers; the web font files are stubbed (empty), so the metric-matched local
+// fallbacks set every width check, and any console error is real.
 // Usage: node e2e/smoke.mjs   (exit 1 on any failure)
 import { chromium } from 'playwright';
 import { serveWithHeaders, builtPage, firstHospital, makeCheck } from './_lib.mjs';
@@ -38,7 +39,8 @@ const navHidden = () => {
   }).map((a) => a.textContent);
 };
 const browser = await chromium.launch({ channel: 'chrome' });
-const stubFonts = (ctx) => ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+const FONT_FILE = /\/fonts\/[^/]+\.woff2$/;
+const stubFonts = (ctx) => ctx.route(FONT_FILE, (r) => r.fulfill({ status: 200, contentType: 'font/woff2', body: '' }));
 const newPage = async (opts) => {
   const ctx = await browser.newContext(opts);
   await stubFonts(ctx);
@@ -472,18 +474,29 @@ const setRange = (page, sel, v) => page.$eval(sel, (el, x) => { el.value = x; el
 }
 const TO_DIGITS = String(Math.round(data.content.medpac.t41.rows.find((r) => r.dest === 'irf').maLos)).padStart(2, '0');
 // Deep link to the calculator: the reader did not wait, so the notice must never be called. Run on fresh pages, with the
-// font stylesheet arriving late and shrinking the text (a layout shift under the reader, as a real font swap is): the
-// browser's scroll anchoring then fires a scroll event before the page has re-measured.
+// web fonts arriving late and the text shrinking as they land (a real font swap, made larger): the browser's scroll
+// anchoring then fires a scroll event before the page has re-measured.
 {
   for (let i = 0; i < 10; i++) {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, async (r) => {
+    let page;
+    let shrunk = false;
+    // The real font files, served late; as the first one lands the text also shrinks, so the shift is never too small to see.
+    await ctx.route(FONT_FILE, async (r) => {
       await new Promise((done) => setTimeout(done, 40 + (i % 5) * 50));
-      await r.fulfill({ status: 200, contentType: 'text/css', body: 'p, h2, h3, li { font-size: .85em !important; }' });
+      await r.continue();
+      if (!shrunk) {
+        shrunk = true;
+        await page.addStyleTag({ content: 'p, h2, h3, li { font-size: .85em !important; }' }).catch(() => {});
+      }
     });
-    const page = await ctx.newPage();
+    page = await ctx.newPage();
     await page.goto(`${PAGE}#calculator`);
-    await until(page, 'the late stylesheet', () => [...document.styleSheets].some((x) => (x.href || '').includes('fonts.googleapis')));
+    // Every pending face has settled, the web face itself among them (local fallback faces load at once), and the text
+    // has shrunk.
+    await until(page, 'the late web fonts', () => document.fonts.status === 'loaded'
+      && [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Overpass' && f.status === 'loaded')
+      && [...document.querySelectorAll('style')].some((x) => x.textContent.includes('.85em !important')));
     await frames(page, 30);
     const r = await page.evaluate(() => ({ on: !!document.querySelector('.called.is-on'), digits: document.querySelector('#topbar .led__digits')?.getAttribute('data-value') }));
     check(!r.on, `deep link #calculator (fresh load ${i + 1}): the notice was called`);
@@ -562,7 +575,7 @@ for (const width of [340, 350, 390]) {
   check(!(await tipOn()), 'touch: a tap beside the chart closes it');
   await page.close();
 }
-// Home renders (hero h1 and the LED panel) in under 2.5 s on a cold load with the font stylesheet stubbed.
+// Home renders (hero h1 and the LED panel) in under 2.5 s on a cold load with the font files stubbed.
 {
   const page = await newPage({ viewport: { width: 1280, height: 900 } });
   const t0 = Date.now();

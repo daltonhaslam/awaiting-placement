@@ -24,10 +24,26 @@ export function cardNumbers(D) {
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const TOKENS = readFileSync(new URL('src/styles/tokens.css', import.meta.url), 'utf8');
+// The first hex value of a colour token in a stylesheet (in tokens.css, the light theme's).
+export const cssColor = (css, name) => new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{3,8})\\b`).exec(css)?.[1]
+  ?? (() => { throw new Error(`tokens.css: --${name} not found`); })();
+
+// The site's icon: a tiny Now Serving LED, the housing (--led-bg) with the hero's number in the LED orange (--led).
+// Inlined as the SVG favicon by build.mjs and rendered to favicon.ico and apple-touch-icon.png by icons.mjs. square:
+// full-bleed, for the Apple touch icon (iOS rounds the corners itself and shows transparency as black).
+export function iconSvg(D, { square = false } = {}) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32"${square ? '' : ' rx="3"'} `
+    + `fill="${cssColor(TOKENS, 'led-bg')}"/><text x="16" y="22" font-family="monospace" font-weight="700" font-size="16" `
+    + `text-anchor="middle" fill="${cssColor(TOKENS, 'led')}">${cardNumbers(D).now}</text></svg>`;
+}
+
+// The hash icons.mjs records in icons.stamp.json; a test fails when it no longer matches the icons' SVG.
+export const iconsStamp = (D) => createHash('sha256').update(iconSvg(D, { square: true }) + iconSvg(D)).digest('hex');
 
 export function cardHtml(D) {
   const { now, you, fy, src } = cardNumbers(D);
-  const tokens = readFileSync(new URL('src/styles/tokens.css', import.meta.url), 'utf8');
+  const tokens = TOKENS;
   // At feed size (about 552 px wide, 46%) only the headline, the two numbers and the 26 px lines stay legible, so the
   // unit and the two coverage names are set at 26 px beside the numbers. LinkedIn shows the domain itself.
   // The card is the hero's road sign: the sign-blue band, its white keyline, white display type, the LED and the ticket.
