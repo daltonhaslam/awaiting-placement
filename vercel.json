@@ -13,7 +13,7 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-k3vkNLbTtVsynRENx62gSBqr6QM6ZWqOlR0BjFxOxuM=' 'sha256-jdFxG4Qcd82YVF3QIZ8Nf3Xtl2oZAFDEUD5qVkKs3r0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-k3vkNLbTtVsynRENx62gSBqr6QM6ZWqOlR0BjFxOxuM=' 'sha256-bvYyVtdfgNEetLOtfgn+H3+J1Iq9b7aaezI4GgGLFjc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
       ]
     }
   ]
