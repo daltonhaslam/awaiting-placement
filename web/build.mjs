@@ -28,7 +28,15 @@ const { latestFy, nClean } = parsed.meta;
 const tokens = read('src/styles/tokens.css');
 const darkDecls = /:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}/.exec(tokens)?.[1];
 if (!darkDecls) throw new Error('tokens.css: dark media block not found');
-const css = (await transform([tokens, `:root[data-theme="dark"] {${darkDecls}}`, ...['base', 'components', 'charts'].map((n) => read(`src/styles/${n}.css`))].join('\n'),
+// Print: every token the dark theme overrides gets its light value back (the first definition in tokens.css is the light
+// one), at a specificity both dark selectors lose to, so Night mode never prints light ink on white paper.
+const lightForPrint = darkDecls.match(/--[\w-]+(?=:)/g).map((k) => {
+  const v = new RegExp(`${k}:\\s*([^;]+);`).exec(tokens)?.[1];
+  if (!v) throw new Error(`tokens.css: ${k} has no light value`);
+  return `${k}: ${v};`;
+}).join(' ');
+const css = (await transform([tokens, `:root[data-theme="dark"] {${darkDecls}}`, `@media print { :root:root:root { ${lightForPrint} } }`,
+  ...['base', 'components', 'charts', 'print'].map((n) => read(`src/styles/${n}.css`))].join('\n'),
   { loader: 'css', minify: true })).code;
 const js = (await build({ entryPoints: [fileURLToPath(here('src/js/main.js'))], bundle: true, format: 'iife',
   minify: true, write: false, target: 'es2020', legalComments: 'none' })).outputFiles[0].text;

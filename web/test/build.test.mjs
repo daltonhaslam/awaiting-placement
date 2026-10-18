@@ -215,3 +215,17 @@ test('a fixture build leaves vercel.json untouched', () => {
   const p = new URL('../../vercel.json', import.meta.url);
   assert.equal(readFileSync(p, 'utf8'), vercelBefore);
 });
+
+test('print: controls and chrome hidden, link URLs shown, the two series told apart without colour, light tokens', () => {
+  const style = /<style>([\s\S]*?)<\/style>/.exec(html)[1];
+  const print = [...style.matchAll(/@media print\{((?:[^{}]|\{[^{}]*\})*)\}/g)].map((m) => m[1]).join('');
+  assert.ok(print, '@media print block');
+  for (const sel of ['.topbar', '.skip', '.theme-btn', '.omni', '.calc__presets', '.calc__share-row', 'input[type=range]', '.table-alt>summary', '.hero__cta'])
+    assert.ok(print.includes(sel), `hidden in print: ${sel}`);
+  assert.match(print, /a\[href\^=http\]:after\{content:" \(" attr\(href\) "\)"/);
+  assert.match(print, /\.ls__line--ffs[^{]*\{[^}]*stroke-dasharray/);
+  // Every token the dark theme overrides gets its light value back in print (backgrounds do not print).
+  const tokens = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
+  const darkKeys = /:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}/.exec(tokens)[1].match(/--[\w-]+(?=:)/g);
+  for (const k of darkKeys) assert.ok(new RegExp(`:root:root:root\\{[^}]*${k}:`).test(print), `print restores ${k}`);
+});

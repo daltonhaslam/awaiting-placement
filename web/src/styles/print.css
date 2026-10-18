@@ -1,0 +1,24 @@
+/* ---------- Print ---------- */
+/* Paper drops backgrounds, so the band's white type would vanish: the hero prints in page inks with a black keyline.
+   build.mjs adds the light theme's token values for print, so a reader in Night mode still prints on white. */
+@media print {
+  .skip, .topbar, .theme-btn, .queue, .called, .omni, .tip, .loading, .hero__cta, .profile__back, .profile__cta,
+  .calc__presets, .calc__share-row, .calc__drawer > summary, input[type=range], .calc__tick,
+  .table-alt > summary { display: none !important; }
+  body { background: #fff; }
+  :focus, :focus-visible { outline: none !important; } /* a route change focuses the new page's h1 */
+  .hero { --band: transparent; --band-ink: #000; --band-ink-2: #333; --keyline: #000; padding-block: 0 var(--sp-6); }
+  .hero::before { display: none; }
+  .sec--band { background: none; border: 0; }
+  /* The LED, the ticket, the bed board and the chart marks keep their colours; everything else prints as ink. */
+  .panel__plate, .bb, .fig svg, .key, .linekey { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* In greyscale teal and amber look alike: traditional Medicare lines print dashed, as their keys do. */
+  .ls__line--ffs, .key__line--ffs, .linekey .ls__line--ffs { stroke-dasharray: 6 3; }
+  /* Tables print open in place of their charts' hidden "Show as table" toggle. */
+  .table-alt > :not(summary) { display: block !important; }
+  .table-alt__scroll { overflow: visible; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; overflow-wrap: anywhere; color: var(--ink-2); }
+  a[href^="http"] .visually-hidden { display: none; }
+  .fig, .card, .callout, .panel, .ledger, tr { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+}
