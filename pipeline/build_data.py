@@ -180,8 +180,7 @@ def _build():
             'city': names.smart_title(' '.join(city.split())),
             'st': d['state'], 'beds': int(d['beds']), 'occ': round(d['occ'], 3), 'occFlag': clean.occ_flag(d),
             # Counts are annual: a report covering more than a year is scaled to 365 days (periodDays says so).
-            'dis': round(clean.annual(d['tot_disch'], d)), 'maDis': round(clean.annual(d['ma_disch'], d)),
-            'ffsDis': round(clean.annual(d['ffs_disch'], d)),
+            'dis': round(d['tot_disch_yr']), 'maDis': round(d['ma_disch_yr']), 'ffsDis': round(d['ffs_disch_yr']),
             'mcr': round(d['mcr'], 3), 'ma': round(d['ma_share'], 3),
             'maAlos': round(d['ma_alos'], 2), 'ffsAlos': round(d['ffs_alos'], 2), 'gap': round(d['gap'], 2),
             'teach': d['teach'], 'trend': trend_of(d['ccn']),
@@ -214,7 +213,7 @@ def _build():
         grp = [d for d in by_fy[latest] if pred(d)]
         presets.append({'id': pid, 'label': label, 'note': note, 'n': len(grp), 'beds': round(_median(grp, 'beds')),
                         'occ': round(_median(grp, 'occ'), 3),
-                        'dis': round(statistics.median(clean.annual(d['tot_disch'], d) for d in grp)),
+                        'dis': round(_median(grp, 'tot_disch_yr')),
                         'mcr': round(_median(grp, 'mcr'), 3), 'ma': round(_median(grp, 'ma_share'), 3)})
 
     gaps = sorted(d['gap'] for d in by_fy[latest])

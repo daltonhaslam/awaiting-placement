@@ -55,8 +55,9 @@ export const lineKey = (cls) => s('svg', { class: 'linekey', viewBox: '0 0 24 8'
   s('line', { class: cls, x1: 1, y1: 4, x2: 23, y2: 4 }));
 
 // Pointer wiring for a hover target: move or press shows (fn gets the event); leaving hides the tooltip and runs `onLeave`.
-// On touch there is no hover: a tap shows the tooltip and it stays (the pointerleave touch fires right after the tap is
-// ignored); a second tap on the same spot, a tap outside the chart, or a scroll closes it. One open at a time.
+// On touch there is no hover: a tap shows the tooltip and it stays (touch fires pointerleave right after every tap, so
+// that event is ignored); a second tap on the same spot, a tap outside the chart, or a scroll closes it. There is one
+// shared tooltip, so at most one tapped tooltip is open: touchTip.
 let touchTip = null; // { node, x, y, leave } of the tooltip a tap opened
 const TAP_SLOP = 24; // px: a tap this close to the last one is "the same spot"
 // The closing listeners exist only while a tapped tooltip is open, so nothing is left attached otherwise.

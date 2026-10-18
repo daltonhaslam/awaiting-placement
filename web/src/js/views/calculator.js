@@ -79,6 +79,8 @@ export function renderCalculator(D, { query } = {}) {
   }
   let { inp: inputs, x: hospital } = fromQuery(query);
   const encoded = () => encodeState(inputs, hospital?.id);
+  // The reader has changed a basic the chosen hospital's cost report supplied.
+  const editedFromReport = () => !!hospital && BASICS.some((k) => hasBasic(hospital, k) && Math.abs(fit(k, hospital[k]) - inputs[k]) > 1e-9);
   const matchedPreset = () => (hospital ? null
     : D.presets.find((p) => BASICS.every((k) => Math.abs(fit(k, p[k]) - inputs[k]) < 1e-9)) ?? null);
 
@@ -394,7 +396,7 @@ export function renderCalculator(D, { query } = {}) {
     presetBtns.forEach((b, i) => b.setAttribute('aria-pressed', String(D.presets[i] === preset)));
     if (hospital) {
       const x = hospital;
-      const edited = BASICS.some((k) => hasBasic(x, k) && Math.abs(fit(k, x[k]) - inputs[k]) > 1e-9);
+      const edited = editedFromReport();
       note.replaceChildren(h('strong', null, x.name), `, ${[x.city, x.st].filter(Boolean).join(', ')}. `,
         `${x.occFlag ? 'Other values' : 'Values'} from its FY${fy} cost report${edited ? ', with your edits' : ''}. `,
         x.occFlag ? 'Occupancy is set to a typical value because the figure in its cost report looks off. ' : '',
@@ -453,9 +455,9 @@ export function renderCalculator(D, { query } = {}) {
     flag(cap, 'hidden', !r.capped);
     const odd = isNum(r.alos) && r.alos > 0 && (r.alos < STAY_PLAUSIBLE[0] || r.alos > STAY_PLAUSIBLE[1]);
     if (odd) {
-      const stay = `an average stay of ${r.alos >= 100 ? `${fmtNum(Math.round(r.alos))} days` : fmtDays(r.alos)} for all patients `
+      const stay = `an average stay of ${r.alos >= 100 ? `${fmtNum(r.alos)} days` : fmtDays(r.alos)} for all patients `
         + '(occupied beds × 365 ÷ discharges), which no acute hospital has.';
-      const fromReport = hospital && !BASICS.some((k) => hasBasic(hospital, k) && Math.abs(fit(k, hospital[k]) - inputs[k]) > 1e-9);
+      const fromReport = hospital && !editedFromReport();
       warn.textContent = fromReport
         ? `The beds, occupancy and discharges figures in this hospital's cost report imply ${stay} One of them is likely misreported, so treat this estimate with caution.`
         : `These inputs imply ${stay} Check beds, occupancy and discharges.`;

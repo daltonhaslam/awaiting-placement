@@ -68,6 +68,9 @@ def derive(row):
     d['occ'] = None if d['ip_days'] is None else _div(d['ip_days'] - d['nursery_days'], d['bed_days'])
     d['has_residents'] = (d['resid_fte'] or 0) > 0
     d['teach'] = (d['resid_fte'] or 0) >= TEACH_MIN_FTE
+    # Annual counts for the hospital pages and the calculator (see YEAR_DAYS); None stays None.
+    for k in ('tot_disch', 'ma_disch', 'ffs_disch'):
+        d[f'{k}_yr'] = None if d[k] is None else annual(d[k], d)
     return d
 
 

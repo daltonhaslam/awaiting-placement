@@ -61,8 +61,8 @@ function draw(el, c) {
   // near 100%), then at the bottom.
   const shadeLabelY = (() => {
     if (!shadeBox) return 12;
-    const inBand = series.flatMap((sr) => sr.values.filter((v, i) => isNum(v) && xs[i] >= shadeBox[0] && xs[i] <= shadeBox[1]));
-    return inBand.some((v) => py(v) < 20) && !inBand.some((v) => py(v) > ph - 20) ? ph - 6 : 12;
+    const ys = series.flatMap((sr) => sr.values.filter((v, i) => isNum(v) && xs[i] >= shadeBox[0] && xs[i] <= shadeBox[1])).map(py);
+    return ys.length && Math.min(...ys) < 20 && Math.max(...ys) <= ph - 20 ? ph - 6 : 12;
   })();
 
   const endY = series.map((sr) => {
