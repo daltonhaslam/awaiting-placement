@@ -104,7 +104,11 @@ export function renderHospital(D, id) {
       stat('MA share of Medicare discharges', fmtPct(x.ma)),
       x.occFlag ? stat('Occupancy', 'looks off in this cost report', 'The reported figure is outside a plausible range, so it is not shown.')
         : stat('Occupancy', fmtPct(x.occ)),
-      stat('Total discharges', fmtNum(x.dis))),
+      stat('Total discharges', fmtNum(x.dis)),
+      // The counts behind the MA share and the two averages, so a reader can see how many stays each rests on.
+      isNum(x.maDis) ? stat('MA discharges', fmtNum(x.maDis)) : null,
+      isNum(x.ffsDis) ? stat('Traditional Medicare discharges', fmtNum(x.ffsDis)) : null),
+    isNum(x.periodDays) ? h('p', { class: 'card__note' }, `This cost report covers ${fmtNum(x.periodDays)} days, so its discharge counts are scaled to 365 days.`) : null,
     x.checkData ? h('p', { class: 'card__note' }, CHECK_DATA_NOTE) : null,
     isNum(x.ma) && x.ma > 0.9 ? h('p', { class: 'card__note' }, 'Nearly all Medicare patients here are in MA. The traditional Medicare average rests on a small, selected group, so the gap is less reliable.') : null);
 
@@ -189,6 +193,7 @@ export function renderHospital(D, id) {
       'The gap is raw. It is not adjusted for case mix, so a hospital that treats sicker or more complex MA patients will show a longer gap with no delay involved.',
       'It is not split by where patients went next, so it cannot separate waiting for a post-acute bed from other reasons for a longer stay.',
       'Across hospitals the gap does not rise with MA share. A high share and a long gap at one hospital should not be read as cause and effect.',
+      "It is not a measure of this hospital's quality or of any health plan's conduct.",
     ],
   });
 

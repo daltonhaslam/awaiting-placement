@@ -55,6 +55,26 @@ class T(unittest.TestCase):
         it = next(i for items in self.out['content']['sides'].values() for i in items if i['key'] == 'irf-use-narrower')
         self.assertNotIn('{', it['text'])
         self.assertIn(f"({rate['ma']['irf']} vs {rate['ffs']['irf']} stays per 1,000 in {sept['year']})", it['text'])
+    def test_hospital_discharge_counts_are_annual(self):
+        rows = {(r['ccn']): r for r in build_data.load_extract() if int(r['fy']) == self.out['meta']['latestFy']}
+        long = [h for h in self.out['hospitals'] if 'periodDays' in h]
+        self.assertTrue(long, 'some FY reports run past a year')
+        for h in self.out['hospitals']:
+            self.assertTrue(all(isinstance(h[k], int) for k in ('dis', 'maDis', 'ffsDis')), h['id'])
+            r = rows[h['id']]
+            k = 365 / float(r['period_days']) if 'periodDays' in h else 1
+            self.assertEqual(h['dis'], round(float(r['tot_disch']) * k), h['id'])
+            self.assertEqual(h['maDis'], round(float(r['ma_disch']) * k), h['id'])
+            self.assertEqual(h['ffsDis'], round(float(r['ffs_disch']) * k), h['id'])
+        for h in long:
+            self.assertGreater(h['periodDays'], self.out['meta']['rules']['yearDays'])
+    def test_teaching_badge_and_academic_preset(self):
+        t = self.out['meta']['rules']['teachFte']
+        rows = {(r['ccn']): r for r in build_data.load_extract() if int(r['fy']) == self.out['meta']['latestFy']}
+        for h in self.out['hospitals']:
+            self.assertEqual(h['teach'], float(rows[h['id']]['resid_fte'] or 0) >= t, h['id'])
+        academic = next(p for p in self.out['presets'] if p['id'] == 'academic')
+        self.assertEqual(academic['note'], '600 or more beds with residents')
     def test_presets(self):
         self.assertEqual([p['id'] for p in self.out['presets']], ['community', 'regional', 'academic'])
     def test_national_series(self):

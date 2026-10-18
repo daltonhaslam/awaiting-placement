@@ -18,6 +18,13 @@ OCC_PLAUSIBLE = (0.05, 1.0)  # occupancy outside this is flagged and not shown
 # the histogram and the national numbers) but marked on its page, and the calculator uses national averages for it.
 CHECK_GAP_DAYS = 3.0  # |MA ALOS - traditional ALOS| above this, in days
 CHECK_ALOS_RATIO = 2.0  # longer ALOS more than this many times the shorter one
+# The "Teaching hospital" badge needs this many full-time-equivalent interns and residents (S-3 line 14 column 9). A few
+# hospitals report a fraction of one FTE (residents rotating through from another hospital's program). The Academic
+# preset still counts any resident.
+TEACH_MIN_FTE = 10
+# A report covering more than this many days (a year, a leap year included) has its counts scaled to 365 days on the
+# hospital pages and in the calculator (7 FY2024 reports run 382 to 425 days). Shares and stays are ratios and unchanged.
+YEAR_DAYS = 366
 
 
 def rules():
@@ -25,7 +32,8 @@ def rules():
     return {'periodDays': MIN_PERIOD_DAYS, 'maDischarges': MIN_MA_DISCHARGES, 'ffsDischarges': MIN_FFS_DISCHARGES,
             'alos': list(ALOS_RANGE), 'excludedStates': list(EXCLUDED_STATES.values()),
             'acuteSuffix': list(ACUTE_SUFFIX), 'cahSuffix': list(CAH_SUFFIX), 'occPlausible': list(OCC_PLAUSIBLE),
-            'checkGapDays': CHECK_GAP_DAYS, 'checkAlosRatio': CHECK_ALOS_RATIO}
+            'checkGapDays': CHECK_GAP_DAYS, 'checkAlosRatio': CHECK_ALOS_RATIO, 'teachFte': TEACH_MIN_FTE,
+            'yearDays': YEAR_DAYS}
 
 
 def _num(v):
@@ -58,8 +66,19 @@ def derive(row):
     d['ma_share'] = _div(d['ma_disch'], both)
     d['mcr'] = _div(both, d['tot_disch'])
     d['occ'] = None if d['ip_days'] is None else _div(d['ip_days'] - d['nursery_days'], d['bed_days'])
-    d['teach'] = (d['resid_fte'] or 0) > 0
+    d['has_residents'] = (d['resid_fte'] or 0) > 0
+    d['teach'] = (d['resid_fte'] or 0) >= TEACH_MIN_FTE
     return d
+
+
+def is_long(d):
+    """True when the report covers more than a year (see YEAR_DAYS)."""
+    return (d.get('period_days') or 0) > YEAR_DAYS
+
+
+def annual(count, d):
+    """A count from the report d, scaled to 365 days when the report covers more than a year."""
+    return count * 365 / d['period_days'] if is_long(d) else count
 
 
 def exclusion_reason(d):

@@ -65,6 +65,20 @@ class T(unittest.TestCase):
         self.assertFalse(clean.occ_flag({'occ': r['occPlausible'][1]}))
         self.assertTrue(clean.occ_flag({'occ': r['occPlausible'][1] + 0.001}))
 
+    def test_teaching_badge_needs_the_resident_threshold_and_has_residents_any(self):
+        t = clean.TEACH_MIN_FTE
+        self.assertFalse(self.d(resid_fte=t - 0.1)['teach'])
+        self.assertTrue(self.d(resid_fte=t)['teach'])
+        self.assertTrue(self.d(resid_fte=0.5)['has_residents'])
+        self.assertFalse(self.d(resid_fte='')['has_residents'])
+        self.assertEqual(clean.rules()['teachFte'], t)
+    def test_counts_from_a_report_longer_than_a_year_are_scaled_to_365_days(self):
+        self.assertAlmostEqual(clean.annual(850, self.d(period_days=425)), 850 * 365 / 425)
+        self.assertEqual(clean.annual(850, self.d(period_days=366)), 850)  # a leap-year report is a year
+        self.assertEqual(clean.annual(850, self.d(period_days=330)), 850)  # shorter reports pass the 300-day rule as reported
+        self.assertTrue(clean.is_long(self.d(period_days=367)))
+        self.assertFalse(clean.is_long(self.d(period_days=366)))
+        self.assertEqual(clean.rules()['yearDays'], 366)
     def test_flags(self):
         self.assertTrue(clean.occ_flag(self.d(ip_days=80000, nursery_days=0)))
 

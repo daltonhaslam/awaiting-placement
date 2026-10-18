@@ -214,11 +214,11 @@ test('percentile: both clamped extremes read naturally', () => {
   assert.match(text(render(T, '100000')), /This gap is smaller than at almost all hospitals\./);
 });
 
-test('back link goes to the share section; cannot-show list has three short points', () => {
+test('back link goes to the share section; cannot-show list has four short points', () => {
   const el = render(D, '220071');
   assert.ok(el.querySelector('a[href="#share"]'));
   const items = el.querySelectorAll('.callout__list li');
-  assert.equal(items.length, 3);
+  assert.equal(items.length, 4);
   assert.match(text(el), /What this can't show/);
 });
 
@@ -358,4 +358,36 @@ test('real data: every hospital\'s displayed MA - traditional equals its display
     n += 1;
   }
   assert.ok(n > 1000, `${n} hospitals checked`);
+});
+
+test('the card shows MA and traditional Medicare discharges, from the data', () => {
+  const x = REAL.hospitalsById.get('220071');
+  const t = text(render(REAL, '220071'));
+  assert.ok(t.includes(`MA discharges ${fmtNum(x.maDis)}`), 'MA discharges');
+  assert.ok(t.includes(`Traditional Medicare discharges ${fmtNum(x.ffsDis)}`), 'traditional Medicare discharges');
+  // Data without the counts (an older file) leaves them out cleanly.
+  const raw = structuredClone(fixture);
+  for (const h of raw.hospitals) { delete h.maDis; delete h.ffsDis; }
+  const el = render(loadData(raw), raw.hospitals[0].id);
+  assert.ok(!text(el).includes('MA discharges'));
+  noNaN(el);
+});
+
+test('"What this can\'t show" says the gap is not a quality measure', () => {
+  const cant = [...render(REAL, '220071').querySelectorAll('.callout')].find((c) => /can't show/.test(c.textContent));
+  assert.ok(text(cant).includes("It is not a measure of this hospital's quality or of any health plan's conduct."));
+});
+
+test('a report longer than a year says its counts are scaled to 365 days', () => {
+  const x = REAL.hospitals.find((h) => h.periodDays);
+  assert.ok(x, 'real data has one');
+  assert.ok(text(render(REAL, x.id)).includes(`This cost report covers ${fmtNum(x.periodDays)} days, so its discharge counts are scaled to 365 days.`));
+  assert.ok(!text(render(REAL, '220071')).includes('scaled to 365'));
+});
+
+test('the Teaching hospital badge follows the data\'s threshold flag', () => {
+  const yes = REAL.hospitals.find((h) => h.teach);
+  const no = REAL.hospitals.find((h) => !h.teach);
+  assert.ok(render(REAL, yes.id).querySelector('.badges'));
+  assert.equal(render(REAL, no.id).querySelector('.badges'), null);
 });

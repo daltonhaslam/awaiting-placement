@@ -37,7 +37,7 @@ MODEL_STATIC = {
 PRESETS = [
     ('community', 'Community', '100 to 199 beds', lambda d: 100 <= d['beds'] <= 199),
     ('regional', 'Regional', '300 to 449 beds', lambda d: 300 <= d['beds'] <= 449),
-    ('academic', 'Academic', '600 or more beds with residents', lambda d: d['beds'] >= 600 and d['teach']),
+    ('academic', 'Academic', '600 or more beds with residents', lambda d: d['beds'] >= 600 and d['has_residents']),
 ]
 
 
@@ -179,10 +179,14 @@ def _build():
             'name': names.display_name(g.get('Facility Name'), d['name']),
             'city': names.smart_title(' '.join(city.split())),
             'st': d['state'], 'beds': int(d['beds']), 'occ': round(d['occ'], 3), 'occFlag': clean.occ_flag(d),
-            'dis': int(d['tot_disch']), 'mcr': round(d['mcr'], 3), 'ma': round(d['ma_share'], 3),
+            # Counts are annual: a report covering more than a year is scaled to 365 days (periodDays says so).
+            'dis': round(clean.annual(d['tot_disch'], d)), 'maDis': round(clean.annual(d['ma_disch'], d)),
+            'ffsDis': round(clean.annual(d['ffs_disch'], d)),
+            'mcr': round(d['mcr'], 3), 'ma': round(d['ma_share'], 3),
             'maAlos': round(d['ma_alos'], 2), 'ffsAlos': round(d['ffs_alos'], 2), 'gap': round(d['gap'], 2),
             'teach': d['teach'], 'trend': trend_of(d['ccn']),
             **({'checkData': True} if clean.check_data(d) else {}),  # omitted when false, to keep the file small
+            **({'periodDays': int(d['period_days'])} if clean.is_long(d) else {}),
         })
 
     # Prose in content/*.json that quotes a figure from this data or from medpac.json carries a {placeholder}, filled here
@@ -210,7 +214,7 @@ def _build():
         grp = [d for d in by_fy[latest] if pred(d)]
         presets.append({'id': pid, 'label': label, 'note': note, 'n': len(grp), 'beds': round(_median(grp, 'beds')),
                         'occ': round(_median(grp, 'occ'), 3),
-                        'dis': round(_median(grp, 'tot_disch')),
+                        'dis': round(statistics.median(clean.annual(d['tot_disch'], d) for d in grp)),
                         'mcr': round(_median(grp, 'mcr'), 3), 'ma': round(_median(grp, 'ma_share'), 3)})
 
     gaps = sorted(d['gap'] for d in by_fy[latest])
