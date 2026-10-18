@@ -455,3 +455,32 @@ test('copy: each story section spells out "Medicare Advantage (MA)" before its f
     assert.ok(intro >= 0 && intro < first, `${el.querySelector('h1, h2')?.textContent}: "MA" at ${first} before "Medicare Advantage (MA)" (${intro}): …${t.slice(Math.max(0, first - 60), first + 20)}…`);
   }
 });
+
+test('methods: definitions say how each field is read, with its line and column', () => {
+  const t = text(renderMethods(REAL));
+  const r = REAL.meta.rules;
+  assert.ok(t.includes('Worksheet S-3, Part I, line 2 (labeled "HMO and other" on the form)'), 'MA line label');
+  assert.ok(t.includes('Line 1, column 15, all payers.'), 'total discharges');
+  assert.ok(t.includes('include swing-bed days (lines 5 and 6)'), 'swing beds in occupancy');
+  assert.ok(t.includes(`At least ${r.teachFte} full-time-equivalent interns and residents (line 14, column 9)`), 'teaching threshold');
+  assert.ok(t.includes('The Academic preset counts any reported resident.'));
+  const long = REAL.hospitals.filter((x) => x.periodDays).length;
+  assert.ok(t.includes(`Counts from a report longer than ${r.yearDays} days are scaled to 365 days on hospital pages and in the calculator `
+    + `(${long} in FY${REAL.meta.latestFy})`), 'annualizing');
+  assert.ok(t.includes('Reports of every status (as submitted, settled, reopened or amended) are used.'));
+  const fy = REAL.meta.latestFy;
+  assert.ok(t.includes(`FY${fy} reports begin between Oct ${fy - 1} and Sep ${fy}, so the latest run to ${fmtDate(REAL.meta.builtOn.slice(0, 7))}`), 'period alignment');
+  assert.ok(t.includes(`MedPAC's FY${fy} figures cover discharges from Oct ${fy - 1} to Sep ${fy}.`));
+});
+
+test('methods: national figures are discharge-weighted, the hospital set changes by year, and the raw files are pinned', () => {
+  const t = text(renderMethods(REAL));
+  const s = REAL.national.series;
+  assert.ok(t.includes('National figures pool the included hospitals: total MA days divided by total MA discharges'), 'weighting');
+  assert.ok(t.includes(`(${s[0].n.toLocaleString('en-US')} in FY${s[0].fy}, ${s.at(-1).n.toLocaleString('en-US')} in FY${s.at(-1).fy})`), 'panel size');
+  assert.ok(t.includes('The national trend on the main page applies the same rules'));
+  assert.ok(!t.includes('No. 03 applies'));
+  assert.ok(t.includes('pinned by its SHA-256 hash in pipeline/sources.json'), 'pins');
+  assert.ok(t.includes('PPS-exempt cancer hospitals'));
+  assert.ok(t.includes(`${REAL.meta.exclusions.no_ma} FY${REAL.meta.latestFy} reports show no MA discharges at all`));
+});

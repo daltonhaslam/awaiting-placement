@@ -1,4 +1,4 @@
-import { fmtNum, fmtPct, fmt1 } from '../format.js';
+import { fmtNum, fmtPct, fmt1, fmtDate } from '../format.js';
 import { FILL_LO, FILL_HI } from '../model.js';
 
 // The methods page's static wording: exclusion rules, definitions, formulas and the input table.
@@ -29,24 +29,39 @@ export const ccnRanges = (r) => (r?.acuteSuffix && r?.cahSuffix
 
 export const occRange = (r) => (r?.occPlausible ? `${pctWhole(r.occPlausible[0])} to ${pctWhole(r.occPlausible[1])}` : null);
 
-export function definitions(r) {
+// r: D.meta.rules. m: D.meta (the latest year and how far its reports run). nLong: hospitals whose counts were scaled.
+export function definitions(r, m = {}, nLong = 0) {
   const occ = r?.occPlausible
     ? `A value above ${pctWhole(r.occPlausible[1])} or below ${pctWhole(r.occPlausible[0])} is flagged and not shown.`
     : 'An implausible value is flagged and not shown.';
+  const fy = m.latestFy;
+  // CMS files a report under the federal fiscal year its period begins in (October to September).
+  const align = fy && m.builtOn
+    ? ` FY${fy} reports begin between ${fmtDate(`${fy - 1}-10`)} and ${fmtDate(`${fy}-09`)}, so the latest run to ${fmtDate(m.builtOn.slice(0, 7))}. `
+      + `MedPAC's FY${fy} figures cover discharges from ${fmtDate(`${fy - 1}-10`)} to ${fmtDate(`${fy}-09`)}.`
+    : '';
   return [
-    ['Fiscal year', 'The year the report period begins, which is how CMS files the reports. When a hospital has more than one '
-      + 'report for a year, the longest period is kept, then the most recently processed.'],
-    ['Medicare Advantage (MA) days and discharges', 'Worksheet S-3, Part I, line 2: days in column 6, discharges in column 13.'],
+    ['Fiscal year', 'The federal fiscal year the report period begins in, which is how CMS files the reports. When a hospital has more than one '
+      + `report for a year, the longest period is kept, then the most recently processed.${align}`],
+    ['Report length', `Reports must cover at least ${r?.periodDays ?? 'the minimum number of'} days. `
+      + (r?.yearDays ? `Counts from a report longer than ${r.yearDays} days are scaled to 365 days on hospital pages and in the calculator `
+        + `(${nLong} in FY${fy}); stays and shares are ratios and need no scaling. ` : '')
+      + 'Reports of every status (as submitted, settled, reopened or amended) are used.'],
+    ['Medicare Advantage (MA) days and discharges', 'Worksheet S-3, Part I, line 2 (labeled "HMO and other" on the form): days in column 6, '
+      + 'discharges in column 13.'],
     ['Traditional Medicare days', 'Line 1 plus lines 8 to 12 (intensive care and other special-care units, including any '
       + 'subscripted unit lines such as 8.01), column 6. Line 2 counts MA days in every unit, so the special-care lines are added '
       + 'to traditional Medicare to compare like with like. Traditional Medicare is the fee-for-service (FFS) program. '
       + 'Where a Pennsylvania Rural Health Model hospital splits its Medicare days between columns 6 and 6.01, the two are added.'],
     ['Traditional Medicare discharges', 'Line 1, column 13.'],
+    ['Total discharges', 'Line 1, column 15, all payers.'],
     ['Average stay and gap', 'Days divided by discharges, for each group. The gap is the MA average minus the traditional Medicare average.'],
     ['MA share', 'MA discharges divided by MA plus traditional Medicare discharges.'],
     ['Beds and occupancy', 'Beds and available bed-days from line 14, columns 2 and 3. Occupancy is inpatient days (line 14, column 8, '
-      + `minus nursery days on line 13) divided by available bed-days. ${occ}`],
-    ['Teaching hospital', 'Reports interns and residents (line 14, column 9). Used for the Academic preset.'],
+      + 'minus nursery days on line 13) divided by available bed-days. At hospitals with swing beds, line 14\'s inpatient days '
+      + `include swing-bed days (lines 5 and 6), so their occupancy can read high. ${occ}`],
+    ['Teaching hospital', `${r?.teachFte ? `At least ${r.teachFte} full-time-equivalent` : 'Reports'} interns and residents (line 14, column 9), `
+      + 'shown as a badge on hospital pages. The Academic preset counts any reported resident.'],
     ['Names and cities', 'CMS Hospital General Information, matched by CMS certification number (CCN). '
       + 'The cost-report name is used when there is no match.'],
   ];

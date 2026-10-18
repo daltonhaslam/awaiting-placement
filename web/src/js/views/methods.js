@@ -81,16 +81,20 @@ function costReportPart(D) {
   const labels = ruleLabels(m.rules);
   const ccn = ccnRanges(m.rules);
   const occ = occRange(m.rules);
+  const series = list(D.national?.series).filter((x) => isNum(x.n));
 
   return part('methods-cost', 'Hospital figures from cost reports',
     h('p', null, `Hospitals that bill Medicare file a cost report each year. This site reads the FY${fys[0] ?? fy} to FY${fy} reports `
-      + 'for counts of days and discharges by payer.'),
+      + 'for counts of days and discharges by payer, from CMS\'s HCRIS hospital files (form CMS-2552-10). Each raw file is '
+      + 'pinned by its SHA-256 hash in pipeline/sources.json in the public code, so a rebuild reads the same bytes; CMS refreshes '
+      + 'these files quarterly, so a fresh download can differ.'),
     h('h3', null, 'Definitions'),
-    h('dl', { class: 'defs' }, definitions(m.rules).map(([t, d]) => h('div', { class: 'defs__row' }, h('dt', null, t), h('dd', null, d)))),
+    h('dl', { class: 'defs' }, definitions(m.rules, m, list(D.hospitals).filter((x) => x.periodDays).length).map(([t, d]) => h('div', { class: 'defs__row' }, h('dt', null, t), h('dd', null, d)))),
     h('h3', null, 'Which hospitals are included'),
     h('p', null, `Short-term acute care hospitals only${ccn ? `: those whose CCN ends in ${ccn.acute}. Critical access hospitals use `
       + `a different range (${ccn.cah}) and are not included` : ''}. Each FY${fy} report is checked against the rules below in order `
-      + 'and counted under the first rule it fails.'),
+      + 'and counted under the first rule it fails. The CCN range also takes in some specialty hospitals, such as PPS-exempt '
+      + 'cancer hospitals, when their reports pass.'),
     table({ 'data-table': 'exclusions' }, [['Rule'], [`Excluded, FY${fy}`, true]],
       Object.keys(ex).map((k) => h('tr', { 'data-reason': k },
         h('th', { scope: 'row' }, labels[k] ?? k), h('td', { class: 'num' }, fmtNum(ex[k])))),
@@ -100,8 +104,12 @@ function costReportPart(D) {
         h('tr', null, h('th', { scope: 'row' }, 'Included'), h('td', { class: 'num' }, fmtNum(m.nClean))),
       ]),
     checkDataSentence(m, checkData),
-    fys.length > 1 ? h('p', null, `The national trend in No. 03 applies the same rules to each year from FY${fys[0]} to FY${fys.at(-1)}.`
-      + (covid.length ? ` The COVID years, FY${covid[0]} to FY${covid.at(-1)}, are shaded.` : '')) : null,
+    fys.length > 1 ? h('p', null, `The national trend on the main page applies the same rules to each year from FY${fys[0]} to FY${fys.at(-1)}.`
+      + (covid.length ? ` The COVID years, FY${covid[0]} to FY${covid.at(-1)}, are shaded.` : '')
+      + ' National figures pool the included hospitals: total MA days divided by total MA discharges, and likewise for traditional '
+      + 'Medicare and for the MA share, so each hospital counts in proportion to its discharges.'
+      + (series.length > 1 ? ` The hospitals that pass the checks change from year to year (${fmtNum(series[0].n)} in FY${series[0].fy}, `
+        + `${fmtNum(series.at(-1).n)} in FY${series.at(-1).fy}), so part of a trend can be a change in which hospitals are counted.` : '')) : null,
     cc?.hcris && cc?.medpac ? [
       h('h3', null, 'Cross-check'),
       h('p', null, `Weighted by discharges, the included FY${fy} reports give an average MA stay of ${fmt2(cc.hcris.ma)} days `
@@ -114,7 +122,9 @@ function costReportPart(D) {
       h('li', null, 'The gap is raw. It is not adjusted for diagnosis or severity, and cost reports do not say where patients went after discharge.'),
       r != null ? h('li', null, `Across the ${fmtNum(nPaired)} hospitals with both figures, the gap does not rise with MA share (correlation of ${fmtSigned(r, fmt2)}). `
         + 'Where nearly all Medicare patients are in MA, the few left in traditional Medicare are a small, selected group, so their average is less stable.') : null,
-      h('li', null, `Hospitals file these reports themselves, and a few figures are implausible. Occupancy outside ${occ ?? 'its plausible range'} is flagged and not shown${flagged ? ` (${fmtNum(flagged)} ${plural(flagged, 'hospital')} in FY${fy})` : ''}.`)));
+      h('li', null, `Hospitals file these reports themselves, and a few figures are implausible. Occupancy outside ${occ ?? 'its plausible range'} is flagged and not shown${flagged ? ` (${fmtNum(flagged)} ${plural(flagged, 'hospital')} in FY${fy})` : ''}.`),
+      isNum(ex.no_ma) && ex.no_ma > 0 ? h('li', null, `${fmtNum(ex.no_ma)} FY${fy} ${plural(ex.no_ma, 'report shows', 'reports show')} no MA discharges at all. `
+        + 'That is more likely a gap in reporting than a hospital with no MA patients; those reports are excluded, as the table above shows.') : null));
 }
 
 function calculatorPart(D) {
