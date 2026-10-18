@@ -62,7 +62,7 @@ let touchTip = null; // { node, x, y, leave } of the tooltip a tap opened
 const TAP_SLOP = 24; // px: a tap this close to the last one is "the same spot"
 // The closing listeners exist only while a tapped tooltip is open, so nothing is left attached otherwise.
 const outside = (e) => { if (touchTip && !touchTip.node.contains(e.target)) closeTouchTip(); };
-function closeTouchTip() {
+export function closeTouchTip() {
   const t = touchTip;
   touchTip = null;
   document.removeEventListener('pointerdown', outside, true);
@@ -78,12 +78,14 @@ function openTouchTip(t) {
   touchTip = t;
 }
 
-export function bindTip(node, fn, onLeave) {
+// drag: true for a chart-wide hit area whose fn reads the pointer's position (line charts), so a finger dragged along it
+// moves the tooltip; a single mark (a bar, a dot row) keeps its tooltip where the tap left it.
+export function bindTip(node, fn, onLeave, { drag = false } = {}) {
   const leave = () => { onLeave?.(); tooltip.hide(); };
   // A finger dragged along a chart whose tooltip a tap opened moves it, and where the finger stops becomes the "same spot".
   node.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'touch') fn(e);
-    else if (touchTip?.node === node) { touchTip.x = e.clientX; touchTip.y = e.clientY; fn(e); }
+    else if (drag && touchTip?.node === node) { touchTip.x = e.clientX; touchTip.y = e.clientY; fn(e); }
   });
   node.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'touch') {

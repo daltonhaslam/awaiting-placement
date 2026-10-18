@@ -457,11 +457,15 @@ export function renderCalculator(D, { query } = {}) {
     if (odd) {
       const stay = `an average stay of ${r.alos >= 100 ? `${fmtNum(r.alos)} days` : fmtDays(r.alos)} for all patients `
         + '(occupied beds × 365 ÷ discharges), which no acute hospital has.';
-      // Only when the report itself supplied all three (a flagged occupancy is replaced by a typical one) and none was edited.
-      const fromReport = hospital && ['beds', 'occ', 'dis'].every((k) => hasBasic(hospital, k)) && !editedFromReport();
-      warn.textContent = fromReport
+      // Name the cost report only for what it supplied: a flagged occupancy is replaced by a typical one, and the reader
+      // may have edited a value.
+      const missing = hospital && !editedFromReport() ? ['beds', 'occ', 'dis'].filter((k) => !hasBasic(hospital, k)) : null;
+      warn.textContent = missing?.length === 0
         ? `The beds, occupancy and discharges figures in this hospital's cost report imply ${stay} One of them is likely misreported, so treat this estimate with caution.`
-        : `These inputs imply ${stay} Check beds, occupancy and discharges.`;
+        : missing?.length === 1 && missing[0] === 'occ'
+          ? `This hospital's reported beds and discharges, with a typical occupancy in place of its flagged figure, imply ${stay} `
+            + 'Its beds or discharges are likely misreported, so treat this estimate with caution.'
+          : `These inputs imply ${stay} Check beds, occupancy and discharges.`;
     }
     flag(warn, 'hidden', !odd);
 

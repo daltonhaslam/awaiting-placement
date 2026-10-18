@@ -62,7 +62,7 @@ function draw(el, c) {
   const SHADE_CH = 7; // px per character of the label at --fs-chart-tick (12px Overpass), with margin
   const shadeLabelY = (() => {
     if (!shadeBox) return 12;
-    const right = Math.max(px(shadeBox[1]), px(shadeBox[0]) + 6 + shade.label.length * SHADE_CH);
+    const right = Math.max(px(shadeBox[1]), px(shadeBox[0]) + 6 + (shade.label ?? '').length * SHADE_CH);
     const ys = series.flatMap((sr) => sr.values.filter((v, i) => isNum(v) && isNum(xs[i]) && px(xs[i]) >= px(shadeBox[0]) && px(xs[i]) <= right)).map(py);
     return ys.length && Math.min(...ys) < 20 && Math.max(...ys) <= ph - 20 ? ph - 6 : 12;
   })();
@@ -91,7 +91,7 @@ function draw(el, c) {
   const svg = s('svg', { class: 'ls__svg', width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', focusable: 'false', 'aria-label': aria },
     s('g', { transform: `translate(${M.left},${M.top})` },
       shadeBox && s('rect', { class: 'ls__shade', x: px(shadeBox[0]), y: 0, width: Math.max(0, px(shadeBox[1]) - px(shadeBox[0])), height: ph, 'aria-hidden': 'true' }),
-      shadeBox && s('text', { class: 'ls__shade-label', x: px(shadeBox[0]) + 6, y: shadeLabelY, 'aria-hidden': 'true' }, shade.label),
+      shadeBox && shade.label && s('text', { class: 'ls__shade-label', x: px(shadeBox[0]) + 6, y: shadeLabelY, 'aria-hidden': 'true' }, shade.label),
       yAxis(y, ticks, { group: 'ls__yticks', line: 'ls__', w: pw, fmt: tickFmt, base: lo }),
       s('text', { class: 'ls__axis-title', x: -M.left, y: -18, 'aria-hidden': 'true' }, raised ? `${yLabel} (axis starts at ${tickFmt(lo)}, not 0)` : yLabel),
       raised && s('g', { class: 'ls__break', 'aria-hidden': 'true' },
@@ -124,7 +124,7 @@ function draw(el, c) {
       ...series.map((sr) => h('span', { class: 'tip__row' }, keyFor(sr.tone), h('strong', null, fmt(sr.values[i])), ` ${sr.label}`)),
     ]);
   };
-  bindTip(hit, show, () => { box = null; hover.setAttribute('visibility', 'hidden'); });
+  bindTip(hit, show, () => { box = null; hover.setAttribute('visibility', 'hidden'); }, { drag: true });
 
   swapSvg(el, 'ls__svg', svg);
 }

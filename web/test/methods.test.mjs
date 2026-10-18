@@ -464,9 +464,9 @@ test('methods: definitions say how each field is read, with its line and column'
   assert.ok(t.includes('include swing-bed days (lines 5 and 6)'), 'swing beds in occupancy');
   assert.ok(t.includes(`At least ${r.teachFte} full-time-equivalent interns and residents (line 14, column 9)`), 'teaching threshold');
   assert.ok(t.includes('The Academic preset counts any reported resident.'));
-  const long = REAL.hospitals.filter((x) => x.periodDays).length;
+  const scaled = REAL.hospitals.filter((x) => x.periodDays).length;
   assert.ok(t.includes(`Counts from a report shorter than ${r.yearDays[0]} days or longer than ${r.yearDays[1]} are scaled to 365 days `
-    + `on hospital pages and in the calculator (${long} in FY${REAL.meta.latestFy})`), 'annualizing');
+    + `on hospital pages and in the calculator (${scaled} in FY${REAL.meta.latestFy})`), 'annualizing');
   assert.ok(t.includes('Reports of every status (as submitted, settled, reopened or amended) are used.'));
   const fy = REAL.meta.latestFy;
   assert.ok(t.includes(`FY${fy} reports begin between Oct ${fy - 1} and Sep ${fy}, so the latest run to ${fmtDate(REAL.meta.builtOn.slice(0, 7))}`), 'period alignment');

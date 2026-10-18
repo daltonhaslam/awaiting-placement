@@ -46,15 +46,16 @@ const matchesWord = (alts, words) => words.some((w) => alts.some((a) => w.starts
 // ("Milton S Hershey", "O Fallon"), so the query is tried both ways and the better match counts.
 const rejoin = (q) => q.replace(/(\w) s\b/g, '$1s').replace(/\b([od]) (?=\w)/g, '$1');
 
-// Score of one entry for one normalized query, or null when it does not match. An initials match ("mgh") ranks below
-// any name that contains the typed word, and among initials matches the larger hospital first (MGH: 997 beds).
-function scoreFor(e, q) {
-  const tokens = q.split(' ').map((t) => [t, ...(SYNONYMS[t] || [])]);
+const formOf = (q) => ({ q, tokens: q.split(' ').map((t) => [t, ...(SYNONYMS[t] || [])]) });
+
+// Score of one entry for one query form, or null when it does not match. Initials matches ("mgh") score below every
+// name that contains the typed words (those score above -1000), and among them the larger hospital first (MGH: 997 beds).
+function scoreFor(e, { q, tokens }) {
   const literal = tokens.every((alts) => matchesWord(alts, e.words));
   // One short word may be a name's initials; two letters would mostly hit state codes and name prefixes.
   const byInitials = !literal && tokens.length === 1 && q.length >= 3 && q.length <= 5 && e.initials === q;
   if (!literal && !byInitials) return null;
-  if (byInitials) return 60 + Math.min(e.beds, 3000) / 100 - e.label.length * 0.1;
+  if (byInitials) return -2000 + Math.min(e.beds, 3000) / 30;
   let score = 0;
   if (e.key === q) score += 1000;
   if (e.labelNorm === q) score += 500;
@@ -68,7 +69,7 @@ function scoreFor(e, q) {
 export function searchIndex(index, query, limit = 10) {
   const q = normalize(String(query ?? '').replace(/<[^>]*>/g, ' '));
   if (!q) return [];
-  const forms = [...new Set([q, rejoin(q)])];
+  const forms = [...new Set([q, rejoin(q)])].map(formOf);
   const scored = [];
   for (const e of index) {
     const best = Math.max(...forms.map((f) => scoreFor(e, f) ?? -Infinity));

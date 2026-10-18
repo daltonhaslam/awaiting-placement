@@ -118,7 +118,7 @@ function build(el, points, current, share, W) {
       ...SERIES.map((sr) => h('span', { class: 'tip__row' }, lineKey(sr.cls), h('strong', null, `${fmtBeds(num(p[sr.key]))} beds`), ` ${sr.label}`)),
     ]);
   };
-  bindTip(hit, show, () => { box = null; hover.setAttribute('visibility', 'hidden'); });
+  bindTip(hit, show, () => { box = null; hover.setAttribute('visibility', 'hidden'); }, { drag: true });
 
   swapSvg(el, 'curve__svg', svg);
   const d = { W, points, sig: sigOf(points), svg, marker, label, dots, px, py };

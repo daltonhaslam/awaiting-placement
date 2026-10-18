@@ -22,7 +22,7 @@ CHECK_ALOS_RATIO = 2.0  # longer ALOS more than this many times the shorter one
 # hospitals report a fraction of one FTE (residents rotating through from another hospital's program). The Academic
 # preset still counts any resident.
 TEACH_MIN_FTE = 10
-# A report that is not a year long (365 days, or 366 in a leap year) has its counts scaled to 365 days on the hospital
+# A report that is not a year long (365 or 366 days; the leap day is not checked) has its counts scaled to 365 days on the hospital
 # pages and in the calculator: in FY2024, 7 reports run 382 to 425 days and a few run 300 to 364. Shares and stays are
 # ratios and unchanged; national figures pool the counts as reported.
 YEAR_DAYS = (365, 366)

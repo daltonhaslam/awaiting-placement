@@ -13,7 +13,7 @@ const { resetFigures } = await import('../src/js/ui/figure.js');
 const { dumbbell } = await import('../src/js/charts/dumbbell.js');
 const { mixBars } = await import('../src/js/charts/mixBars.js');
 const { lineSeries } = await import('../src/js/charts/lineSeries.js');
-const { niceMax, axisPad, bindTip, swapSvg, yAxis, legend } = await import('../src/js/charts/shared.js');
+const { niceMax, axisPad, bindTip, closeTouchTip, swapSvg, yAxis, legend } = await import('../src/js/charts/shared.js');
 const { maCurve, curveLegend } = await import('../src/js/charts/maCurve.js');
 const { renderGap } = await import('../src/js/views/gap.js');
 const { renderShare, bothRoseInCovid } = await import('../src/js/views/share.js');
@@ -327,11 +327,18 @@ test('bindTip on touch: a tap shows and stays (no hide on the pointerleave that 
   assert.deepEqual(calls, ['show', 'leave', 'show', 'show']);
 });
 
-test('bindTip on touch: a finger dragged along an open chart moves the tooltip; without a tap it does nothing', () => {
+test('bindTip on touch: a finger dragged along an open chart (drag: true) moves the tooltip; a single mark ignores drags', () => {
   const node = document.createElement('div');
-  document.body.append(node);
+  const mark = document.createElement('div');
+  document.body.append(node, mark);
+  const marks = [];
+  bindTip(mark, () => marks.push('show'), () => marks.push('leave'));
+  ptr(mark, 'pointerdown', 'touch');
+  ptr(mark, 'pointermove', 'touch', 80, 10); // the finger slid off the bar: its tooltip stays where it was
+  assert.deepEqual(marks, ['show']);
+  ptr(mark, 'pointerdown', 'touch');
   const calls = [];
-  bindTip(node, () => calls.push('show'), () => calls.push('leave'));
+  bindTip(node, () => calls.push('show'), () => calls.push('leave'), { drag: true });
   ptr(node, 'pointermove', 'touch', 5, 10);
   assert.deepEqual(calls, []);
   ptr(node, 'pointerdown', 'touch', 10, 10);
@@ -339,6 +346,23 @@ test('bindTip on touch: a finger dragged along an open chart moves the tooltip; 
   assert.deepEqual(calls, ['show', 'show']);
   ptr(node, 'pointerdown', 'touch', 82, 10); // where the finger ended: the same spot, closes
   assert.deepEqual(calls, ['show', 'show', 'leave']);
+});
+
+test('closeTouchTip (route change) closes an open tapped tooltip and is a no-op otherwise', () => {
+  const node = document.createElement('div');
+  document.body.append(node);
+  const calls = [];
+  bindTip(node, () => calls.push('show'), () => calls.push('leave'));
+  ptr(node, 'pointerdown', 'touch');
+  closeTouchTip();
+  closeTouchTip();
+  assert.deepEqual(calls, ['show', 'leave']);
+});
+
+test('lineSeries: a shade with no label draws the band and no label', () => {
+  const svg = lineSeries(h('div'), lineOpts({ shade: { xs: D.meta.covidFys } }));
+  assert.ok(svg.querySelector('rect.ls__shade'));
+  assert.equal(svg.querySelector('.ls__shade-label'), null);
 });
 
 test('bindTip on touch: a redraw that replaces the chart closes its tapped tooltip', () => {
