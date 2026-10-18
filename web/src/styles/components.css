@@ -120,7 +120,7 @@
 /* On the blue band the sign plate inverts: a white plate with sign-blue type. */
 .hero .go:not(.go--plain) { background: var(--band-ink); color: var(--band); }
 .hero .go:not(.go--plain):hover { background: color-mix(in srgb, var(--band-ink) 86%, var(--band)); }
-/* Series keys on the band carry a white edge so teal and amber read against the blue. */
+/* Keys on the band carry a white edge so the dark LED chip and the yellow ticket chip read against the blue. */
 .hero .key { outline: 1.5px solid var(--band-ink); }
 
 /* The sign plate shared by the primary link, buttons, wayfinding signs and the tooltip. */
@@ -150,6 +150,10 @@
 .key { flex: none; width: 10px; height: 10px; margin-top: .3em; border-radius: 2px; }
 .key--ffs { background: var(--ffs); }
 .key--ma { background: var(--ma); }
+/* Under the two hero panels the key is a small copy of the object it labels, in the same tokens: the LED's dark housing
+   with one lit dot, and the ticket's yellow. The teal and amber series colours start at Fig. 1. */
+.led .key { background: radial-gradient(circle, var(--led) 0 2.5px, var(--led-bg) 3px); }
+.tkt .key { background: var(--ticket); }
 
 /* LED: dark housing with a 2px bezel and a dot-matrix module. The unlit dots (texture, not decoration) sit on
    Doto's own grid: 0.1em pitch, 0.08em dots, digit rows centered at 0.2-0.8em of a 1em line. A 0.9em line box

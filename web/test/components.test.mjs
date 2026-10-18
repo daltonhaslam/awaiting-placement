@@ -341,3 +341,13 @@ test('pathway: the real timeline\'s CMS-0057-F deadline item gives the deadline 
   // Only the decision-deadline item: never the 2027 API item or the MedPAC items, which mention days but not decisions.
   assert.doesNotMatch(text(el), /API|MedPAC/);
 });
+
+test('hero keys look like the objects they label: a dark chip with an LED dot, a ticket-yellow chip (same tokens)', () => {
+  const css = readFileSync(new URL('../src/styles/components.css', import.meta.url), 'utf8');
+  const rule = (sel) => new RegExp(`(^|\\n)${sel.replace(/[.]/g, '\\.')}\\s*\\{([^}]*)\\}`).exec(css)?.[2] ?? '';
+  assert.match(rule('.led .key'), /var\(--led-bg\)/);
+  assert.match(rule('.led .key'), /var\(--led\)/);
+  assert.match(rule('.tkt .key'), /background:\s*var\(--ticket\)/);
+  const hero = renderHero(D);
+  assert.ok(hero.querySelector('.led .key') && hero.querySelector('.tkt .key'), 'each panel has its key');
+});
