@@ -42,29 +42,37 @@ export function hospitalIndex(D) {
 const matchesWord = (alts, words) => words.some((w) => alts.some((a) => w.startsWith(a)));
 
 // A reader who types an apostrophe as a space ("king s daughters", "o bleness") splits one indexed word in two: a lone
-// "s" belongs to the word before it, a lone "o" or "d" to the word after it.
+// "s" may belong to the word before it, a lone "o" or "d" to the word after it. Some real names have a lone letter
+// ("Milton S Hershey", "O Fallon"), so the query is tried both ways and the better match counts.
 const rejoin = (q) => q.replace(/(\w) s\b/g, '$1s').replace(/\b([od]) (?=\w)/g, '$1');
+
+// Score of one entry for one normalized query, or null when it does not match. An initials match ("mgh") ranks below
+// any name that contains the typed word, and among initials matches the larger hospital first (MGH: 997 beds).
+function scoreFor(e, q) {
+  const tokens = q.split(' ').map((t) => [t, ...(SYNONYMS[t] || [])]);
+  const literal = tokens.every((alts) => matchesWord(alts, e.words));
+  // One short word may be a name's initials; two letters would mostly hit state codes and name prefixes.
+  const byInitials = !literal && tokens.length === 1 && q.length >= 3 && q.length <= 5 && e.initials === q;
+  if (!literal && !byInitials) return null;
+  if (byInitials) return 60 + Math.min(e.beds, 3000) / 100 - e.label.length * 0.1;
+  let score = 0;
+  if (e.key === q) score += 1000;
+  if (e.labelNorm === q) score += 500;
+  else if (e.labelNorm.startsWith(q)) score += 200;
+  if (` ${e.labelNorm} `.includes(` ${q} `)) score += 100; // the query as a phrase ("a m" in "texas a m health")
+  for (const alts of tokens) if (matchesWord(alts, e.labelWords)) score += 20;
+  return score - e.label.length * 0.1;
+}
 
 // Markup in a query (e.g. "<b>") is not a search term.
 export function searchIndex(index, query, limit = 10) {
-  const q = rejoin(normalize(String(query ?? '').replace(/<[^>]*>/g, ' ')));
+  const q = normalize(String(query ?? '').replace(/<[^>]*>/g, ' '));
   if (!q) return [];
-  const tokens = q.split(' ').map((t) => [t, ...(SYNONYMS[t] || [])]);
-  // One short word may be a name's initials ("mgh"); two letters would mostly hit state codes and name prefixes.
-  const initials = tokens.length === 1 && q.length >= 3 && q.length <= 5 ? q : null;
+  const forms = [...new Set([q, rejoin(q)])];
   const scored = [];
   for (const e of index) {
-    const byInitials = initials !== null && e.initials === initials;
-    if (!byInitials && !tokens.every((alts) => matchesWord(alts, e.words))) continue;
-    // Many names share initials; the one a reader abbreviates is usually the large hospital (MGH: 997 beds).
-    let score = byInitials ? 300 + Math.min(e.beds, 3000) / 30 : 0;
-    if (e.key === q) score += 1000;
-    if (e.labelNorm === q) score += 500;
-    else if (e.labelNorm.startsWith(q)) score += 200;
-    if (` ${e.labelNorm} `.includes(` ${q} `)) score += 100; // the query as a phrase ("a m" in "texas a m health")
-    for (const alts of tokens) if (matchesWord(alts, e.labelWords)) score += 20;
-    score -= e.label.length * 0.1;
-    scored.push({ key: e.key, label: e.label, sub: e.sub, score });
+    const best = Math.max(...forms.map((f) => scoreFor(e, f) ?? -Infinity));
+    if (best > -Infinity) scored.push({ key: e.key, label: e.label, sub: e.sub, score: best });
   }
   return scored.sort((a, b) => b.score - a.score).slice(0, limit);
 }

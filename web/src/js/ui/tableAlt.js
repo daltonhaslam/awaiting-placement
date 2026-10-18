@@ -15,3 +15,11 @@ export function tableAlt({ caption, columns, rows }) {
           ? h('th', { scope: 'row', class: num[i] ? 'num' : null }, cell(c, r))
           : h('td', { class: num[i] ? 'num' : null }, cell(c, r))))))))));
 }
+
+// Paper cannot click "Show as table", and a closed <details> prints nothing: open every closed table for printing.
+// Returns a function that closes again just the ones it opened (the reader's own choices stay).
+export function printTables(root) {
+  const opened = [...root.querySelectorAll('details.table-alt')].filter((d) => !d.hasAttribute('open'));
+  for (const d of opened) d.setAttribute('open', '');
+  return () => { for (const d of opened) d.removeAttribute('open'); };
+}

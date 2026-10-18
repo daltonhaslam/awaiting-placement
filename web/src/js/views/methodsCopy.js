@@ -29,23 +29,23 @@ export const ccnRanges = (r) => (r?.acuteSuffix && r?.cahSuffix
 
 export const occRange = (r) => (r?.occPlausible ? `${pctWhole(r.occPlausible[0])} to ${pctWhole(r.occPlausible[1])}` : null);
 
-// r: D.meta.rules. m: D.meta (the latest year and how far its reports run). nLong: hospitals whose counts were scaled.
+// r: D.meta.rules. m: D.meta (the latest year, how far its reports run, MedPAC's year). nLong: hospitals whose counts were scaled.
 export function definitions(r, m = {}, nLong = 0) {
   const occ = r?.occPlausible
     ? `A value above ${pctWhole(r.occPlausible[1])} or below ${pctWhole(r.occPlausible[0])} is flagged and not shown.`
     : 'An implausible value is flagged and not shown.';
   const fy = m.latestFy;
+  const mfy = m.crossCheck?.medpac?.fy;
   // CMS files a report under the federal fiscal year its period begins in (October to September).
-  const align = fy && m.builtOn
-    ? ` FY${fy} reports begin between ${fmtDate(`${fy - 1}-10`)} and ${fmtDate(`${fy}-09`)}, so the latest run to ${fmtDate(m.builtOn.slice(0, 7))}. `
-      + `MedPAC's FY${fy} figures cover discharges from ${fmtDate(`${fy - 1}-10`)} to ${fmtDate(`${fy}-09`)}.`
-    : '';
+  const align = (fy && m.builtOn
+    ? ` FY${fy} reports begin between ${fmtDate(`${fy - 1}-10`)} and ${fmtDate(`${fy}-09`)}, so the latest run to ${fmtDate(m.builtOn.slice(0, 7))}.` : '')
+    + (mfy ? ` MedPAC's FY${mfy} figures cover discharges from ${fmtDate(`${mfy - 1}-10`)} to ${fmtDate(`${mfy}-09`)}.` : '');
   return [
     ['Fiscal year', 'The federal fiscal year the report period begins in, which is how CMS files the reports. When a hospital has more than one '
       + `report for a year, the longest period is kept, then the most recently processed.${align}`],
     ['Report length', `Reports must cover at least ${r?.periodDays ?? 'the minimum number of'} days. `
-      + (r?.yearDays ? `Counts from a report longer than ${r.yearDays} days are scaled to 365 days on hospital pages and in the calculator `
-        + `(${nLong} in FY${fy}); stays and shares are ratios and need no scaling. ` : '')
+      + (r?.yearDays ? `Counts from a report shorter than ${r.yearDays[0]} days or longer than ${r.yearDays[1]} are scaled to 365 days `
+        + `on hospital pages and in the calculator (${nLong} in FY${fy}); stays and shares are ratios and need no scaling. ` : '')
       + 'Reports of every status (as submitted, settled, reopened or amended) are used.'],
     ['Medicare Advantage (MA) days and discharges', 'Worksheet S-3, Part I, line 2 (labeled "HMO and other" on the form): days in column 6, '
       + 'discharges in column 13.'],

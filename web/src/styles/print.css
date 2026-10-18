@@ -14,8 +14,7 @@
   .panel__plate, .bb, .fig svg, .key, .linekey { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   /* In greyscale teal and amber look alike: traditional Medicare lines print dashed, as their keys do. */
   .ls__line--ffs, .key__line--ffs, .linekey .ls__line--ffs { stroke-dasharray: 6 3; }
-  /* Tables print open in place of their charts' hidden "Show as table" toggle. */
-  .table-alt > :not(summary) { display: block !important; }
+  /* Data tables print open: main.js opens each "Show as table" before printing (a closed <details> prints nothing). */
   .table-alt__scroll { overflow: visible; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; overflow-wrap: anywhere; color: var(--ink-2); }
   a[href^="http"] .visually-hidden { display: none; }

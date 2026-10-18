@@ -58,7 +58,7 @@ class T(unittest.TestCase):
     def test_hospital_discharge_counts_are_annual(self):
         rows = {(r['ccn']): r for r in build_data.load_extract() if int(r['fy']) == self.out['meta']['latestFy']}
         long = [h for h in self.out['hospitals'] if 'periodDays' in h]
-        self.assertTrue(long, 'some FY reports run past a year')
+        self.assertTrue(long, 'some FY reports are not a year long')
         for h in self.out['hospitals']:
             self.assertTrue(all(isinstance(h[k], int) for k in ('dis', 'maDis', 'ffsDis')), h['id'])
             r = rows[h['id']]
@@ -66,8 +66,9 @@ class T(unittest.TestCase):
             self.assertEqual(h['dis'], round(float(r['tot_disch']) * k), h['id'])
             self.assertEqual(h['maDis'], round(float(r['ma_disch']) * k), h['id'])
             self.assertEqual(h['ffsDis'], round(float(r['ffs_disch']) * k), h['id'])
+        lo, hi = self.out['meta']['rules']['yearDays']
         for h in long:
-            self.assertGreater(h['periodDays'], self.out['meta']['rules']['yearDays'])
+            self.assertFalse(lo <= h['periodDays'] <= hi, h['id'])
     def test_teaching_badge_and_academic_preset(self):
         t = self.out['meta']['rules']['teachFte']
         rows = {(r['ccn']): r for r in build_data.load_extract() if int(r['fy']) == self.out['meta']['latestFy']}

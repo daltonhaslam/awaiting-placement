@@ -106,8 +106,8 @@ function costReportPart(D) {
     checkDataSentence(m, checkData),
     fys.length > 1 ? h('p', null, `The national trend on the main page applies the same rules to each year from FY${fys[0]} to FY${fys.at(-1)}.`
       + (covid.length ? ` The COVID years, FY${covid[0]} to FY${covid.at(-1)}, are shaded.` : '')
-      + ' National figures pool the included hospitals: total MA days divided by total MA discharges, and likewise for traditional '
-      + 'Medicare and for the MA share, so each hospital counts in proportion to its discharges.'
+      + ' National figures pool the included hospitals\' counts as reported: total MA days divided by total MA discharges, and likewise '
+      + 'for traditional Medicare and for the MA share, so each hospital counts in proportion to its discharges.'
       + (series.length > 1 ? ` The hospitals that pass the checks change from year to year (${fmtNum(series[0].n)} in FY${series[0].fy}, `
         + `${fmtNum(series.at(-1).n)} in FY${series.at(-1).fy}), so part of a trend can be a change in which hospitals are counted.` : '')) : null,
     cc?.hcris && cc?.medpac ? [

@@ -179,13 +179,13 @@ def _build():
             'name': names.display_name(g.get('Facility Name'), d['name']),
             'city': names.smart_title(' '.join(city.split())),
             'st': d['state'], 'beds': int(d['beds']), 'occ': round(d['occ'], 3), 'occFlag': clean.occ_flag(d),
-            # Counts are annual: a report covering more than a year is scaled to 365 days (periodDays says so).
+            # Counts are annual: a report that is not a year long is scaled to 365 days (periodDays says so).
             'dis': round(d['tot_disch_yr']), 'maDis': round(d['ma_disch_yr']), 'ffsDis': round(d['ffs_disch_yr']),
             'mcr': round(d['mcr'], 3), 'ma': round(d['ma_share'], 3),
             'maAlos': round(d['ma_alos'], 2), 'ffsAlos': round(d['ffs_alos'], 2), 'gap': round(d['gap'], 2),
             'teach': d['teach'], 'trend': trend_of(d['ccn']),
             **({'checkData': True} if clean.check_data(d) else {}),  # omitted when false, to keep the file small
-            **({'periodDays': int(d['period_days'])} if clean.is_long(d) else {}),
+            **({'periodDays': int(d['period_days'])} if clean.is_scaled(d) else {}),
         })
 
     # Prose in content/*.json that quotes a figure from this data or from medpac.json carries a {placeholder}, filled here

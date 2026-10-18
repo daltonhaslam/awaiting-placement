@@ -7,7 +7,7 @@ import { parseHTML } from 'linkedom';
 const dom = parseHTML('<!doctype html><html><head></head><body><main id="main"></main></body></html>');
 Object.assign(globalThis, { window: dom.window, document: dom.document, Node: dom.Node, HTMLElement: dom.HTMLElement });
 
-const { h } = await import('../src/js/dom.js');
+const { h, s } = await import('../src/js/dom.js');
 const { loadData } = await import('../src/js/data.js');
 const { resetFigures } = await import('../src/js/ui/figure.js');
 const { dumbbell } = await import('../src/js/charts/dumbbell.js');
@@ -97,6 +97,10 @@ test('lineSeries: the shade label moves to the bottom when the line runs along t
   const top = lineSeries(sized(360), opts(0.97));
   assert.ok(labelY(0.97) > plotH(top) / 2, `near the top (0.97): label at y=${labelY(0.97)}`);
   assert.ok(labelY(0.3) < 20, `mid-chart (0.3): label stays at the top, y=${labelY(0.3)}`);
+  // High only after the band, where the label text runs past a narrow band's right edge (the narrowest chart).
+  const after = { ...opts(0.3), series: [{ key: 'share', label: 'MA share', tone: 'ma', values: xs.map((fy) => (fy > Math.max(...D.meta.covidFys) ? 0.97 : 0.3)) }] };
+  const y = Number(lineSeries(sized(260), after).querySelector('.ls__shade-label').getAttribute('y'));
+  assert.ok(y > 100, `a high point just right of the band, under the label: label at y=${y}`);
 });
 
 test('lineSeries: a raised baseline shows an axis break and says so in the label', () => {
@@ -315,13 +319,40 @@ test('bindTip on touch: a tap shows and stays (no hide on the pointerleave that 
   bindTip(node, () => calls.push('show'), () => calls.push('leave'));
   ptr(node, 'pointerdown', 'touch');
   ptr(node, 'pointerleave', 'touch'); // touch fires this right after pointerup
-  ptr(node, 'pointermove', 'touch');
   assert.deepEqual(calls, ['show']);
   ptr(node, 'pointerdown', 'touch'); // the same spot again
   assert.deepEqual(calls, ['show', 'leave']);
   ptr(node, 'pointerdown', 'touch');
   ptr(node, 'pointerdown', 'touch', 200, 10); // elsewhere on the same chart: moves, does not close
   assert.deepEqual(calls, ['show', 'leave', 'show', 'show']);
+});
+
+test('bindTip on touch: a finger dragged along an open chart moves the tooltip; without a tap it does nothing', () => {
+  const node = document.createElement('div');
+  document.body.append(node);
+  const calls = [];
+  bindTip(node, () => calls.push('show'), () => calls.push('leave'));
+  ptr(node, 'pointermove', 'touch', 5, 10);
+  assert.deepEqual(calls, []);
+  ptr(node, 'pointerdown', 'touch', 10, 10);
+  ptr(node, 'pointermove', 'touch', 80, 10);
+  assert.deepEqual(calls, ['show', 'show']);
+  ptr(node, 'pointerdown', 'touch', 82, 10); // where the finger ended: the same spot, closes
+  assert.deepEqual(calls, ['show', 'show', 'leave']);
+});
+
+test('bindTip on touch: a redraw that replaces the chart closes its tapped tooltip', () => {
+  const host = document.createElement('div');
+  const old = s('svg', { class: 'k__svg' });
+  const mark = s('rect');
+  old.append(mark);
+  host.append(old);
+  document.body.append(host);
+  const calls = [];
+  bindTip(mark, () => calls.push('show'), () => calls.push('leave'));
+  ptr(mark, 'pointerdown', 'touch');
+  swapSvg(host, 'k__svg', s('svg', { class: 'k__svg' }));
+  assert.deepEqual(calls, ['show', 'leave']);
 });
 
 test('bindTip on touch: a tap outside the chart closes the tooltip', () => {

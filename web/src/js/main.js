@@ -7,6 +7,7 @@ import { tooltip } from './ui/tooltip.js';
 import { trackTopbar } from './ui/topbar.js';
 import { bindQueue } from './ui/queue.js';
 import { resetFigures } from './ui/figure.js';
+import { printTables } from './ui/tableAlt.js';
 import { renderHome } from './views/home.js';
 import { renderHospital, hospitalTitle } from './views/hospital.js';
 import { restoreCalculator, disposeCalculator } from './views/calculator.js';
@@ -23,6 +24,9 @@ document.getElementById('footer').replaceChildren(renderFooter(D)); // replaces 
 
 // The skip link moves focus without touching the route (a bare #main would read as an unknown route).
 document.querySelector('.skip')?.addEventListener('click', (e) => { e.preventDefault(); main.focus(); });
+let afterPrint = null;
+window.addEventListener('beforeprint', () => { afterPrint = printTables(document); });
+window.addEventListener('afterprint', () => { afterPrint?.(); afterPrint = null; });
 
 // Each route names itself in the tab, history and bookmarks ("Massachusetts General Hospital · Awaiting Placement").
 function titleFor(r) {

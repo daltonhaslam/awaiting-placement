@@ -80,7 +80,11 @@ function openTouchTip(t) {
 
 export function bindTip(node, fn, onLeave) {
   const leave = () => { onLeave?.(); tooltip.hide(); };
-  node.addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') fn(e); });
+  // A finger dragged along a chart whose tooltip a tap opened moves it, and where the finger stops becomes the "same spot".
+  node.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'touch') fn(e);
+    else if (touchTip?.node === node) { touchTip.x = e.clientX; touchTip.y = e.clientY; fn(e); }
+  });
   node.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'touch') {
       const t = touchTip;
@@ -98,6 +102,7 @@ export function bindTip(node, fn, onLeave) {
 // Put a freshly drawn chart svg in its host, replacing the previous drawing (`cls` is the svg's class).
 export function swapSvg(el, cls, svg) {
   const old = el.querySelector(`svg.${cls}`);
+  if (old && touchTip && old.contains(touchTip.node)) closeTouchTip(); // its marks are gone: so is its tapped tooltip
   if (old) old.replaceWith(svg); else el.append(svg);
 }
 

@@ -22,9 +22,10 @@ CHECK_ALOS_RATIO = 2.0  # longer ALOS more than this many times the shorter one
 # hospitals report a fraction of one FTE (residents rotating through from another hospital's program). The Academic
 # preset still counts any resident.
 TEACH_MIN_FTE = 10
-# A report covering more than this many days (a year, a leap year included) has its counts scaled to 365 days on the
-# hospital pages and in the calculator (7 FY2024 reports run 382 to 425 days). Shares and stays are ratios and unchanged.
-YEAR_DAYS = 366
+# A report that is not a year long (365 days, or 366 in a leap year) has its counts scaled to 365 days on the hospital
+# pages and in the calculator: in FY2024, 7 reports run 382 to 425 days and a few run 300 to 364. Shares and stays are
+# ratios and unchanged; national figures pool the counts as reported.
+YEAR_DAYS = (365, 366)
 
 
 def rules():
@@ -33,7 +34,7 @@ def rules():
             'alos': list(ALOS_RANGE), 'excludedStates': list(EXCLUDED_STATES.values()),
             'acuteSuffix': list(ACUTE_SUFFIX), 'cahSuffix': list(CAH_SUFFIX), 'occPlausible': list(OCC_PLAUSIBLE),
             'checkGapDays': CHECK_GAP_DAYS, 'checkAlosRatio': CHECK_ALOS_RATIO, 'teachFte': TEACH_MIN_FTE,
-            'yearDays': YEAR_DAYS}
+            'yearDays': list(YEAR_DAYS)}
 
 
 def _num(v):
@@ -74,14 +75,15 @@ def derive(row):
     return d
 
 
-def is_long(d):
-    """True when the report covers more than a year (see YEAR_DAYS)."""
-    return (d.get('period_days') or 0) > YEAR_DAYS
+def is_scaled(d):
+    """True when the report's period is not a year (see YEAR_DAYS), so its counts are scaled."""
+    p = d.get('period_days')
+    return bool(p) and not YEAR_DAYS[0] <= p <= YEAR_DAYS[1]
 
 
 def annual(count, d):
-    """A count from the report d, scaled to 365 days when the report covers more than a year."""
-    return count * 365 / d['period_days'] if is_long(d) else count
+    """A count from the report d, scaled to 365 days when its period is not a year."""
+    return count * 365 / d['period_days'] if is_scaled(d) else count
 
 
 def exclusion_reason(d):

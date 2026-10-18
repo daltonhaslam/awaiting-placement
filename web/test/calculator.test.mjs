@@ -259,6 +259,13 @@ test('inputs that imply an impossible average stay show a warning, and the input
   const own = renderCalculator(real, { query: `h=${odd.id}` });
   assert.match(text(warn(own)), /figures in this hospital's cost report imply an average stay of/);
   clean(own);
+  // A flagged occupancy is replaced by a typical one, so the report did not supply all three: the plain wording.
+  const raw = structuredClone(fixture);
+  const flagged = raw.hospitals.find((x) => x.occFlag);
+  flagged.dis = raw.model.ranges.dis[1];
+  const typical = renderCalculator(loadData(raw), { query: `h=${flagged.id}` });
+  assert.match(text(warn(typical)), /^These inputs imply/);
+  clean(typical);
 });
 
 test('fill: auto by default with its computed value; the override checkbox sets it', () => {

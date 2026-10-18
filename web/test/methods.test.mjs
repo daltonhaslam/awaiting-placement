@@ -465,18 +465,19 @@ test('methods: definitions say how each field is read, with its line and column'
   assert.ok(t.includes(`At least ${r.teachFte} full-time-equivalent interns and residents (line 14, column 9)`), 'teaching threshold');
   assert.ok(t.includes('The Academic preset counts any reported resident.'));
   const long = REAL.hospitals.filter((x) => x.periodDays).length;
-  assert.ok(t.includes(`Counts from a report longer than ${r.yearDays} days are scaled to 365 days on hospital pages and in the calculator `
-    + `(${long} in FY${REAL.meta.latestFy})`), 'annualizing');
+  assert.ok(t.includes(`Counts from a report shorter than ${r.yearDays[0]} days or longer than ${r.yearDays[1]} are scaled to 365 days `
+    + `on hospital pages and in the calculator (${long} in FY${REAL.meta.latestFy})`), 'annualizing');
   assert.ok(t.includes('Reports of every status (as submitted, settled, reopened or amended) are used.'));
   const fy = REAL.meta.latestFy;
   assert.ok(t.includes(`FY${fy} reports begin between Oct ${fy - 1} and Sep ${fy}, so the latest run to ${fmtDate(REAL.meta.builtOn.slice(0, 7))}`), 'period alignment');
-  assert.ok(t.includes(`MedPAC's FY${fy} figures cover discharges from Oct ${fy - 1} to Sep ${fy}.`));
+  const mfy = REAL.meta.crossCheck.medpac.fy;
+  assert.ok(t.includes(`MedPAC's FY${mfy} figures cover discharges from Oct ${mfy - 1} to Sep ${mfy}.`));
 });
 
 test('methods: national figures are discharge-weighted, the hospital set changes by year, and the raw files are pinned', () => {
   const t = text(renderMethods(REAL));
   const s = REAL.national.series;
-  assert.ok(t.includes('National figures pool the included hospitals: total MA days divided by total MA discharges'), 'weighting');
+  assert.ok(t.includes("National figures pool the included hospitals' counts as reported: total MA days divided by total MA discharges"), 'weighting');
   assert.ok(t.includes(`(${s[0].n.toLocaleString('en-US')} in FY${s[0].fy}, ${s.at(-1).n.toLocaleString('en-US')} in FY${s.at(-1).fy})`), 'panel size');
   assert.ok(t.includes('The national trend on the main page applies the same rules'));
   assert.ok(!t.includes('No. 03 applies'));

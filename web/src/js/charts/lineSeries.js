@@ -57,11 +57,13 @@ function draw(el, c) {
   const sx = (shade?.xs ?? []).filter(isNum);
   const shadeBox = sx.length ? [Math.max(x.domain()[0], Math.min(...sx) - step / 2), Math.min(x.domain()[1], Math.max(...sx) + step / 2)] : null;
 
-  // The shade label sits at the top of the band unless a line runs through the top 20 px in the shaded years (an MA share
-  // near 100%), then at the bottom.
+  // The shade label sits at the top of the band unless a line runs through the top 20 px under it (an MA share near 100%),
+  // then at the bottom. "Under it" spans the band and the label text, which can run past a narrow band's right edge.
+  const SHADE_CH = 7; // px per character of the label at --fs-chart-tick (12px Overpass), with margin
   const shadeLabelY = (() => {
     if (!shadeBox) return 12;
-    const ys = series.flatMap((sr) => sr.values.filter((v, i) => isNum(v) && xs[i] >= shadeBox[0] && xs[i] <= shadeBox[1])).map(py);
+    const right = Math.max(px(shadeBox[1]), px(shadeBox[0]) + 6 + shade.label.length * SHADE_CH);
+    const ys = series.flatMap((sr) => sr.values.filter((v, i) => isNum(v) && isNum(xs[i]) && px(xs[i]) >= px(shadeBox[0]) && px(xs[i]) <= right)).map(py);
     return ys.length && Math.min(...ys) < 20 && Math.max(...ys) <= ph - 20 ? ph - 6 : 12;
   })();
 

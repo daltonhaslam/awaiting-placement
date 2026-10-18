@@ -96,3 +96,14 @@ test('initials find a hospital: "MGH" is Massachusetts General Hospital, first',
   // Initials skip small words: "Hospital of Univ of Pennsylvania" is HUP.
   assert.equal(realNames('hup')[0], 'Hospital of Univ of Pennsylvania');
 });
+
+test('rejoining a split apostrophe never loses a name that really has a lone letter', () => {
+  assert.ok(realNames('milton s hershey').some((n) => /milton s\.? hershey/i.test(n)), realNames('milton s hershey').join(' | '));
+  assert.ok(searchIndex(realIndex, 'o fallon').some((x) => /O Fallon/i.test(x.sub)), 'city O Fallon');
+});
+
+test('a name that contains the typed word outranks a name whose initials match it', () => {
+  assert.match(realNames('arh')[0], /\bARH\b/);
+  assert.ok(realNames('mmc').some((n) => /\(MMC-BD\)/.test(n)), realNames('mmc').join(' | '));
+  assert.equal(searchIndex(realIndex, 'mgh')[0].key, '220071');
+});

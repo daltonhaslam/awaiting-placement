@@ -351,3 +351,17 @@ test('hero keys look like the objects they label: a dark chip with an LED dot, a
   const hero = renderHero(D);
   assert.ok(hero.querySelector('.led .key') && hero.querySelector('.tkt .key'), 'each panel has its key');
 });
+
+test('printTables opens every closed "Show as table" for printing and closes only those afterwards', async () => {
+  const { tableAlt, printTables } = await import('../src/js/ui/tableAlt.js');
+  const root = h('div');
+  const a = tableAlt({ caption: 'A', columns: [{ key: 'x', label: 'X' }], rows: [{ x: 1 }] });
+  const b = tableAlt({ caption: 'B', columns: [{ key: 'x', label: 'X' }], rows: [{ x: 2 }] });
+  b.setAttribute('open', ''); // the reader opened this one
+  root.append(a, b);
+  const open = (d) => d.hasAttribute('open');
+  const restore = printTables(root);
+  assert.ok(open(a) && open(b));
+  restore();
+  assert.ok(!open(a) && open(b));
+});
