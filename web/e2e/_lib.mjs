@@ -50,7 +50,7 @@ export function serveWithHeaders(html) {
   // A fixture build has different script bytes than the committed docs/, and test builds never write vercel.json:
   // re-pin script-src in memory to this page's own inline scripts (everything else in the header stays exactly as committed).
   if (!process.env.E2E_DOCS) {
-    const scripts = [...String(html).matchAll(/<script(?![^>]*\btype=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => cspHash(m[1]));
+    const scripts = [...String(html).matchAll(/<script(?![^>]*\b(?:type|src)=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => cspHash(m[1]));
     headers['Content-Security-Policy'] = withScriptHashes(headers['Content-Security-Policy'], scripts);
   }
   const server = createServer((req, res) => {

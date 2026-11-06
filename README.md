@@ -21,7 +21,7 @@ Works at 360 px wide and in light and dark mode. Charts and panels have text equ
 
 ## One file
 
-The build writes a single page, `docs/index.html`, with the data, styles and script inlined. Its fonts are served from the same site (`docs/fonts/`, SIL Open Font License), so the page makes no third-party request. It has no analytics, no cookies, and sends nothing anywhere.
+The build writes a single page, `docs/index.html`, with the data, styles and script inlined. Its fonts are served from the same site (`docs/fonts/`, SIL Open Font License), so the page makes no third-party request. It sets no cookies and makes no third-party request. Page views are counted anonymously with Vercel Web Analytics: the count is served from this same site, uses no personal identifiers, and sends only the page path. Nothing you enter in the calculator is sent.
 
 The build also pre-renders the story page and the Methods page into that HTML, so the text, figures and sources read without JavaScript (search and AI crawlers, reader modes, a slow phone before the script has run). It runs the page's own view code in Node against a lightweight DOM (linkedom), not in a browser, so the build needs no browser and stays byte-identical across machines. On load the script replaces the pre-rendered markup with its own render; the calculator, chart tooltips and hospital profiles need JavaScript.
 

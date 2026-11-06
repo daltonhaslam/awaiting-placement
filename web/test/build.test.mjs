@@ -155,8 +155,20 @@ const vercelCsp = () => {
   const cfg = JSON.parse(readFileSync(new URL('../vercel.json', new URL('..', import.meta.url)), 'utf8'));
   return cfg.headers[0].headers.find((x) => x.key === 'Content-Security-Policy').value;
 };
-const inlineScripts = () => [...html.matchAll(/<script(?![^>]*\btype=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+const inlineScripts = () => [...html.matchAll(/<script(?![^>]*\b(?:type|src)=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 
+test('analytics: Vercel script tag comes after every own script; beforeSend strips query and hash first', () => {
+  const tag = '<script defer src="/_vercel/insights/script.js"></script>';
+  assert.equal(html.split(tag).length, 2, 'exactly one insights tag');
+  assert.ok(html.indexOf(tag) > html.lastIndexOf('<script>'), 'after the last inline script');
+  const head = inlineScripts()[0];
+  assert.ok(head.indexOf("window.va('beforeSend'") >= 0, 'beforeSend queued in the first script');
+  const win = {};
+  new Function('window', head.slice(0, head.indexOf('try{var t=')))(win);
+  assert.equal(win.vaq.length, 1);
+  assert.equal(win.vaq[0][0], 'beforeSend');
+  assert.equal(win.vaq[0][1]({ url: 'https://x.test/p?a=1#b=2', type: 'pageview' }).url, 'https://x.test/p');
+});
 test('no inline event handlers, so no unsafe-inline is needed', () => {
   assert.doesNotMatch(html, /<[a-z][^>]*\son[a-z]+\s*=/i);
 });
@@ -165,11 +177,13 @@ test('CSP: exactly the two inline-script hashes, same-origin fonts, nothing else
   const csp = vercelCsp();
   const dir = Object.fromEntries(csp.split(';').map((d) => d.trim().split(/\s+/)).map(([k, ...v]) => [k, v]));
   assert.equal(inlineScripts().length, 2, 'theme head script + app bundle');
-  assert.equal(dir['script-src'].length, 2, 'no stale hashes');
-  assert.ok(dir['script-src'].every((v) => /^'sha256-[A-Za-z0-9+/=]+'$/.test(v)), `script-src: ${dir['script-src']}`);
+  assert.equal(dir['script-src'][0], "'self'", "'self' is for /_vercel/insights/script.js only");
+  assert.equal(dir['script-src'].length, 3, 'no stale hashes');
+  assert.ok(dir['script-src'].slice(1).every((v) => /^'sha256-[A-Za-z0-9+/=]+'$/.test(v)), `script-src: ${dir['script-src']}`);
   assert.deepEqual(dir['font-src'], ["'self'"]);
   assert.deepEqual(dir['img-src'], ["'self'", 'data:']);
-  for (const k of ['connect-src', 'object-src', 'base-uri', 'form-action', 'frame-ancestors']) assert.deepEqual(dir[k], ["'none'"], k);
+  assert.deepEqual(dir['connect-src'], ["'self'"], 'Vercel Web Analytics posts its page-view events to this origin');
+  for (const k of ['object-src', 'base-uri', 'form-action', 'frame-ancestors']) assert.deepEqual(dir[k], ["'none'"], k);
   assert.deepEqual(dir['require-trusted-types-for'], ["'script'"], 'no HTML string sinks (e2e:headers proves enforcement)');
   assert.doesNotMatch(csp, /https?:|blob:|unsafe-eval/);
 });

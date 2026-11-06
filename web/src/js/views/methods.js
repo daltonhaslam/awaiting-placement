@@ -232,7 +232,7 @@ function aboutPart(D) {
     h('p', null, 'The code and the data pipeline are public on ', h('a', { href: SITE.repo }, 'GitHub'),
       '. Corrections are welcome there as issues.'),
     built ? h('p', null, `The cost-report data runs through report periods ending ${fmtDate(built)}.`) : null,
-    h('p', null, 'The page loads everything it needs, fonts included, from this site. It has no analytics, no cookies, and sends nothing anywhere.'),
+    h('p', null, 'The page loads everything it needs, fonts included, from this site. It sets no cookies and makes no third-party request. Page views are counted anonymously with Vercel Web Analytics: the count is served from this same site, uses no personal identifiers, and sends only the page path. Nothing you enter in the calculator is sent.'),
     h('p', null, `${DISCLAIMER} Code MIT-licensed. Federal source data is public domain.`));
 }
 

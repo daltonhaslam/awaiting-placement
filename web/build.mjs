@@ -77,12 +77,16 @@ const title = `${SITE.name}: Medicare Advantage and hospital length of stay`;
 // themselves, inlined with the one module binding they read (SECTIONS); router.js keeps them ES5. Each part has its own
 // try/catch, so a failure in the route code cannot take the theme with it. Inline scripts are allowed by
 // their sha256 in the CSP (see below), not by 'unsafe-inline'.
-const HEAD_JS = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});`
+const HEAD_JS = `try{window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};window.va('beforeSend',function(e){e.url=e.url.split(/[?#]/)[0];return e})}catch(e){}`
+  + `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});`
   + `if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
   + `try{var SECTIONS=${JSON.stringify(SECTIONS)};var parseHash=${parseHash.toString()};var bootPage=${bootPage.toString()};`
   + `document.documentElement.setAttribute('data-boot',bootPage(parseHash(location.hash).view))}catch(e){}`;
 const HEAD = `<script>${HEAD_JS}</script>`;
 const APP_JS = escapeInlineScript(js);
+// Vercel Web Analytics: same-origin script (served by Vercel, no npm package), after the page's own scripts. It drains
+// window.va's queue, which HEAD_JS has seeded with a beforeSend that strips the query and hash from the URL.
+const INSIGHTS = '<script defer src="/_vercel/insights/script.js"></script>';
 
 // The story page and Methods, rendered from the same data, in place of the shell's placeholders.
 const pre = await prerender(parsed, { published: PUBLISHED, origin: SITE.url });
@@ -97,9 +101,9 @@ const doc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta na
   + `<meta property="og:title" content="${attr(title)}"><meta property="og:description" content="${attr(DESC)}"><meta property="og:type" content="website"><meta property="og:url" content="${CANON}">`
   + `<meta property="og:site_name" content="${attr(SITE.name)}"><meta property="og:locale" content="en_US">${OG}`
   + `${HEAD}${ICON}${PRELOAD}<style>${css}</style></head><body>${body}`
-  + `<script id="ap-data" type="application/json">${data}</script><script>${APP_JS}</script></body></html>`;
+  + `<script id="ap-data" type="application/json">${data}</script><script>${APP_JS}</script>${INSIGHTS}</body></html>`;
 
-// Pin the CSP's script-src to exactly these two inline scripts. Only the real build (default data, default output) may
+// Pin the CSP's script-src to 'self' plus exactly these two inline scripts. Only the real build (default data, default output) may
 // rewrite the tracked vercel.json; fixture/test builds must never touch tracked files, or vercel.json desyncs from docs/.
 if (!process.env.BUILD_OUT_DIR && !process.env.AP_DATA) {
   const vercelPath = fileURLToPath(here('../vercel.json'));
