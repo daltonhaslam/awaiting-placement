@@ -55,7 +55,11 @@ export function serveWithHeaders(html) {
   }
   const server = createServer((req, res) => {
     const path = new URL(req.url, 'http://x').pathname;
-    const file = path === '/' ? { type: 'text/html; charset=utf-8', body: html } : staticFile(req.url);
+    // /_vercel/insights/script.js is served by Vercel's platform, not from docs/: stand in with an empty script so the
+    // page loads as it does live and every other 404 still fails the checks.
+    const file = path === '/' ? { type: 'text/html; charset=utf-8', body: html }
+      : path === '/_vercel/insights/script.js' ? { type: 'text/javascript; charset=utf-8', body: '' }
+      : staticFile(req.url);
     res.writeHead(file ? 200 : 404, { 'Content-Type': file?.type ?? 'text/html; charset=utf-8', ...(path === '/' ? headers : headersFor(path)) });
     res.end(file?.body ?? '');
   }).listen(0);

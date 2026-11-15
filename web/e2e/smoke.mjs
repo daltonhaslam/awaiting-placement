@@ -181,7 +181,8 @@ for (const motion of ['no-preference', 'reduce']) {
 }
 // Before the bundle runs (head script only): the route's pre-rendered page shows, or "Loading…" for one not pre-rendered.
 {
-  const bare = String(html).replace(/<script>(?:(?!<\/script>)[\s\S])*<\/script><\/body>/, '</body>');
+  // The app is the last inline script; only external ones (Vercel's insights) may follow it before </body>.
+  const bare = String(html).replace(/<script>(?:(?!<\/script>)[\s\S])*<\/script>(?=(?:<script [^>]*\bsrc=[^>]*><\/script>)*<\/body>)/, '');
   check(bare !== String(html), 'app script found to strip');
   const srv = serveWithHeaders(bare);
   for (const [hash, want] of [['', 'home'], ['#calculator', 'home'], ['#methods', 'methods'], [`#hospital-${hospital.id}`, 'loading']]) {
