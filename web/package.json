@@ -11,11 +11,11 @@
     "shot": "node e2e/shot.mjs"
   },
   "dependencies": {
-    "d3-scale": "4.0.2"
+    "d3-scale": "4.0.3"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
-    "linkedom": "0.18.12",
-    "playwright": "1.64.0"
+    "linkedom": "0.18.15",
+    "playwright": "1.65.0"
   }
 }
