@@ -101,19 +101,18 @@ export function renderCalculator(D, { query } = {}) {
     const show = () => { input.value = shown(inputs[key]); flag(hint, 'hidden', true); };
     // While typing, only in-range values update the results and any clamp hint is cleared; an out-of-range value
     // is clamped, and the hint shown, when the reader commits the field (change).
+    const parse = () => { const raw = input.value.trim(); const n = Number(raw) / scale; return raw !== '' && isNum(n) ? n : null; };
     input.addEventListener('input', () => {
-      const raw = input.value.trim();
-      const n = Number(raw) / scale;
-      if (raw === '' || !isNum(n)) return; // keep the last valid value
+      const n = parse();
+      if (n == null) return; // keep the last valid value
       flag(hint, 'hidden', true);
       if (fit(key, n) !== n) return;
       inputs[key] = n;
       changed(input);
     });
     input.addEventListener('change', () => {
-      const raw = input.value.trim();
-      const n = Number(raw) / scale;
-      if (raw !== '' && isNum(n)) {
+      const n = parse();
+      if (n != null) {
         const fitted = fit(key, n);
         const off = fitted !== n;
         hint.textContent = off ? `Using ${shown(fitted)}${pct ? '%' : ''}, the ${fitted < n ? 'largest' : 'smallest'} value allowed.` : '';
