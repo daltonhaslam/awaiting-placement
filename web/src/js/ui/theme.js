@@ -14,8 +14,15 @@ export function themeButton() {
   const label = () => { btn.textContent = currentTheme() === 'dark' ? 'Day' : 'Night'; btn.setAttribute('aria-label', `Switch to ${btn.textContent.toLowerCase()} mode`); };
   btn.addEventListener('click', () => {
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    write(next);
+    // Choosing the system's own scheme undoes the override: follow the system again rather than pinning it.
+    const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (next === system) {
+      document.documentElement.removeAttribute('data-theme');
+      try { localStorage.removeItem(KEY); } catch { /* storage unavailable */ }
+    } else {
+      document.documentElement.setAttribute('data-theme', next);
+      write(next);
+    }
     label();
   });
   label();

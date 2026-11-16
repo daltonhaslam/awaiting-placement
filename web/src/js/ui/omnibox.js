@@ -13,7 +13,7 @@ export function omnibox(index, { label = 'Find a hospital', placeholder = 'Hospi
   const getIndex = typeof index === 'function' ? index : () => index;
   const listId = `omni-list-${uid}`;
   const input = h('input', {
-    type: 'search', id: `omni-${uid}`, placeholder, autocomplete: 'off', spellcheck: 'false',
+    type: 'search', id: `omni-${uid}`, placeholder, autocomplete: 'off', autocorrect: 'off', autocapitalize: 'none', spellcheck: 'false', enterkeyhint: 'search',
     role: 'combobox', 'aria-expanded': 'false', 'aria-controls': listId, 'aria-autocomplete': 'list',
   });
   const list = h('ul', { class: 'omni__list', id: listId, role: 'listbox', 'aria-label': label, hidden: true });

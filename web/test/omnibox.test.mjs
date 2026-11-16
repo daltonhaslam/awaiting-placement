@@ -27,6 +27,14 @@ const make = (onPick) => {
 };
 const opts = (list) => [...list.querySelectorAll('[role="option"]')];
 
+test('search field turns off mobile text correction and shows a search Enter key', () => {
+  const { input } = make();
+  assert.equal(input.getAttribute('autocorrect'), 'off');
+  assert.equal(input.getAttribute('autocapitalize'), 'none');
+  assert.equal(input.getAttribute('spellcheck'), 'false');
+  assert.equal(input.getAttribute('enterkeyhint'), 'search');
+});
+
 test('arrow keys move the highlight on the existing nodes and point aria-activedescendant at it', () => {
   const { input, list, type } = make();
   type('fixture');
