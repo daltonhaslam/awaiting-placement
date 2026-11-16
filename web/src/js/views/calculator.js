@@ -106,7 +106,7 @@ export function renderCalculator(D, { query } = {}) {
       const n = parse();
       if (n == null) return; // keep the last valid value
       flag(hint, 'hidden', true);
-      if (fit(key, n) !== n) return;
+      if (fit(key, n) !== n || n === inputs[key]) return;
       inputs[key] = n;
       changed(input);
     });

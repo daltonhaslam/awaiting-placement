@@ -4,6 +4,7 @@ import { THEME_KEY as KEY } from '../site.js';
 const write = (v) => { try { v == null ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, v); } catch { /* storage unavailable */ } };
 const DARK = '(prefers-color-scheme: dark)';
 const systemTheme = () => (window.matchMedia(DARK).matches ? 'dark' : 'light');
+let osScheme;
 
 export function currentTheme() {
   return document.documentElement.getAttribute('data-theme') || systemTheme();
@@ -25,8 +26,10 @@ export function themeButton() {
     }
     label();
   });
-  // Following the system, the label must track an OS scheme change made while the page is open.
-  window.matchMedia(DARK).addEventListener?.('change', label);
+  // Following the system, the label must track an OS scheme change made while the page is open. The list is kept at module
+  // scope: WebKit can garbage-collect an unreferenced MediaQueryList, which silently drops its listener.
+  osScheme ??= window.matchMedia(DARK);
+  osScheme.addEventListener?.('change', label);
   label();
   return btn;
 }

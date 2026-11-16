@@ -6,8 +6,10 @@ import { parseHTML } from 'linkedom';
 const dom = parseHTML('<!doctype html><html><head></head><body></body></html>');
 const store = new Map();
 let systemDark = false;
+const osListeners = [];
+const mql = { get matches() { return systemDark; }, addEventListener: (type, fn) => { if (type === 'change') osListeners.push(fn); } };
 Object.assign(globalThis, {
-  window: Object.assign(dom.window, { matchMedia: () => ({ matches: systemDark }) }),
+  window: Object.assign(dom.window, { matchMedia: () => mql }),
   document: dom.document,
   localStorage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: (k) => store.delete(k) },
 });
@@ -36,4 +38,15 @@ test('system dark: first click pins light, second click returns to following the
   click(btn);
   assert.equal(root.hasAttribute('data-theme'), false);
   assert.equal(store.has(THEME_KEY), false);
+});
+
+test('following the system, the label tracks an OS scheme change made while the page is open', () => {
+  systemDark = false;
+  root.removeAttribute('data-theme');
+  const btn = themeButton();
+  assert.equal(btn.textContent, 'Night');
+  systemDark = true;
+  osListeners.forEach((fn) => fn());
+  assert.equal(btn.textContent, 'Day');
+  assert.equal(btn.getAttribute('aria-label'), 'Switch to day mode');
 });
