@@ -99,17 +99,28 @@ export function renderCalculator(D, { query } = {}) {
       'aria-describedby': `${fieldId(name)}-hint` });
     const hint = h('span', { class: 'fld__hint', id: `${fieldId(name)}-hint`, hidden: true });
     const show = () => { input.value = shown(inputs[key]); flag(hint, 'hidden', true); };
+    // While typing, only in-range values update the results and any clamp hint is cleared; an out-of-range value
+    // is clamped, and the hint shown, when the reader commits the field (change).
+    const parse = () => { const raw = input.value.trim(); const n = Number(raw) / scale; return raw !== '' && isNum(n) ? n : null; };
     input.addEventListener('input', () => {
-      const raw = input.value.trim();
-      const n = Number(raw) / scale;
-      if (raw === '' || !isNum(n)) return; // keep the last valid value
-      inputs[key] = fit(key, n);
-      const off = inputs[key] !== n;
-      hint.textContent = off ? `Using ${shown(inputs[key])}${pct ? '%' : ''}, the ${inputs[key] < n ? 'largest' : 'smallest'} value allowed.` : '';
-      flag(hint, 'hidden', !off);
+      const n = parse();
+      if (n == null) return; // keep the last valid value
+      flag(hint, 'hidden', true);
+      if (fit(key, n) !== n || n === inputs[key]) return;
+      inputs[key] = n;
       changed(input);
     });
-    input.addEventListener('change', () => { input.value = shown(inputs[key]); });
+    input.addEventListener('change', () => {
+      const n = parse();
+      if (n != null) {
+        const fitted = fit(key, n);
+        const off = fitted !== n;
+        hint.textContent = off ? `Using ${shown(fitted)}${pct ? '%' : ''}, the ${fitted < n ? 'largest' : 'smallest'} value allowed.` : '';
+        flag(hint, 'hidden', !off);
+        if (fitted !== inputs[key]) { inputs[key] = fitted; changed(input); }
+      }
+      input.value = shown(inputs[key]);
+    });
     controls.push({ input, show });
     return h('div', { class: 'fld' },
       h('label', { class: hideLabel ? 'visually-hidden' : 'fld__label', for: input.id }, label),

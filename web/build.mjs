@@ -96,7 +96,7 @@ const fill = (html, name, markup) => {
   return html.replace(mark, () => markup);
 };
 const body = fill(fill(read('src/shell.html'), 'main', pre.main), 'footer', pre.footer);
-const doc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`
+const doc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="light dark">`
   + `<title>${attr(title)}</title><meta name="description" content="${attr(DESC)}"><link rel="canonical" href="${CANON}">${THEME_COLOR}`
   + `<meta property="og:title" content="${attr(title)}"><meta property="og:description" content="${attr(DESC)}"><meta property="og:type" content="website"><meta property="og:url" content="${CANON}">`
   + `<meta property="og:site_name" content="${attr(SITE.name)}"><meta property="og:locale" content="en_US">${OG}`

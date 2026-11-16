@@ -180,15 +180,19 @@ test('typed values: garbage keeps the last valid value; out-of-range clamps on c
   assert.equal(readout(el), start);
   clean(el);
   set(beds, '99999');
+  assert.equal(readout(el), start, 'out-of-range text does not repaint mid-typing');
   set(beds, '99999', 'change');
   assert.equal(beds.value, String(D.model.ranges.beds[1]), 'clamped to the range on commit');
   set(beds, '', 'change');
   assert.equal(beds.value, String(D.model.ranges.beds[1]), 'empty commit restores the last valid value');
   const pct = field(el, 'occ');
   set(pct, '250');
-  assert.match(text(pct.closest('.fld')), /Using 100%, the largest value allowed/);
+  assert.doesNotMatch(text(pct.closest('.fld')), /Using 100%/, 'no clamp hint while typing');
   set(pct, '250', 'change');
+  assert.match(text(pct.closest('.fld')), /Using 100%, the largest value allowed/, 'clamp hint on commit');
   assert.equal(pct.value, '100');
+  set(pct, '50');
+  assert.ok(pct.closest('.fld').querySelector('.fld__hint').hasAttribute('hidden'), 'hint cleared when typing again');
   clean(el);
 });
 
